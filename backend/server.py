@@ -243,7 +243,6 @@ async def register(user_data: UserCreate):
         "cover_photo": "",
         "date_of_birth": "",
         "location": "",
-        "website": "",
         "profile_completed": False,
         "followers_count": 0,
         "following_count": 0,
