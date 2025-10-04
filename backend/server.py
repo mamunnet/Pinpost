@@ -204,7 +204,7 @@ async def get_optional_user(credentials: Optional[HTTPAuthorizationCredentials] 
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")
         return user_id
-    except:
+    except Exception:
         return None
 
 async def create_notification(user_id: str, notif_type: str, actor_id: str, actor_username: str, actor_avatar: str, message: str, post_id: str = None, post_type: str = None, comment_id: str = None):
