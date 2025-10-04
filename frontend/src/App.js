@@ -186,17 +186,24 @@ const PostCard = ({ post, onLike, onComment }) => {
         {/* Header */}
         <div className="flex items-center space-x-3">
           <Link to={`/profile/${post.author_username}`}>
-            <Avatar className="w-10 h-10">
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-teal-500 text-white">
-                {post.author_username[0].toUpperCase()}
-              </AvatarFallback>
+            <Avatar className="w-12 h-12">
+              {post.author_avatar ? (
+                <img src={post.author_avatar} alt={post.author_name || post.author_username} className="w-full h-full object-cover rounded-full" />
+              ) : (
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-teal-500 text-white">
+                  {(post.author_name || post.author_username)[0].toUpperCase()}
+                </AvatarFallback>
+              )}
             </Avatar>
           </Link>
           <div className="flex-1">
-            <Link to={`/profile/${post.author_username}`} className="font-semibold hover:underline">
-              {post.author_username}
+            <Link to={`/profile/${post.author_username}`} className="block hover:underline">
+              <p className="font-semibold text-gray-900 text-base">
+                {post.author_name || post.author_username}
+              </p>
+              <p className="text-sm text-gray-500">@{post.author_username}</p>
             </Link>
-            <p className="text-sm text-gray-500">{formatDate(post.created_at)}</p>
+            <p className="text-xs text-gray-400 mt-1">{formatDate(post.created_at)}</p>
           </div>
         </div>
 
