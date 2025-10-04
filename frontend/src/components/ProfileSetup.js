@@ -50,9 +50,11 @@ export const ProfileSetup = ({ user, onComplete }) => {
         const uploadFormData = new FormData();
         uploadFormData.append('file', file);
         
+        const token = localStorage.getItem('token');
         const response = await axios.post(`${API}/upload/image`, uploadFormData, {
           headers: {
             'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`
           },
         });
         
