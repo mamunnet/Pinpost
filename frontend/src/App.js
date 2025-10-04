@@ -910,6 +910,160 @@ const ProfilePage = ({ currentUser }) => {
   );
 };
 
+const TrendingPage = ({ user }) => {
+  const [trendingPosts, setTrendingPosts] = useState([]);
+  const [trendingBlogs, setTrendingBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTrendingContent();
+  }, []);
+
+  const fetchTrendingContent = async () => {
+    try {
+      // For now, fetch all posts and blogs and sort by engagement
+      const [postsRes, blogsRes] = await Promise.all([
+        axios.get(`${API}/posts`),
+        axios.get(`${API}/blogs`)
+      ]);
+      
+      // Sort by likes + comments for trending algorithm
+      const sortedPosts = postsRes.data.sort((a, b) => 
+        ((b.likes_count || 0) + (b.comments_count || 0)) - 
+        ((a.likes_count || 0) + (a.comments_count || 0))
+      ).slice(0, 10);
+      
+      const sortedBlogs = blogsRes.data.sort((a, b) => 
+        ((b.likes_count || 0) + (b.comments_count || 0)) - 
+        ((a.likes_count || 0) + (a.comments_count || 0))
+      ).slice(0, 5);
+      
+      setTrendingPosts(sortedPosts);
+      setTrendingBlogs(sortedBlogs);
+    } catch (error) {
+      toast.error('Failed to load trending content');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLike = async (item) => {
+    try {
+      if (item.liked_by_user) {
+        await axios.delete(`${API}/likes/${item.type || 'post'}/${item.id}`);
+      } else {
+        await axios.post(`${API}/likes/${item.type || 'post'}/${item.id}`);
+      }
+      fetchTrendingContent();
+    } catch (error) {
+      toast.error('Failed to update like');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center pt-20">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading trending content...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 pt-20 pb-12">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Trending</h1>
+          <p className="text-gray-600">Discover the most popular content on PenLink</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Trending Posts */}
+          <div className="lg:col-span-2 space-y-6">
+            <div>
+              <h2 className="text-2xl font-semibold mb-4 flex items-center">
+                <MessageCircle className="w-6 h-6 mr-2 text-purple-600" />
+                Trending Posts
+              </h2>
+              <div className="space-y-4">
+                {trendingPosts.map((post, index) => (
+                  <Card key={post.id} className="relative">
+                    <div className="absolute top-4 left-4">
+                      <Badge className="bg-gradient-to-r from-purple-500 to-pink-500">
+                        #{index + 1}
+                      </Badge>
+                    </div>
+                    <div className="pt-12">
+                      <PostCard post={post} onLike={() => handleLike({ ...post, type: 'post' })} onComment={fetchTrendingContent} />
+                    </div>
+                  </Card>
+                ))}
+                {trendingPosts.length === 0 && (
+                  <Card>
+                    <CardContent className="text-center py-12 text-gray-600">
+                      No trending posts yet
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Trending Blogs Sidebar */}
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold mb-4 flex items-center">
+                <FileText className="w-5 h-5 mr-2 text-pink-600" />
+                Trending Blogs
+              </h2>
+              <div className="space-y-4">
+                {trendingBlogs.map((blog, index) => (
+                  <Card key={blog.id} className="hover:shadow-lg transition-all cursor-pointer" onClick={() => window.location.href = `/blog/${blog.id}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Badge variant="outline" className="text-xs">
+                          #{index + 1}
+                        </Badge>
+                        <Avatar className="w-6 h-6">
+                          <AvatarFallback className="text-xs bg-gradient-to-br from-pink-500 to-purple-500 text-white">
+                            {blog.author_username[0].toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm font-medium text-gray-600">{blog.author_username}</span>
+                      </div>
+                      <h3 className="font-semibold text-sm line-clamp-2 mb-2">{blog.title}</h3>
+                      <div className="flex items-center space-x-3 text-xs text-gray-500">
+                        <span className="flex items-center">
+                          <Heart className="w-3 h-3 mr-1" />
+                          {blog.likes_count || 0}
+                        </span>
+                        <span className="flex items-center">
+                          <MessageCircle className="w-3 h-3 mr-1" />
+                          {blog.comments_count || 0}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                {trendingBlogs.length === 0 && (
+                  <Card>
+                    <CardContent className="text-center py-8 text-gray-600">
+                      <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                      <p className="text-sm">No trending blogs yet</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AuthPage = ({ onLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
