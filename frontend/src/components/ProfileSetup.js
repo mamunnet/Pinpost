@@ -46,15 +46,32 @@ export const ProfileSetup = ({ user, onComplete }) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleFileUpload = (field, file) => {
+  const handleFileUpload = async (field, file) => {
     if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = e.target.result;
+      try {
+        // Show loading state
+        toast.loading('Uploading image...');
+        
+        // Upload to server
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await axios.post(`${API}/upload/image`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        
+        // Use server URL
+        const imageUrl = `${BACKEND_URL}${response.data.url}`;
         setFormData(prev => ({ ...prev, [field]: imageUrl }));
         setImageFiles(prev => ({ ...prev, [field]: file }));
-      };
-      reader.readAsDataURL(file);
+        
+        toast.success('Image uploaded successfully!');
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast.error('Failed to upload image. Please try again.');
+      }
     } else {
       toast.error('Please select a valid image file');
     }
