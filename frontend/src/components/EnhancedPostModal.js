@@ -96,11 +96,8 @@ export const EnhancedPostModal = ({ onClose }) => {
   return (
     <div className="relative">
       {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b">
-        <h2 className="text-xl font-semibold">Create {contentType === 'post' ? 'Post' : 'Blog'}</h2>
-        <button onClick={onClose} className="hover:bg-gray-100 p-2 rounded-full" data-testid="close-modal-btn">
-          <X className="w-5 h-5" />
-        </button>
+      <div className="pb-4 border-b">
+        <h2 className="text-xl font-semibold text-center">Create {contentType === 'post' ? 'Post' : 'Blog'}</h2>
       </div>
 
       {/* Type Selector */}
