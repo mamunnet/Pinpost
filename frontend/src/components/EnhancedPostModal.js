@@ -3,9 +3,8 @@ import axios from "axios";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Smile, MapPin, Palette, Upload, Bold, Italic, List, Heading } from "lucide-react";
+import { MapPin, Palette, Upload, Bold, Italic, List, Heading, Image as ImageIcon, AtSign } from "lucide-react";
 import { toast } from "sonner";
-import EmojiPicker from 'emoji-picker-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -19,13 +18,14 @@ const bgColors = [
   { name: 'Golden', value: '#F59E0B', gradient: 'bg-gradient-to-br from-yellow-400 to-orange-500' },
 ];
 
-export const EnhancedPostModal = ({ onClose }) => {
+export const EnhancedPostModal = ({ onClose, currentUser }) => {
   const [contentType, setContentType] = useState('post');
   const [postContent, setPostContent] = useState('');
+  const [postImage, setPostImage] = useState('');
   const [location, setLocation] = useState('');
   const [bgColor, setBgColor] = useState('transparent');
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showBgPicker, setShowBgPicker] = useState(false);
+  const [uploadingPostImage, setUploadingPostImage] = useState(false);
   
   // Blog fields
   const [blogTitle, setBlogTitle] = useState('');
@@ -37,7 +37,35 @@ export const EnhancedPostModal = ({ onClose }) => {
   
   const [loading, setLoading] = useState(false);
 
-  const handleImageUpload = async (event) => {
+  const handlePostImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB');
+      return;
+    }
+
+    setUploadingPostImage(true);
+    try {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPostImage(reader.result);
+        toast.success('Image uploaded!');
+        setUploadingPostImage(false);
+      };
+      reader.onerror = () => {
+        toast.error('Failed to read image');
+        setUploadingPostImage(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      toast.error('Failed to upload image');
+      setUploadingPostImage(false);
+    }
+  };
+
+  const handleBlogImageUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -63,15 +91,6 @@ export const EnhancedPostModal = ({ onClose }) => {
       toast.error('Failed to upload image');
       setUploadingImage(false);
     }
-  };
-
-  const handleEmojiClick = (emojiData) => {
-    if (contentType === 'post') {
-      setPostContent(prev => prev + emojiData.emoji);
-    } else {
-      setBlogContent(prev => prev + emojiData.emoji);
-    }
-    setShowEmojiPicker(false);
   };
 
   const insertFormatting = (format) => {
@@ -106,21 +125,24 @@ export const EnhancedPostModal = ({ onClose }) => {
     const newContent = blogContent.substring(0, start) + newText + blogContent.substring(end);
     setBlogContent(newContent);
     
-    // Focus textarea
     setTimeout(() => textarea.focus(), 0);
   };
 
   const handleCreatePost = async () => {
-    if (!postContent.trim()) {
-      toast.error('Please write something');
+    if (!postContent.trim() && !postImage) {
+      toast.error('Please write something or add an image');
       return;
     }
 
     setLoading(true);
     try {
-      const content = location 
-        ? `${postContent}\n📍 ${location}` 
-        : postContent;
+      let content = postContent;
+      if (location) {
+        content += `\n📍 ${location}`;
+      }
+      if (postImage) {
+        content += `\n[IMAGE]${postImage}`;
+      }
       
       await axios.post(`${API}/posts`, { content });
       toast.success('Post created!');
@@ -170,14 +192,12 @@ export const EnhancedPostModal = ({ onClose }) => {
         <button
           onClick={() => setContentType('post')}
           className={`flex-1 py-3 font-medium ${contentType === 'post' ? 'border-b-2 border-rose-600 text-rose-600' : 'text-gray-600'}`}
-          data-testid="select-post-type"
         >
           Quick Post
         </button>
         <button
           onClick={() => setContentType('blog')}
           className={`flex-1 py-3 font-medium ${contentType === 'blog' ? 'border-b-2 border-rose-600 text-rose-600' : 'text-gray-600'}`}
-          data-testid="select-blog-type"
         >
           Blog Article
         </button>
@@ -195,9 +215,21 @@ export const EnhancedPostModal = ({ onClose }) => {
                 onChange={(e) => setPostContent(e.target.value)}
                 rows={6}
                 className={`resize-none border-0 ${bgColor !== 'transparent' ? 'bg-transparent text-white placeholder:text-white/80 font-medium text-lg' : ''}`}
-                data-testid="post-textarea"
               />
             </div>
+
+            {/* Post Image Preview */}
+            {postImage && (
+              <div className="relative">
+                <img src={postImage} alt="Post" className="w-full max-h-96 object-cover rounded-lg" />
+                <button
+                  onClick={() => setPostImage('')}
+                  className="absolute top-2 right-2 bg-black/60 text-white px-3 py-1 rounded-full text-sm hover:bg-black/80"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
 
             {/* Location Input */}
             {location !== null && (
@@ -208,15 +240,7 @@ export const EnhancedPostModal = ({ onClose }) => {
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   className="flex-1"
-                  data-testid="location-input"
                 />
-              </div>
-            )}
-
-            {/* Emoji Picker */}
-            {showEmojiPicker && (
-              <div className="absolute z-50 mt-2">
-                <EmojiPicker onEmojiClick={handleEmojiClick} />
               </div>
             )}
 
@@ -241,13 +265,20 @@ export const EnhancedPostModal = ({ onClose }) => {
             {/* Action Buttons */}
             <div className="flex items-center justify-between pt-3 border-t">
               <div className="flex space-x-2">
-                <button
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  className="p-2 hover:bg-gray-100 rounded-full"
-                  title="Add emoji"
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePostImageUpload}
+                  className="hidden"
+                  id="post-image-upload"
+                />
+                <label
+                  htmlFor="post-image-upload"
+                  className="p-2 hover:bg-gray-100 rounded-full cursor-pointer"
+                  title="Add photo"
                 >
-                  <Smile className="w-5 h-5 text-gray-600" />
-                </button>
+                  <ImageIcon className="w-5 h-5 text-green-600" />
+                </label>
                 <button
                   onClick={() => setLocation(location === null ? '' : null)}
                   className="p-2 hover:bg-gray-100 rounded-full"
@@ -263,7 +294,7 @@ export const EnhancedPostModal = ({ onClose }) => {
                   <Palette className={`w-5 h-5 ${bgColor !== 'transparent' ? 'text-rose-600' : 'text-gray-600'}`} />
                 </button>
               </div>
-              <Button onClick={handleCreatePost} disabled={loading} data-testid="publish-post-btn">
+              <Button onClick={handleCreatePost} disabled={loading}>
                 Post
               </Button>
             </div>
@@ -275,7 +306,6 @@ export const EnhancedPostModal = ({ onClose }) => {
               value={blogTitle}
               onChange={(e) => setBlogTitle(e.target.value)}
               className="text-lg font-semibold"
-              data-testid="blog-title-input"
             />
             
             {/* Image Upload */}
@@ -285,7 +315,7 @@ export const EnhancedPostModal = ({ onClose }) => {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={handleImageUpload}
+                  onChange={handleBlogImageUpload}
                   className="hidden"
                   id="blog-image-upload"
                 />
@@ -314,58 +344,29 @@ export const EnhancedPostModal = ({ onClose }) => {
               placeholder="Brief excerpt"
               value={blogExcerpt}
               onChange={(e) => setBlogExcerpt(e.target.value)}
-              data-testid="blog-excerpt-input"
             />
 
             {/* Formatting Toolbar */}
             <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg border">
-              <button
-                onClick={() => insertFormatting('heading1')}
-                className="p-2 hover:bg-gray-200 rounded"
-                title="Heading 1"
-              >
+              <button onClick={() => insertFormatting('heading1')} className="p-2 hover:bg-gray-200 rounded" title="Heading 1">
                 <Heading className="w-4 h-4" />
               </button>
-              <button
-                onClick={() => insertFormatting('heading2')}
-                className="p-2 hover:bg-gray-200 rounded text-sm font-bold"
-                title="Heading 2"
-              >
+              <button onClick={() => insertFormatting('heading2')} className="p-2 hover:bg-gray-200 rounded text-sm font-bold" title="Heading 2">
                 H2
               </button>
-              <button
-                onClick={() => insertFormatting('bold')}
-                className="p-2 hover:bg-gray-200 rounded"
-                title="Bold"
-              >
+              <button onClick={() => insertFormatting('bold')} className="p-2 hover:bg-gray-200 rounded" title="Bold">
                 <Bold className="w-4 h-4" />
               </button>
-              <button
-                onClick={() => insertFormatting('italic')}
-                className="p-2 hover:bg-gray-200 rounded"
-                title="Italic"
-              >
+              <button onClick={() => insertFormatting('italic')} className="p-2 hover:bg-gray-200 rounded" title="Italic">
                 <Italic className="w-4 h-4" />
               </button>
-              <button
-                onClick={() => insertFormatting('list')}
-                className="p-2 hover:bg-gray-200 rounded"
-                title="List"
-              >
+              <button onClick={() => insertFormatting('list')} className="p-2 hover:bg-gray-200 rounded" title="List">
                 <List className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                className="p-2 hover:bg-gray-200 rounded ml-auto"
-                title="Emoji"
-              >
-                <Smile className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Content Textarea with Markdown support */}
             <Textarea
-              placeholder="Write your blog content... (Markdown supported: # Heading, **bold**, *italic*, - list)"
+              placeholder="Write your blog content... (Markdown: # Heading, **bold**, *italic*, - list)"
               value={blogContent}
               onChange={(e) => setBlogContent(e.target.value)}
               rows={12}
@@ -373,21 +374,14 @@ export const EnhancedPostModal = ({ onClose }) => {
               data-testid="blog-content-textarea"
             />
 
-            {showEmojiPicker && (
-              <div className="absolute z-50 right-0">
-                <EmojiPicker onEmojiClick={handleEmojiClick} />
-              </div>
-            )}
-
             <Input
               placeholder="Tags (comma separated)"
               value={blogTags}
               onChange={(e) => setBlogTags(e.target.value)}
-              data-testid="blog-tags-input"
             />
 
             <div className="flex justify-end pt-3 border-t">
-              <Button onClick={handleCreateBlog} disabled={loading} data-testid="publish-blog-btn">
+              <Button onClick={handleCreateBlog} disabled={loading}>
                 Publish Blog
               </Button>
             </div>
