@@ -893,6 +893,36 @@ const EditProfileModal = ({ user, onUpdate }) => {
   const [bio, setBio] = useState(user.bio);
   const [avatar, setAvatar] = useState(user.avatar || '');
   const [loading, setLoading] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const handleAvatarUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Check file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image size should be less than 2MB');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatar(reader.result);
+        toast.success('Profile picture uploaded!');
+        setUploadingAvatar(false);
+      };
+      reader.onerror = () => {
+        toast.error('Failed to read image');
+        setUploadingAvatar(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      toast.error('Failed to upload image');
+      setUploadingAvatar(false);
+    }
+  };
 
   const handleUpdate = async () => {
     setLoading(true);
@@ -904,6 +934,7 @@ const EditProfileModal = ({ user, onUpdate }) => {
       
       if (Object.keys(updates).length === 0) {
         toast.info('No changes to save');
+        setLoading(false);
         return;
       }
 
@@ -930,15 +961,31 @@ const EditProfileModal = ({ user, onUpdate }) => {
             </AvatarFallback>
           )}
         </Avatar>
-        <div className="w-full">
-          <Label>Profile Picture URL</Label>
-          <Input
-            placeholder="Enter image URL"
-            value={avatar}
-            onChange={(e) => setAvatar(e.target.value)}
-            data-testid="avatar-url-input"
+        <div className="w-full space-y-2">
+          <Label>Profile Picture</Label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarUpload}
+            className="hidden"
+            id="avatar-upload"
+            data-testid="avatar-upload-input"
           />
-          <p className="text-xs text-gray-500 mt-1">Enter a URL to your profile picture</p>
+          <label
+            htmlFor="avatar-upload"
+            className="flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 w-full"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="text-sm">{uploadingAvatar ? 'Uploading...' : 'Upload New Photo'}</span>
+          </label>
+          {avatar && (
+            <button
+              onClick={() => setAvatar('')}
+              className="text-xs text-red-600 hover:underline w-full text-center"
+            >
+              Remove Photo
+            </button>
+          )}
         </div>
       </div>
 
