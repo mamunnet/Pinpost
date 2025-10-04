@@ -513,6 +513,8 @@ async def create_comment(post_type: str, post_id: str, comment_data: CommentCrea
         raise HTTPException(status_code=400, detail="Invalid post type")
     
     user = await db.users.find_one({"id": user_id})
+    collection = db.blog_posts if post_type == "blog" else db.short_posts
+    post = await collection.find_one({"id": post_id})
     
     comment_id = str(uuid.uuid4())
     comment = {
@@ -527,8 +529,21 @@ async def create_comment(post_type: str, post_id: str, comment_data: CommentCrea
     }
     await db.comments.insert_one(comment)
     
-    collection = db.blog_posts if post_type == "blog" else db.short_posts
     await collection.update_one({"id": post_id}, {"$inc": {"comments_count": 1}})
+    
+    # Create notification
+    if post:
+        await create_notification(
+            user_id=post["author_id"],
+            notif_type="comment",
+            actor_id=user_id,
+            actor_username=user["username"],
+            actor_avatar=user.get("avatar", ""),
+            message=f"{user['username']} commented on your {post_type}",
+            post_id=post_id,
+            post_type=post_type,
+            comment_id=comment_id
+        )
     
     return Comment(**comment)
 
