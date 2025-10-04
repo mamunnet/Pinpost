@@ -91,11 +91,23 @@ export const ProfileSetup = ({ user, onComplete }) => {
 
     setLoading(true);
     try {
-      const response = await axios.post(`${API}/auth/setup-profile`, formData);
+      // Prepare data for API
+      const profileData = {
+        name: formData.name.trim(),
+        bio: formData.bio.trim(),
+        avatar: formData.avatar || "",
+        cover_photo: formData.cover_photo || "",
+        date_of_birth: formData.date_of_birth || "",
+        location: formData.location.trim() || ""
+      };
+
+      const response = await axios.post(`${API}/auth/setup-profile`, profileData);
       toast.success("Profile setup complete! Welcome to PenLink!");
       onComplete(response.data);
     } catch (error) {
-      toast.error("Failed to setup profile. Please try again.");
+      console.error("Profile setup error:", error);
+      const errorMessage = error.response?.data?.detail || "Failed to setup profile. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
