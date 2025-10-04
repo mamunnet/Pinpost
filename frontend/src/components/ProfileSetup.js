@@ -294,272 +294,160 @@ export const ProfileSetup = ({ user, onComplete }) => {
               </div>
             )}
 
-            {/* Step 2: Photos */}
+            {/* Step 2: Cover Photo */}
             {step === 2 && (
               <div className="space-y-6">
                 <div className="text-center mb-6">
-                  <h3 className="text-xl font-semibold mb-2">Add Your Photos</h3>
-                  <p className="text-gray-600">Upload photos from your gallery and adjust their positioning</p>
+                  <h3 className="text-xl font-semibold mb-2">Add Your Cover Photo</h3>
+                  <p className="text-gray-600">Choose a cover photo that represents you</p>
                 </div>
 
-                <div className="space-y-8">
-                  {/* Profile Photo Section */}
-                  <div>
-                    <Label className="text-base font-medium flex items-center space-x-2 mb-4">
-                      <Camera className="w-4 h-4" />
-                      <span>Profile Photo</span>
+                {/* Cover Photo Preview */}
+                <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 h-40">
+                  {formData.cover_photo ? (
+                    <img 
+                      src={formData.cover_photo} 
+                      alt="Cover" 
+                      className="w-full h-full object-cover"
+                      style={getImageStyle(coverPosition)}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-white">
+                      <div className="text-center">
+                        <Camera className="w-12 h-12 mx-auto mb-2 opacity-60" />
+                        <p className="text-lg font-medium opacity-80">No cover photo yet</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <button
+                    onClick={() => coverInputRef.current?.click()}
+                    disabled={uploadingImage}
+                    className="absolute bottom-4 right-4 px-4 py-2 bg-white/90 hover:bg-white text-gray-800 rounded-lg flex items-center space-x-2 transition-colors"
+                  >
+                    {uploadingImage ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
+                        <span>Uploading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="w-4 h-4" />
+                        <span>{formData.cover_photo ? 'Change' : 'Add'} Cover</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Cover Photo Upload */}
+                <div>
+                  <div 
+                    onClick={() => !uploadingImage && coverInputRef.current?.click()}
+                    className={`border-2 border-dashed border-gray-300 rounded-lg p-8 text-center transition-all ${
+                      uploadingImage 
+                        ? 'cursor-wait bg-blue-50 border-blue-300' 
+                        : 'cursor-pointer hover:border-blue-400 hover:bg-blue-50'
+                    }`}
+                  >
+                    {uploadingImage ? (
+                      <>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                        <p className="text-sm text-blue-600">Uploading cover photo...</p>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
+                        <p className="text-base text-gray-700 font-medium">Click to upload cover photo</p>
+                        <p className="text-sm text-gray-500 mt-1">JPG, PNG, WebP up to 10MB</p>
+                        <p className="text-xs text-gray-400 mt-2">Recommended: 1200 x 400 pixels</p>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload('cover_photo', e.target.files[0])}
+                    className="hidden"
+                  />
+                </div>
+
+                {/* Cover Photo Position Controls */}
+                {formData.cover_photo && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <Label className="text-sm font-medium mb-4 block flex items-center">
+                      <Move3D className="w-4 h-4 mr-2" />
+                      Adjust Cover Photo Position
                     </Label>
-                    
-                    {/* Upload Methods */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="space-y-4">
                       <div>
-                        <Label className="text-sm text-gray-600 mb-2 block">Upload from Gallery</Label>
-                        <div 
-                          onClick={() => !uploadingImage.avatar && avatarInputRef.current?.click()}
-                          className={`border-2 border-dashed border-gray-300 rounded-lg p-6 text-center transition-all ${
-                            uploadingImage.avatar 
-                              ? 'cursor-wait bg-rose-50 border-rose-300' 
-                              : 'cursor-pointer hover:border-rose-400 hover:bg-rose-50'
-                          }`}
-                        >
-                          {uploadingImage.avatar ? (
-                            <>
-                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600 mx-auto mb-2"></div>
-                              <p className="text-sm text-rose-600">Uploading...</p>
-                            </>
-                          ) : (
-                            <>
-                              <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                              <p className="text-sm text-gray-600">Click to upload photo</p>
-                              <p className="text-xs text-gray-400">JPG, PNG, WebP up to 5MB</p>
-                            </>
-                          )}
-                        </div>
-                        <input
-                          ref={avatarInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleFileUpload('avatar', e.target.files[0])}
-                          className="hidden"
+                        <Label className="text-xs text-gray-600">Horizontal Position</Label>
+                        <Slider
+                          value={[coverPosition.x]}
+                          onValueChange={([x]) => setCoverPosition(prev => ({ ...prev, x }))}
+                          max={100}
+                          step={1}
+                          className="mt-2"
                         />
+                        <div className="flex justify-between text-xs text-gray-400 mt-1">
+                          <span>Left</span>
+                          <span>Center</span>
+                          <span>Right</span>
+                        </div>
                       </div>
                       
                       <div>
-                        <Label className="text-sm text-gray-600 mb-2 block">Or Enter URL</Label>
-                        <Input
-                          placeholder="https://example.com/photo.jpg"
-                          value={formData.avatar}
-                          onChange={(e) => handleInputChange('avatar', e.target.value)}
-                          className="h-12"
+                        <Label className="text-xs text-gray-600">Vertical Position</Label>
+                        <Slider
+                          value={[coverPosition.y]}
+                          onValueChange={([y]) => setCoverPosition(prev => ({ ...prev, y }))}
+                          max={100}
+                          step={1}
+                          className="mt-2"
                         />
-                      </div>
-                    </div>
-
-                    {/* Profile Photo Preview & Controls */}
-                    {formData.avatar && (
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <Label className="text-sm font-medium">Preview & Positioning</Label>
-                          <Button
-                            onClick={() => toggleImageControls('avatar')}
-                            variant="outline"
-                            size="sm"
-                          >
-                            <Move className="w-4 h-4 mr-1" />
-                            Adjust Position
-                          </Button>
+                        <div className="flex justify-between text-xs text-gray-400 mt-1">
+                          <span>Top</span>
+                          <span>Center</span>
+                          <span>Bottom</span>
                         </div>
-                        
-                        <div className="flex items-center space-x-6">
-                          <div className="relative">
-                            <img 
-                              src={formData.avatar} 
-                              alt="Profile preview" 
-                              className="w-24 h-24 rounded-full border-4 border-white shadow-lg"
-                              style={imageStyles.avatar}
-                            />
-                          </div>
-                          
-                          {showImageControls.avatar && (
-                            <div className="flex-1 space-y-3">
-                              <div>
-                                <Label className="text-xs text-gray-600">Fit Type</Label>
-                                <Select 
-                                  value={imageStyles.avatar.objectFit} 
-                                  onValueChange={(value) => handleImageAlignment('avatar', 'objectFit', value)}
-                                >
-                                  <SelectTrigger className="h-8">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="cover">Cover (Fill circle)</SelectItem>
-                                    <SelectItem value="contain">Contain (Fit inside)</SelectItem>
-                                    <SelectItem value="fill">Fill (Stretch)</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              
-                              <div>
-                                <Label className="text-xs text-gray-600">Position</Label>
-                                <Select 
-                                  value={imageStyles.avatar.objectPosition} 
-                                  onValueChange={(value) => handleImageAlignment('avatar', 'objectPosition', value)}
-                                >
-                                  <SelectTrigger className="h-8">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="center center">Center</SelectItem>
-                                    <SelectItem value="top center">Top</SelectItem>
-                                    <SelectItem value="bottom center">Bottom</SelectItem>
-                                    <SelectItem value="center left">Left</SelectItem>
-                                    <SelectItem value="center right">Right</SelectItem>
-                                    <SelectItem value="top left">Top Left</SelectItem>
-                                    <SelectItem value="top right">Top Right</SelectItem>
-                                    <SelectItem value="bottom left">Bottom Left</SelectItem>
-                                    <SelectItem value="bottom right">Bottom Right</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Cover Photo Section */}
-                  <div>
-                    <Label className="text-base font-medium flex items-center space-x-2 mb-4">
-                      <Camera className="w-4 h-4" />
-                      <span>Cover Photo</span>
-                    </Label>
-                    
-                    {/* Upload Methods */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <Label className="text-sm text-gray-600 mb-2 block">Upload from Gallery</Label>
-                        <div 
-                          onClick={() => !uploadingImage.cover && coverInputRef.current?.click()}
-                          className={`border-2 border-dashed border-gray-300 rounded-lg p-6 text-center transition-all ${
-                            uploadingImage.cover 
-                              ? 'cursor-wait bg-amber-50 border-amber-300' 
-                              : 'cursor-pointer hover:border-amber-400 hover:bg-amber-50'
-                          }`}
-                        >
-                          {uploadingImage.cover ? (
-                            <>
-                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600 mx-auto mb-2"></div>
-                              <p className="text-sm text-amber-600">Uploading...</p>
-                            </>
-                          ) : (
-                            <>
-                              <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                              <p className="text-sm text-gray-600">Click to upload cover</p>
-                              <p className="text-xs text-gray-400">JPG, PNG, WebP up to 10MB</p>
-                            </>
-                          )}
-                        </div>
-                        <input
-                          ref={coverInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleFileUpload('cover_photo', e.target.files[0])}
-                          className="hidden"
-                        />
                       </div>
                       
                       <div>
-                        <Label className="text-sm text-gray-600 mb-2 block">Or Enter URL</Label>
-                        <Input
-                          placeholder="https://example.com/cover.jpg"
-                          value={formData.cover_photo}
-                          onChange={(e) => handleInputChange('cover_photo', e.target.value)}
-                          className="h-12"
+                        <Label className="text-xs text-gray-600">Zoom Level</Label>
+                        <Slider
+                          value={[coverPosition.zoom]}
+                          onValueChange={([zoom]) => setCoverPosition(prev => ({ ...prev, zoom }))}
+                          min={80}
+                          max={150}
+                          step={5}
+                          className="mt-2"
                         />
+                        <div className="flex justify-between text-xs text-gray-400 mt-1">
+                          <span>Zoom Out</span>
+                          <span>Normal</span>
+                          <span>Zoom In</span>
+                        </div>
                       </div>
+                      
+                      <Button
+                        onClick={() => setCoverPosition({ x: 50, y: 50, zoom: 100 })}
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                      >
+                        <RotateCcw className="w-4 h-4 mr-1" />
+                        Reset Position
+                      </Button>
                     </div>
-
-                    {/* Cover Photo Preview & Controls */}
-                    {formData.cover_photo && (
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <Label className="text-sm font-medium">Preview & Positioning</Label>
-                          <Button
-                            onClick={() => toggleImageControls('cover')}
-                            variant="outline"
-                            size="sm"
-                          >
-                            <Move className="w-4 h-4 mr-1" />
-                            Adjust Position
-                          </Button>
-                        </div>
-                        
-                        <div className="space-y-4">
-                          <div className="relative overflow-hidden rounded-lg">
-                            <img 
-                              src={formData.cover_photo} 
-                              alt="Cover preview" 
-                              className="w-full h-32 border shadow-sm"
-                              style={imageStyles.cover}
-                            />
-                          </div>
-                          
-                          {showImageControls.cover && (
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <Label className="text-xs text-gray-600">Fit Type</Label>
-                                <Select 
-                                  value={imageStyles.cover.objectFit} 
-                                  onValueChange={(value) => handleImageAlignment('cover', 'objectFit', value)}
-                                >
-                                  <SelectTrigger className="h-8">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="cover">Cover (Fill area)</SelectItem>
-                                    <SelectItem value="contain">Contain (Fit inside)</SelectItem>
-                                    <SelectItem value="fill">Fill (Stretch)</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              
-                              <div>
-                                <Label className="text-xs text-gray-600">Position</Label>
-                                <Select 
-                                  value={imageStyles.cover.objectPosition} 
-                                  onValueChange={(value) => handleImageAlignment('cover', 'objectPosition', value)}
-                                >
-                                  <SelectTrigger className="h-8">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="center center">Center</SelectItem>
-                                    <SelectItem value="top center">Top</SelectItem>
-                                    <SelectItem value="bottom center">Bottom</SelectItem>
-                                    <SelectItem value="center left">Left</SelectItem>
-                                    <SelectItem value="center right">Right</SelectItem>
-                                    <SelectItem value="top left">Top Left</SelectItem>
-                                    <SelectItem value="top right">Top Right</SelectItem>
-                                    <SelectItem value="bottom left">Bottom Left</SelectItem>
-                                    <SelectItem value="bottom right">Bottom Right</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
                   </div>
-                </div>
+                )}
 
                 <div className="flex space-x-3">
                   <Button onClick={prevStep} variant="outline" className="flex-1 h-12">
                     Back
                   </Button>
                   <Button onClick={nextStep} className="flex-1 h-12">
-                    Continue
+                    Final Details
                   </Button>
                 </div>
               </div>
