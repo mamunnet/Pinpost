@@ -1204,67 +1204,177 @@ const AuthPage = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-100 via-amber-50 to-teal-100">
-      <Card className="w-full max-w-md shadow-2xl">
-        <CardHeader className="text-center">
-          <CardTitle className="text-4xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent mb-2">
-            PenLink
-          </CardTitle>
-          <CardDescription className="text-base">
-            {isLogin ? 'Welcome back!' : 'Join our community'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
-              <div>
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                  data-testid="username-input"
-                />
+    <div className="min-h-screen bg-gradient-to-br from-rose-100 via-amber-50 to-teal-100 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-white/20 backdrop-blur-sm"></div>
+      <div className="absolute top-0 left-0 w-96 h-96 bg-rose-300/30 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
+      <div className="absolute top-0 right-0 w-96 h-96 bg-amber-300/30 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse delay-1000"></div>
+      <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-teal-300/30 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse delay-2000"></div>
+
+      <div className="relative min-h-screen flex">
+        {/* Left Side - Branding & Information */}
+        <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-12 xl:px-16">
+          <div className="max-w-lg">
+            <div className="flex items-center space-x-3 mb-8">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-2xl">P</span>
               </div>
-            )}
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                data-testid="email-input"
-              />
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">
+                PenLink
+              </h1>
             </div>
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                data-testid="password-input"
-              />
+
+            <h2 className="text-4xl font-bold text-gray-800 mb-4">
+              Where thoughts meet community
+            </h2>
+            
+            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+              Share your ideas through blogs, connect with like-minded people, and discover trending content from writers around the world.
+            </p>
+
+            <div className="grid grid-cols-1 gap-6">
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-teal-500 flex items-center justify-center flex-shrink-0">
+                  <FileText className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800 text-lg">Rich Blogging</h3>
+                  <p className="text-gray-600">Create beautiful blog posts with rich formatting and engage your audience</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800 text-lg">Social Connection</h3>
+                  <p className="text-gray-600">Follow writers, share quick thoughts, and build meaningful connections</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800 text-lg">Trending Content</h3>
+                  <p className="text-gray-600">Discover what's popular and stay updated with the latest conversations</p>
+                </div>
+              </div>
             </div>
-            <Button type="submit" className="w-full" disabled={loading} data-testid="auth-submit-btn">
-              {loading ? 'Loading...' : (isLogin ? 'Login' : 'Sign Up')}
-            </Button>
-          </form>
-          <div className="text-center mt-4">
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-rose-600 hover:underline"
-              data-testid="toggle-auth-btn"
-            >
-              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Login'}
-            </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Right Side - Auth Form */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
+          <Card className="w-full max-w-md shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="text-center pb-8">
+              <div className="lg:hidden flex items-center justify-center space-x-3 mb-6">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 flex items-center justify-center shadow-lg">
+                  <span className="text-white font-bold text-xl">P</span>
+                </div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">
+                  PenLink
+                </h1>
+              </div>
+              
+              <CardTitle className="text-3xl font-bold text-gray-800 mb-2">
+                {isLogin ? 'Welcome back!' : 'Join PenLink'}
+              </CardTitle>
+              <CardDescription className="text-lg text-gray-600">
+                {isLogin 
+                  ? 'Sign in to continue your journey' 
+                  : 'Create your account and start sharing your thoughts'
+                }
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {!isLogin && (
+                  <div className="space-y-2">
+                    <Label htmlFor="username" className="text-sm font-medium text-gray-700">Username</Label>
+                    <Input
+                      id="username"
+                      placeholder="Enter your username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      required
+                      className="h-12 text-base"
+                      data-testid="username-input"
+                    />
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="h-12 text-base"
+                    data-testid="email-input"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="h-12 text-base"
+                    data-testid="password-input"
+                  />
+                </div>
+
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 text-base font-semibold bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-700 hover:to-amber-700 transition-all duration-200 transform hover:scale-105" 
+                  disabled={loading} 
+                  data-testid="auth-submit-btn"
+                >
+                  {loading ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Please wait...</span>
+                    </div>
+                  ) : (
+                    isLogin ? 'Sign In' : 'Create Account'
+                  )}
+                </Button>
+              </form>
+
+              <div className="text-center">
+                <button
+                  onClick={() => setIsLogin(!isLogin)}
+                  className="text-base text-rose-600 hover:text-rose-700 font-medium hover:underline transition-colors"
+                  data-testid="toggle-auth-btn"
+                >
+                  {isLogin 
+                    ? "Don't have an account? Sign up" 
+                    : 'Already have an account? Sign in'
+                  }
+                </button>
+              </div>
+
+              {!isLogin && (
+                <p className="text-xs text-gray-500 text-center leading-relaxed">
+                  By creating an account, you agree to our Terms of Service and Privacy Policy. 
+                  Join thousands of writers sharing their stories on PenLink.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };
