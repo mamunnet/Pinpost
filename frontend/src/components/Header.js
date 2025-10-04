@@ -191,29 +191,24 @@ export const Header = ({ user, logout }) => {
         <div className="flex items-center justify-between h-14 sm:h-16">
           <div className="flex items-center space-x-3 sm:space-x-6">
             <Link to="/" className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 text-white font-bold text-xl flex-shrink-0 shadow-lg">P</Link>
-            <div className="relative overflow-hidden">
-              <nav className="flex items-center gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-2 mb-2" style={{scrollBehavior: 'smooth', width: '300px', msOverflowStyle: 'none', scrollbarWidth: 'none'}}>
-                <Link to="/" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0 min-w-fit" data-testid="nav-home">
-                  <Home className="w-5 h-5 sm:w-6 sm:h-6" />
-                  <span className="hidden md:inline font-semibold text-base">Home</span>
-                </Link>
-                <Link to="/social" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0 min-w-fit" data-testid="nav-social">
-                  <Users className="w-5 h-5 sm:w-6 sm:h-6" />
-                  <span className="hidden md:inline font-semibold text-base">Social</span>
-                </Link>
-                <Link to="/blogs" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0 min-w-fit" data-testid="nav-blogs">
-                  <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
-                  <span className="hidden md:inline font-semibold text-base">Blogs</span>
-                </Link>
-                <Link to="/trending" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0 min-w-fit" data-testid="nav-trending">
-                  <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
-                  <span className="hidden md:inline font-semibold text-base">Trending</span>
-                </Link>
-              </nav>
-              {/* Navigation scroll indicators */}
-              <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent pointer-events-none"></div>
-              <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none"></div>
-            </div>
+            <nav className="nav-scroll flex items-center gap-2 sm:gap-3 scrollbar-hide" style={{maxWidth: '400px', minWidth: '250px'}}>
+              <Link to="/" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-home">
+                <Home className="w-5 h-5 sm:w-6 sm:h-6" />
+                <span className="hidden md:inline font-semibold text-base">Home</span>
+              </Link>
+              <Link to="/social" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-social">
+                <Users className="w-5 h-5 sm:w-6 sm:h-6" />
+                <span className="hidden md:inline font-semibold text-base">Social</span>
+              </Link>
+              <Link to="/blogs" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-blogs">
+                <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
+                <span className="hidden md:inline font-semibold text-base">Blogs</span>
+              </Link>
+              <Link to="/trending" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-trending">
+                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
+                <span className="hidden md:inline font-semibold text-base">Trending</span>
+              </Link>
+            </nav>
           </div>
           <div className="hidden lg:block flex-1 max-w-md mx-4">
             <div className="relative">
