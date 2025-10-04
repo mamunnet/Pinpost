@@ -191,10 +191,19 @@ export const Header = ({ user, logout }) => {
         <div className="flex items-center justify-between h-14">
           <div className="flex items-center space-x-6">
             <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">PenLink</Link>
-            <nav className="hidden md:flex items-center space-x-1">
-              <Link to="/" className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700"><Home className="w-5 h-5" /><span>Home</span></Link>
-              <Link to="/social" className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700"><Users className="w-5 h-5" /><span>Social</span></Link>
-              <Link to="/blogs" className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700"><FileText className="w-5 h-5" /><span>Blogs</span></Link>
+            <nav className="flex items-center space-x-1">
+              <Link to="/" className="flex items-center space-x-1 px-2 sm:px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700" data-testid="nav-home">
+                <Home className="w-5 h-5" />
+                <span className="hidden sm:inline">Home</span>
+              </Link>
+              <Link to="/social" className="flex items-center space-x-1 px-2 sm:px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700" data-testid="nav-social">
+                <Users className="w-5 h-5" />
+                <span className="hidden sm:inline">Social</span>
+              </Link>
+              <Link to="/blogs" className="flex items-center space-x-1 px-2 sm:px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700" data-testid="nav-blogs">
+                <FileText className="w-5 h-5" />
+                <span className="hidden sm:inline">Blogs</span>
+              </Link>
             </nav>
           </div>
           <div className="hidden md:block flex-1 max-w-md mx-4">
