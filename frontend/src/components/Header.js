@@ -187,29 +187,44 @@ export const Header = ({ user, logout }) => {
   const [searchQuery, setSearchQuery] = useState('');
   return (
     <header className="fixed top-0 w-full bg-white border-b border-gray-200 z-50 shadow-sm">
+      {/* Top Bar with Logo */}
+      <div className="bg-gray-50 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4">
+          <div className="flex items-center justify-end h-10">
+            <Link to="/" className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 transition-colors">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 flex items-center justify-center">
+                <span className="text-white font-bold text-sm">P</span>
+              </div>
+              <span className="font-bold text-lg bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">PenLink</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Navigation */}
       <div className="max-w-7xl mx-auto px-2 sm:px-4">
         <div className="flex items-center justify-between h-14 sm:h-16">
-          <div className="flex items-center space-x-3 sm:space-x-6">
-            <Link to="/" className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 text-white font-bold text-xl flex-shrink-0 shadow-lg">P</Link>
-            <nav className="nav-scroll flex items-center gap-2 sm:gap-3 scrollbar-hide" style={{maxWidth: '400px', minWidth: '250px'}}>
-              <Link to="/" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-home">
-                <Home className="w-5 h-5 sm:w-6 sm:h-6" />
-                <span className="hidden md:inline font-semibold text-base">Home</span>
-              </Link>
-              <Link to="/social" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-social">
-                <Users className="w-5 h-5 sm:w-6 sm:h-6" />
-                <span className="hidden md:inline font-semibold text-base">Social</span>
-              </Link>
-              <Link to="/blogs" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-blogs">
-                <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
-                <span className="hidden md:inline font-semibold text-base">Blogs</span>
-              </Link>
-              <Link to="/trending" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-trending">
-                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
-                <span className="hidden md:inline font-semibold text-base">Trending</span>
-              </Link>
-            </nav>
-          </div>
+          {/* Left Navigation */}
+          <nav className="nav-scroll flex items-center gap-2 sm:gap-3 scrollbar-hide" style={{maxWidth: '400px', minWidth: '250px'}}>
+            <Link to="/" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-home">
+              <Home className="w-5 h-5 sm:w-6 sm:h-6" />
+              <span className="hidden md:inline font-semibold text-base">Home</span>
+            </Link>
+            <Link to="/social" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-social">
+              <Users className="w-5 h-5 sm:w-6 sm:h-6" />
+              <span className="hidden md:inline font-semibold text-base">Social</span>
+            </Link>
+            <Link to="/blogs" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-blogs">
+              <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
+              <span className="hidden md:inline font-semibold text-base">Blogs</span>
+            </Link>
+            <Link to="/trending" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-trending">
+              <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
+              <span className="hidden md:inline font-semibold text-base">Trending</span>
+            </Link>
+          </nav>
+
+          {/* Center Search */}
           <div className="hidden lg:block flex-1 max-w-md mx-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -222,18 +237,15 @@ export const Header = ({ user, logout }) => {
               />
             </div>
           </div>
+
+          {/* Right Menu */}
           {user && (
             <div className="flex items-center space-x-2 sm:space-x-3">
               <NotificationsDropdown user={user} />
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-all" data-testid="user-menu-btn">
-                    <Avatar className="w-8 h-8 ring-2 ring-gray-200">
-                      <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white text-sm font-semibold">
-                        {user.username[0].toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="hidden sm:inline font-medium text-gray-700">{user.username}</span>
+                  <button className="p-3 rounded-full hover:bg-gray-100 transition-all" data-testid="user-menu-btn">
+                    <Menu className="w-6 h-6 text-gray-700" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-72 p-0" align="end">
