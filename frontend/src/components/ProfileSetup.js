@@ -52,15 +52,17 @@ export const ProfileSetup = ({ user, onComplete }) => {
 
   const handleFileUpload = async (field, file) => {
     if (file && file.type.startsWith('image/')) {
+      const imageType = field === 'avatar' ? 'avatar' : 'cover';
+      
       try {
-        // Show loading state
-        toast.loading('Uploading image...');
+        // Set loading state
+        setUploadingImage(prev => ({ ...prev, [imageType]: true }));
         
         // Upload to server
-        const formData = new FormData();
-        formData.append('file', file);
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', file);
         
-        const response = await axios.post(`${API}/upload/image`, formData, {
+        const response = await axios.post(`${API}/upload/image`, uploadFormData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -69,12 +71,14 @@ export const ProfileSetup = ({ user, onComplete }) => {
         // Use server URL
         const imageUrl = `${BACKEND_URL}${response.data.url}`;
         setFormData(prev => ({ ...prev, [field]: imageUrl }));
-        setImageFiles(prev => ({ ...prev, [field]: file }));
+        setImageFiles(prev => ({ ...prev, [imageType]: file }));
         
         toast.success('Image uploaded successfully!');
       } catch (error) {
         console.error('Upload error:', error);
         toast.error('Failed to upload image. Please try again.');
+      } finally {
+        setUploadingImage(prev => ({ ...prev, [imageType]: false }));
       }
     } else {
       toast.error('Please select a valid image file');
