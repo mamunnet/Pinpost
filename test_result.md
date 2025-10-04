@@ -240,8 +240,7 @@
   current_focus:
     - "Navigation Tabs Scrollability"
     - "User Authentication System"  
-  stuck_tasks: 
-    - "Trending Users Endpoint"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
