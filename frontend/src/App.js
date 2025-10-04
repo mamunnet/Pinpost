@@ -800,6 +800,41 @@ const BlogDetailPage = ({ user }) => {
   );
 };
 
+const EditProfileModal = ({ user, onUpdate }) => {
+  const [username, setUsername] = useState(user.username);
+  const [bio, setBio] = useState(user.bio);
+  const [loading, setLoading] = useState(false);
+
+  const handleUpdate = async () => {
+    setLoading(true);
+    try {
+      await axios.put(`${API}/users/profile`, { username, bio });
+      toast.success('Profile updated!');
+      onUpdate();
+    } catch (error) {
+      toast.error('Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label>Username</Label>
+        <Input value={username} onChange={(e) => setUsername(e.target.value)} />
+      </div>
+      <div>
+        <Label>Bio</Label>
+        <Textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4} />
+      </div>
+      <Button onClick={handleUpdate} disabled={loading} className="w-full">
+        Save Changes
+      </Button>
+    </div>
+  );
+};
+
 const ProfilePage = ({ currentUser }) => {
   const { username } = useParams();
   const [user, setUser] = useState(null);
