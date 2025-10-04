@@ -628,20 +628,7 @@ async def update_profile(profile_data: UserUpdate, current_user_id: str = Depend
     updated_user = await db.users.find_one({"id": current_user_id})
     return User(**updated_user)
 
-# Trending users
-@api_router.get("/users/trending")
-async def get_trending_users(limit: int = 5, current_user_id: Optional[str] = Depends(get_optional_user)):
-    users = await db.users.find().sort("followers_count", -1).limit(limit).to_list(limit)
-    result = []
-    for user in users:
-        if user["id"] == current_user_id:
-            continue
-        user_data = User(**user).dict()
-        if current_user_id:
-            is_following = await db.follows.find_one({"follower_id": current_user_id, "following_id": user["id"]})
-            user_data["is_following"] = bool(is_following)
-        result.append(user_data)
-    return result
+# Removed - moved above username route to fix route conflict
 
 # Stories routes
 @api_router.post("/stories", response_model=Story)
