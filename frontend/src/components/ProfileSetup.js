@@ -101,7 +101,12 @@ export const ProfileSetup = ({ user, onComplete }) => {
         location: formData.location.trim() || ""
       };
 
-      const response = await axios.post(`${API}/auth/setup-profile`, profileData);
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API}/auth/setup-profile`, profileData, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       toast.success("Profile setup complete! Welcome to PenLink!");
       onComplete(response.data);
     } catch (error) {
