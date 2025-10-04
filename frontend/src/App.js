@@ -917,13 +917,19 @@ function App() {
 
           return (
             <BrowserRouter>
-              <Navigation user={user} logout={logout} />
-              <Routes>
-                <Route path="/" element={<HomePage user={user} />} />
-                <Route path="/blogs" element={<BlogsPage user={user} />} />
-                <Route path="/blog/:blogId" element={<BlogDetailPage user={user} />} />
-                <Route path="/profile/:username" element={<ProfilePage currentUser={user} />} />
-              </Routes>
+              <div className="flex flex-col min-h-screen">
+                <Header user={user} logout={logout} />
+                <div className="flex-1">
+                  <Routes>
+                    <Route path="/" element={<HomePage user={user} />} />
+                    <Route path="/social" element={<SocialPage user={user} />} />
+                    <Route path="/blogs" element={<BlogsPage user={user} />} />
+                    <Route path="/blog/:blogId" element={<BlogDetailPage user={user} />} />
+                    <Route path="/profile/:username" element={<ProfilePage currentUser={user} />} />
+                  </Routes>
+                </div>
+                <Footer />
+              </div>
             </BrowserRouter>
           );
         }}
