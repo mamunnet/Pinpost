@@ -601,7 +601,6 @@ async def like_post(post_type: str, post_id: str, user_id: str = Depends(get_cur
     
     # Create notification
     if post:
-        post_title = post.get("title", post.get("content", "")[:50])
         await create_notification(
             user_id=post["author_id"],
             notif_type="like",
