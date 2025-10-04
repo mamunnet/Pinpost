@@ -183,42 +183,230 @@ export const ProfileSetup = ({ user, onComplete }) => {
               <div className="space-y-6">
                 <div className="text-center mb-6">
                   <h3 className="text-xl font-semibold mb-2">Add Your Photos</h3>
-                  <p className="text-gray-600">Make your profile stand out with great photos</p>
+                  <p className="text-gray-600">Upload photos from your gallery and adjust their positioning</p>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-8">
+                  {/* Profile Photo Section */}
                   <div>
-                    <Label className="text-base font-medium flex items-center space-x-2">
+                    <Label className="text-base font-medium flex items-center space-x-2 mb-4">
                       <Camera className="w-4 h-4" />
                       <span>Profile Photo</span>
                     </Label>
-                    <Input
-                      placeholder="https://example.com/your-photo.jpg"
-                      value={formData.avatar}
-                      onChange={(e) => handleInputChange('avatar', e.target.value)}
-                      className="h-12 text-base mt-2"
-                    />
+                    
+                    {/* Upload Methods */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <Label className="text-sm text-gray-600 mb-2 block">Upload from Gallery</Label>
+                        <div 
+                          onClick={() => avatarInputRef.current?.click()}
+                          className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-rose-400 hover:bg-rose-50 transition-all"
+                        >
+                          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-600">Click to upload photo</p>
+                          <p className="text-xs text-gray-400">JPG, PNG, WebP up to 5MB</p>
+                        </div>
+                        <input
+                          ref={avatarInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileUpload('avatar', e.target.files[0])}
+                          className="hidden"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm text-gray-600 mb-2 block">Or Enter URL</Label>
+                        <Input
+                          placeholder="https://example.com/photo.jpg"
+                          value={formData.avatar}
+                          onChange={(e) => handleInputChange('avatar', e.target.value)}
+                          className="h-12"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Profile Photo Preview & Controls */}
                     {formData.avatar && (
-                      <div className="mt-3 flex justify-center">
-                        <img src={formData.avatar} alt="Profile preview" className="w-20 h-20 rounded-full object-cover" />
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <Label className="text-sm font-medium">Preview & Positioning</Label>
+                          <Button
+                            onClick={() => toggleImageControls('avatar')}
+                            variant="outline"
+                            size="sm"
+                          >
+                            <Move className="w-4 h-4 mr-1" />
+                            Adjust Position
+                          </Button>
+                        </div>
+                        
+                        <div className="flex items-center space-x-6">
+                          <div className="relative">
+                            <img 
+                              src={formData.avatar} 
+                              alt="Profile preview" 
+                              className="w-24 h-24 rounded-full border-4 border-white shadow-lg"
+                              style={imageStyles.avatar}
+                            />
+                          </div>
+                          
+                          {showImageControls.avatar && (
+                            <div className="flex-1 space-y-3">
+                              <div>
+                                <Label className="text-xs text-gray-600">Fit Type</Label>
+                                <Select 
+                                  value={imageStyles.avatar.objectFit} 
+                                  onValueChange={(value) => handleImageAlignment('avatar', 'objectFit', value)}
+                                >
+                                  <SelectTrigger className="h-8">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="cover">Cover (Fill circle)</SelectItem>
+                                    <SelectItem value="contain">Contain (Fit inside)</SelectItem>
+                                    <SelectItem value="fill">Fill (Stretch)</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              
+                              <div>
+                                <Label className="text-xs text-gray-600">Position</Label>
+                                <Select 
+                                  value={imageStyles.avatar.objectPosition} 
+                                  onValueChange={(value) => handleImageAlignment('avatar', 'objectPosition', value)}
+                                >
+                                  <SelectTrigger className="h-8">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="center center">Center</SelectItem>
+                                    <SelectItem value="top center">Top</SelectItem>
+                                    <SelectItem value="bottom center">Bottom</SelectItem>
+                                    <SelectItem value="center left">Left</SelectItem>
+                                    <SelectItem value="center right">Right</SelectItem>
+                                    <SelectItem value="top left">Top Left</SelectItem>
+                                    <SelectItem value="top right">Top Right</SelectItem>
+                                    <SelectItem value="bottom left">Bottom Left</SelectItem>
+                                    <SelectItem value="bottom right">Bottom Right</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
 
+                  {/* Cover Photo Section */}
                   <div>
-                    <Label className="text-base font-medium flex items-center space-x-2">
+                    <Label className="text-base font-medium flex items-center space-x-2 mb-4">
                       <Camera className="w-4 h-4" />
                       <span>Cover Photo</span>
                     </Label>
-                    <Input
-                      placeholder="https://example.com/your-cover.jpg"
-                      value={formData.cover_photo}
-                      onChange={(e) => handleInputChange('cover_photo', e.target.value)}
-                      className="h-12 text-base mt-2"
-                    />
+                    
+                    {/* Upload Methods */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <Label className="text-sm text-gray-600 mb-2 block">Upload from Gallery</Label>
+                        <div 
+                          onClick={() => coverInputRef.current?.click()}
+                          className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-amber-400 hover:bg-amber-50 transition-all"
+                        >
+                          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-600">Click to upload cover</p>
+                          <p className="text-xs text-gray-400">JPG, PNG, WebP up to 10MB</p>
+                        </div>
+                        <input
+                          ref={coverInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileUpload('cover_photo', e.target.files[0])}
+                          className="hidden"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm text-gray-600 mb-2 block">Or Enter URL</Label>
+                        <Input
+                          placeholder="https://example.com/cover.jpg"
+                          value={formData.cover_photo}
+                          onChange={(e) => handleInputChange('cover_photo', e.target.value)}
+                          className="h-12"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Cover Photo Preview & Controls */}
                     {formData.cover_photo && (
-                      <div className="mt-3">
-                        <img src={formData.cover_photo} alt="Cover preview" className="w-full h-32 rounded-lg object-cover" />
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <Label className="text-sm font-medium">Preview & Positioning</Label>
+                          <Button
+                            onClick={() => toggleImageControls('cover')}
+                            variant="outline"
+                            size="sm"
+                          >
+                            <Move className="w-4 h-4 mr-1" />
+                            Adjust Position
+                          </Button>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <div className="relative overflow-hidden rounded-lg">
+                            <img 
+                              src={formData.cover_photo} 
+                              alt="Cover preview" 
+                              className="w-full h-32 border shadow-sm"
+                              style={imageStyles.cover}
+                            />
+                          </div>
+                          
+                          {showImageControls.cover && (
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label className="text-xs text-gray-600">Fit Type</Label>
+                                <Select 
+                                  value={imageStyles.cover.objectFit} 
+                                  onValueChange={(value) => handleImageAlignment('cover', 'objectFit', value)}
+                                >
+                                  <SelectTrigger className="h-8">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="cover">Cover (Fill area)</SelectItem>
+                                    <SelectItem value="contain">Contain (Fit inside)</SelectItem>
+                                    <SelectItem value="fill">Fill (Stretch)</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              
+                              <div>
+                                <Label className="text-xs text-gray-600">Position</Label>
+                                <Select 
+                                  value={imageStyles.cover.objectPosition} 
+                                  onValueChange={(value) => handleImageAlignment('cover', 'objectPosition', value)}
+                                >
+                                  <SelectTrigger className="h-8">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="center center">Center</SelectItem>
+                                    <SelectItem value="top center">Top</SelectItem>
+                                    <SelectItem value="bottom center">Bottom</SelectItem>
+                                    <SelectItem value="center left">Left</SelectItem>
+                                    <SelectItem value="center right">Right</SelectItem>
+                                    <SelectItem value="top left">Top Left</SelectItem>
+                                    <SelectItem value="top right">Top Right</SelectItem>
+                                    <SelectItem value="bottom left">Bottom Left</SelectItem>
+                                    <SelectItem value="bottom right">Bottom Right</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
