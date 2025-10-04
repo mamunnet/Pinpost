@@ -228,28 +228,98 @@ export const Header = ({ user, logout }) => {
             </div>
           </div>
           {user && (
-            <div className="flex items-center space-x-1 sm:space-x-2">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <NotificationsDropdown user={user} />
               <Popover>
                 <PopoverTrigger asChild>
-                  <button data-testid="user-menu-btn">
-                    <Avatar className="w-8 h-8 sm:w-9 sm:h-9 hover:ring-2 hover:ring-rose-500">
-                      <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white text-sm">
+                  <button className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-all" data-testid="user-menu-btn">
+                    <Avatar className="w-8 h-8 ring-2 ring-gray-200">
+                      <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white text-sm font-semibold">
                         {user.username[0].toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
+                    <span className="hidden sm:inline font-medium text-gray-700">{user.username}</span>
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-56 p-2" align="end">
-                  <div className="space-y-1">
-                    <Link to={`/profile/${user.username}`}>
-                      <button className="w-full flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-gray-100 text-left">
-                        <User className="w-4 h-4" /><span>Profile</span>
+                <PopoverContent className="w-72 p-0" align="end">
+                  <div className="bg-white rounded-lg shadow-lg border">
+                    {/* User Info Section */}
+                    <div className="p-4 border-b border-gray-100">
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="w-12 h-12">
+                          <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white text-lg font-bold">
+                            {user.username[0].toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-semibold text-gray-900">{user.username}</p>
+                          <p className="text-sm text-gray-500">{user.email}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Menu Options */}
+                    <div className="py-2">
+                      <Link to={`/profile/${user.username}`}>
+                        <button className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 text-left transition-colors">
+                          <User className="w-5 h-5 text-gray-600" />
+                          <div>
+                            <p className="font-medium text-gray-900">My Profile</p>
+                            <p className="text-xs text-gray-500">View and edit your profile</p>
+                          </div>
+                        </button>
+                      </Link>
+
+                      <button className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 text-left transition-colors">
+                        <UserPlus className="w-5 h-5 text-gray-600" />
+                        <div>
+                          <p className="font-medium text-gray-900">Create Group</p>
+                          <p className="text-xs text-gray-500">Start a new community</p>
+                        </div>
                       </button>
-                    </Link>
-                    <button onClick={logout} className="w-full flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-gray-100 text-left text-red-600" data-testid="logout-btn">
-                      <LogOut className="w-4 h-4" /><span>Logout</span>
-                    </button>
+
+                      <button className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 text-left transition-colors">
+                        <Settings className="w-5 h-5 text-gray-600" />
+                        <div>
+                          <p className="font-medium text-gray-900">Settings</p>
+                          <p className="text-xs text-gray-500">Privacy and account settings</p>
+                        </div>
+                      </button>
+
+                      <button className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 text-left transition-colors">
+                        <HelpCircle className="w-5 h-5 text-gray-600" />
+                        <div>
+                          <p className="font-medium text-gray-900">Help & Support</p>
+                          <p className="text-xs text-gray-500">Get help and contact us</p>
+                        </div>
+                      </button>
+
+                      <button className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 text-left transition-colors">
+                        <Shield className="w-5 h-5 text-gray-600" />
+                        <div>
+                          <p className="font-medium text-gray-900">Privacy Policy</p>
+                          <p className="text-xs text-gray-500">Review our terms and policies</p>
+                        </div>
+                      </button>
+
+                      <button className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 text-left transition-colors">
+                        <Mail className="w-5 h-5 text-gray-600" />
+                        <div>
+                          <p className="font-medium text-gray-900">Feedback</p>
+                          <p className="text-xs text-gray-500">Share your thoughts with us</p>
+                        </div>
+                      </button>
+
+                      <div className="border-t border-gray-100 mt-2">
+                        <button onClick={logout} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-50 text-left transition-colors text-red-600" data-testid="logout-btn">
+                          <LogOut className="w-5 h-5" />
+                          <div>
+                            <p className="font-medium">Sign Out</p>
+                            <p className="text-xs text-red-500">Sign out of your account</p>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </PopoverContent>
               </Popover>
