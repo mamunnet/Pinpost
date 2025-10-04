@@ -465,6 +465,10 @@ async def like_post(post_type: str, post_id: str, user_id: str = Depends(get_cur
     if existing_like:
         raise HTTPException(status_code=400, detail="Already liked")
     
+    current_user = await db.users.find_one({"id": user_id})
+    collection = db.blog_posts if post_type == "blog" else db.short_posts
+    post = await collection.find_one({"id": post_id})
+    
     await db.likes.insert_one({
         "id": str(uuid.uuid4()),
         "user_id": user_id,
@@ -473,8 +477,21 @@ async def like_post(post_type: str, post_id: str, user_id: str = Depends(get_cur
         "created_at": datetime.now(timezone.utc).isoformat()
     })
     
-    collection = db.blog_posts if post_type == "blog" else db.short_posts
     await collection.update_one({"id": post_id}, {"$inc": {"likes_count": 1}})
+    
+    # Create notification
+    if post:
+        post_title = post.get("title", post.get("content", "")[:50])
+        await create_notification(
+            user_id=post["author_id"],
+            notif_type="like",
+            actor_id=user_id,
+            actor_username=current_user["username"],
+            actor_avatar=current_user.get("avatar", ""),
+            message=f"{current_user['username']} liked your {post_type}",
+            post_id=post_id,
+            post_type=post_type
+        )
     
     return {"message": "Liked successfully"}
 
