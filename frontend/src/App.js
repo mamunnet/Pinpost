@@ -852,7 +852,10 @@ const ProfilePage = ({ currentUser }) => {
   const [blogs, setBlogs] = useState([]);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('blogs');
+  const [activeTab, setActiveTab] = useState('posts');
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showEditCover, setShowEditCover] = useState(false);
+  const [showEditAvatar, setShowEditAvatar] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -891,92 +894,326 @@ const ProfilePage = ({ currentUser }) => {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center pt-24">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!user) {
-    return <div className="min-h-screen flex items-center justify-center">User not found</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center pt-24">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">User Not Found</h2>
+          <p className="text-gray-600">The profile you're looking for doesn't exist.</p>
+        </div>
+      </div>
+    );
   }
 
   const isOwnProfile = currentUser && currentUser.username === username;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 pt-24 pb-12">
-      <div className="max-w-6xl mx-auto px-4">
-        <Card className="mb-8">
-          <CardContent className="pt-6">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-4">
-                <Avatar className="w-24 h-24">
-                  <AvatarFallback className="bg-gradient-to-br from-rose-500 via-amber-500 to-teal-500 text-white text-3xl">
-                    {user.username[0].toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h1 className="text-3xl font-bold">{user.username}</h1>
-                  <p className="text-gray-600 mt-1">{user.bio || 'No bio yet'}</p>
-                  <div className="flex space-x-6 mt-3 text-sm">
-                    <div>
-                      <span className="font-bold">{user.followers_count}</span>
-                      <span className="text-gray-600 ml-1">Followers</span>
+    <div className="min-h-screen bg-gray-100 pt-24">
+      <div className="max-w-6xl mx-auto">
+        {/* Cover Photo Section */}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          {/* Cover Photo */}
+          <div className="relative">
+            <div className="h-80 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 relative overflow-hidden">
+              {user.cover_photo ? (
+                <img 
+                  src={user.cover_photo} 
+                  alt="Cover" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="text-center text-white/80">
+                    <Camera className="w-12 h-12 mx-auto mb-2" />
+                    <p className="text-lg">No cover photo</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {isOwnProfile && (
+              <button
+                onClick={() => setShowEditCover(true)}
+                className="absolute bottom-4 right-4 bg-white/90 hover:bg-white text-gray-800 px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors shadow-lg"
+              >
+                <Camera className="w-4 h-4" />
+                <span>{user.cover_photo ? 'Edit Cover Photo' : 'Add Cover Photo'}</span>
+              </button>
+            )}
+          </div>
+
+          {/* Profile Info Section */}
+          <div className="px-6 pb-6">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:space-x-6 -mt-20">
+              {/* Profile Picture */}
+              <div className="relative">
+                <div className="w-40 h-40 rounded-full border-4 border-white bg-gray-200 overflow-hidden shadow-lg">
+                  {user.avatar ? (
+                    <img 
+                      src={user.avatar} 
+                      alt={user.name || user.username} 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-rose-500 to-amber-500 flex items-center justify-center text-white text-4xl font-bold">
+                      {(user.name || user.username)[0].toUpperCase()}
                     </div>
-                    <div>
-                      <span className="font-bold">{user.following_count}</span>
-                      <span className="text-gray-600 ml-1">Following</span>
+                  )}
+                </div>
+                
+                {isOwnProfile && (
+                  <button
+                    onClick={() => setShowEditAvatar(true)}
+                    className="absolute bottom-2 right-2 w-10 h-10 bg-gray-800 hover:bg-gray-900 text-white rounded-full flex items-center justify-center transition-colors"
+                  >
+                    <Camera className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+
+              {/* User Info */}
+              <div className="flex-1 mt-4 sm:mt-0">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900">
+                      {user.name || user.username}
+                    </h1>
+                    {user.name && (
+                      <p className="text-gray-600 text-lg">@{user.username}</p>
+                    )}
+                    {user.bio && (
+                      <p className="text-gray-700 mt-2 max-w-2xl">{user.bio}</p>
+                    )}
+                    
+                    {/* Additional Info */}
+                    <div className="flex flex-wrap items-center gap-6 mt-3 text-gray-600">
+                      {user.location && (
+                        <div className="flex items-center space-x-1">
+                          <MapPin className="w-4 h-4" />
+                          <span>{user.location}</span>
+                        </div>
+                      )}
+                      {user.date_of_birth && (
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>Born {new Date(user.date_of_birth).toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                          })}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center space-x-1">
+                        <Calendar className="w-4 h-4" />
+                        <span>Joined {new Date(user.created_at).toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'long' 
+                        })}</span>
+                      </div>
                     </div>
+
+                    {/* Stats */}
+                    <div className="flex space-x-6 mt-4">
+                      <div className="text-center">
+                        <div className="text-xl font-bold text-gray-900">{user.followers_count || 0}</div>
+                        <div className="text-sm text-gray-600">Followers</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-xl font-bold text-gray-900">{user.following_count || 0}</div>
+                        <div className="text-sm text-gray-600">Following</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-xl font-bold text-gray-900">{posts.length + blogs.length}</div>
+                        <div className="text-sm text-gray-600">Posts</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex space-x-3 mt-4 sm:mt-0">
+                    {isOwnProfile ? (
+                      <Button
+                        onClick={() => setShowEditProfile(true)}
+                        variant="outline"
+                        className="flex items-center space-x-2"
+                      >
+                        <Edit className="w-4 h-4" />
+                        <span>Edit Profile</span>
+                      </Button>
+                    ) : (
+                      currentUser && (
+                        <Button
+                          onClick={handleFollow}
+                          variant={user.is_following ? "outline" : "default"}
+                          data-testid="follow-btn"
+                        >
+                          {user.is_following ? 'Unfollow' : 'Follow'}
+                        </Button>
+                      )
+                    )}
                   </div>
                 </div>
               </div>
-              {!isOwnProfile && currentUser && (
-                <Button
-                  onClick={handleFollow}
-                  variant={user.is_following ? "outline" : "default"}
-                  data-testid="follow-btn"
-                >
-                  {user.is_following ? 'Unfollow' : 'Follow'}
-                </Button>
-              )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="blogs" data-testid="profile-blogs-tab">Blogs ({blogs.length})</TabsTrigger>
-            <TabsTrigger value="posts" data-testid="profile-posts-tab">Posts ({posts.length})</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="blogs">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {blogs.map((blog) => (
-                <BlogCard key={blog.id} blog={blog} onLike={() => {}} compact />
-              ))}
+        {/* Content Tabs */}
+        <div className="mt-6 bg-white rounded-lg shadow-sm">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <div className="border-b border-gray-200 px-6">
+              <TabsList className="grid w-full max-w-md grid-cols-3">
+                <TabsTrigger value="posts" data-testid="profile-posts-tab">
+                  Posts ({posts.length})
+                </TabsTrigger>
+                <TabsTrigger value="blogs" data-testid="profile-blogs-tab">
+                  Blogs ({blogs.length})
+                </TabsTrigger>
+                <TabsTrigger value="about">About</TabsTrigger>
+              </TabsList>
             </div>
-            {blogs.length === 0 && (
-              <Card>
-                <CardContent className="text-center py-12 text-gray-600">
-                  No blogs yet
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
 
-          <TabsContent value="posts">
-            <div className="space-y-4">
-              {posts.map((post) => (
-                <PostCard key={post.id} post={post} onLike={() => {}} />
-              ))}
+            <div className="p-6">
+              <TabsContent value="posts">
+                <div className="space-y-6">
+                  {posts.map((post) => (
+                    <PostCard key={post.id} post={post} onLike={() => {}} onComment={() => {}} />
+                  ))}
+                  {posts.length === 0 && (
+                    <div className="text-center py-12">
+                      <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No posts yet</h3>
+                      <p className="text-gray-600">
+                        {isOwnProfile ? "Share your first post!" : `${user.name || user.username} hasn't posted anything yet.`}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="blogs">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {blogs.map((blog) => (
+                    <BlogCard key={blog.id} blog={blog} onLike={() => {}} compact />
+                  ))}
+                  {blogs.length === 0 && (
+                    <div className="col-span-full text-center py-12">
+                      <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No blogs yet</h3>
+                      <p className="text-gray-600">
+                        {isOwnProfile ? "Write your first blog post!" : `${user.name || user.username} hasn't published any blogs yet.`}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="about">
+                <div className="max-w-2xl">
+                  <h3 className="text-xl font-semibold mb-6">About {user.name || user.username}</h3>
+                  
+                  <div className="space-y-6">
+                    {user.bio && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">Bio</h4>
+                        <p className="text-gray-700">{user.bio}</p>
+                      </div>
+                    )}
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {user.location && (
+                        <div>
+                          <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+                            <MapPin className="w-4 h-4 mr-2" />
+                            Lives in
+                          </h4>
+                          <p className="text-gray-700">{user.location}</p>
+                        </div>
+                      )}
+                      
+                      {user.date_of_birth && (
+                        <div>
+                          <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+                            <Calendar className="w-4 h-4 mr-2" />
+                            Born
+                          </h4>
+                          <p className="text-gray-700">
+                            {new Date(user.date_of_birth).toLocaleDateString('en-US', { 
+                              year: 'numeric', 
+                              month: 'long', 
+                              day: 'numeric' 
+                            })}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+                        <Calendar className="w-4 h-4 mr-2" />
+                        Joined PenLink
+                      </h4>
+                      <p className="text-gray-700">
+                        {new Date(user.created_at).toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
             </div>
-            {posts.length === 0 && (
-              <Card>
-                <CardContent className="text-center py-12 text-gray-600">
-                  No posts yet
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-        </Tabs>
+          </Tabs>
+        </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {showEditProfile && (
+        <EditProfileModal 
+          user={user} 
+          onClose={() => setShowEditProfile(false)}
+          onUpdate={(updatedUser) => {
+            setUser(updatedUser);
+            setShowEditProfile(false);
+          }}
+        />
+      )}
+
+      {/* Edit Cover Photo Modal */}
+      {showEditCover && (
+        <EditCoverPhotoModal 
+          user={user} 
+          onClose={() => setShowEditCover(false)}
+          onUpdate={(updatedUser) => {
+            setUser(updatedUser);
+            setShowEditCover(false);
+          }}
+        />
+      )}
+
+      {/* Edit Avatar Modal */}
+      {showEditAvatar && (
+        <EditAvatarModal 
+          user={user} 
+          onClose={() => setShowEditAvatar(false)}
+          onUpdate={(updatedUser) => {
+            setUser(updatedUser);
+            setShowEditAvatar(false);
+          }}
+        />
+      )}
     </div>
   );
 };
