@@ -145,6 +145,43 @@ const StoryViewer = ({ stories, initialIndex, onClose, onView }) => {
         <p className="text-2xl font-medium leading-relaxed">{currentStory.content}</p>
       </div>
 
+      {/* Story Stats & Reactions */}
+      <div className="absolute bottom-4 left-4 right-4 z-10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3 text-white text-sm opacity-80">
+            <div className="flex items-center space-x-1">
+              <Eye className="w-4 h-4" />
+              <span>{currentStory.views_count || 0}</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Heart className="w-4 h-4" />
+              <span>{currentStory.reactions_count || 0}</span>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowReactions(!showReactions)}
+            className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full text-white text-sm font-medium"
+          >
+            React 💕
+          </button>
+        </div>
+        
+        {/* Reactions Panel */}
+        {showReactions && (
+          <div className="mt-3 bg-white/90 rounded-full p-2 flex items-center justify-center space-x-1">
+            {['❤️', '😍', '😂', '😮', '😢', '👍'].map((emoji, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleReaction(emoji)}
+                className="text-2xl hover:scale-125 transition-transform p-1"
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Navigation */}
       {currentIndex > 0 && (
         <button
