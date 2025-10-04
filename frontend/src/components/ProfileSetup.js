@@ -46,6 +46,37 @@ export const ProfileSetup = ({ user, onComplete }) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleFileUpload = (field, file) => {
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageUrl = e.target.result;
+        setFormData(prev => ({ ...prev, [field]: imageUrl }));
+        setImageFiles(prev => ({ ...prev, [field]: file }));
+      };
+      reader.readAsDataURL(file);
+    } else {
+      toast.error('Please select a valid image file');
+    }
+  };
+
+  const handleImageAlignment = (imageType, property, value) => {
+    setImageStyles(prev => ({
+      ...prev,
+      [imageType]: {
+        ...prev[imageType],
+        [property]: value
+      }
+    }));
+  };
+
+  const toggleImageControls = (imageType) => {
+    setShowImageControls(prev => ({
+      ...prev,
+      [imageType]: !prev[imageType]
+    }));
+  };
+
   const handleSubmit = async () => {
     if (!formData.name.trim()) {
       toast.error("Please enter your full name");
