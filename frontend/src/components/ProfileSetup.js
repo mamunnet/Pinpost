@@ -38,6 +38,10 @@ export const ProfileSetup = ({ user, onComplete }) => {
     avatar: false,
     cover: false
   });
+  const [uploadingImage, setUploadingImage] = useState({
+    avatar: false,
+    cover: false
+  });
   
   const avatarInputRef = useRef(null);
   const coverInputRef = useRef(null);
