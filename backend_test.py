@@ -462,18 +462,36 @@ class PenLinkAPITester:
 
     def test_trending_users(self):
         """Test trending users endpoint"""
-        success, response = self.run_test(
-            "Get Trending Users",
-            "GET",
-            "users/trending",
-            200
-        )
+        # Test without authentication first
+        url = f"{self.api_url}/users/trending"
+        test_headers = {'Content-Type': 'application/json'}
         
-        # Note: This might return empty array if only one user exists (current user is excluded)
-        if success:
-            self.log_test("Get Trending Users", True, f"Returned {len(response) if isinstance(response, list) else 0} trending users")
-        
-        return success
+        try:
+            response = requests.get(url, headers=test_headers, timeout=10)
+            success = response.status_code == 200
+            details = f"Status: {response.status_code}"
+            
+            if success:
+                try:
+                    response_data = response.json()
+                    details += f", Response: {json.dumps(response_data, indent=2)[:200]}..."
+                    details += f", Returned {len(response_data) if isinstance(response_data, list) else 0} trending users"
+                except:
+                    details += f", Response: {response.text[:200]}..."
+            else:
+                details += f", Expected: 200"
+                try:
+                    error_data = response.json()
+                    details += f", Error: {error_data}"
+                except:
+                    details += f", Error: {response.text[:200]}"
+
+            self.log_test("Get Trending Users", success, details)
+            return success
+
+        except Exception as e:
+            self.log_test("Get Trending Users", False, f"Exception: {str(e)}")
+            return False
 
     def test_notifications(self):
         """Test notifications functionality"""
