@@ -363,6 +363,7 @@ const BlogCard = ({ blog, onLike, compact = false }) => {
 const HomePage = ({ user }) => {
   const [feed, setFeed] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     fetchFeed();
