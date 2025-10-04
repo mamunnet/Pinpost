@@ -903,6 +903,11 @@ async def get_feed(skip: int = 0, limit: int = 20, following_only: bool = False,
 # Include router
 app.include_router(api_router)
 
+# Mount static files for uploaded images
+uploads_dir = Path("uploads")
+uploads_dir.mkdir(exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
