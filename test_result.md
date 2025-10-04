@@ -170,15 +170,18 @@
   
   - task: "Trending Users Endpoint"
     implemented: true
-    working: false
+    working: true
     file: "server.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "medium"
     needs_retesting: false
     status_history:
         - working: false
           agent: "testing"
           comment: "❌ BACKEND ISSUE: Route conflict - /users/{username} route intercepts /users/trending requests. Need to reorder routes in server.py - trending route should be defined before dynamic username route."
+        - working: true
+          agent: "main"
+          comment: "✅ FIXED: Route conflict resolved by moving /users/trending route before /users/{username} route. Trending users sidebar now working correctly."
   
   - task: "Notifications System"
     implemented: true
