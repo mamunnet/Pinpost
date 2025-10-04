@@ -466,10 +466,10 @@ class PenLinkAPITester:
             self.log_test("Login Existing User", False, "No username available for login test")
             return False
             
-        # Use the same email from registration
-        timestamp = datetime.now().strftime('%H%M%S')
+        # Use the same email from registration (stored in self.username timestamp)
+        user_timestamp = self.username.split('_')[1] if '_' in self.username else datetime.now().strftime('%H%M%S')
         test_data = {
-            "email": f"test_{timestamp}@example.com",
+            "email": f"test_{user_timestamp}@example.com",
             "password": "TestPass123!"
         }
         
