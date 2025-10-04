@@ -60,10 +60,58 @@ const AuthContext = ({ children }) => {
   return children({ user, token, login, logout, loading });
 };
 
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { Stories } from "@/components/Stories";
-import { EnhancedPostModal } from "@/components/EnhancedPostModal";
+const Navigation = ({ user, logout }) => {
+  const navigate = useNavigate();
+
+  return (
+    <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-gray-200 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          <Link to="/" className="flex items-center space-x-2">
+            <div className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">
+              PenLink
+            </div>
+          </Link>
+
+          {user && (
+            <div className="flex items-center space-x-6">
+              <Link to="/" className="text-gray-700 hover:text-gray-900 transition-colors">
+                <Home className="w-5 h-5" />
+              </Link>
+              <Link to="/blogs" className="text-gray-700 hover:text-gray-900 transition-colors">
+                <FileText className="w-5 h-5" />
+              </Link>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-2" data-testid="create-content-btn">
+                    <Plus className="w-4 h-4" />
+                    Create
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Create Content</DialogTitle>
+                  </DialogHeader>
+                  <CreateContentModal />
+                </DialogContent>
+              </Dialog>
+              <Link to={`/profile/${user.username}`}>
+                <Avatar className="cursor-pointer hover:ring-2 hover:ring-rose-500 transition-all">
+                  <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white">
+                    {user.username[0].toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </Link>
+              <Button variant="ghost" size="sm" onClick={logout} data-testid="logout-btn">
+                <LogOut className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+};
 
 const CreateContentModal = () => {
   const [contentType, setContentType] = useState('post');
@@ -239,101 +287,76 @@ const PostCard = ({ post, onLike, onComment }) => {
     return date.toLocaleDateString();
   };
 
-  // Extract image and clean content
-  let displayContent = post.content;
-  let postImage = null;
-  if (post.content.includes('[IMAGE]')) {
-    const parts = post.content.split('[IMAGE]');
-    displayContent = parts[0];
-    postImage = parts[1];
-  }
-
   return (
-    <Card className="hover:shadow-lg transition-all duration-200" data-testid="post-card">
+    <Card className="hover:shadow-lg transition-shadow" data-testid="post-card">
       <CardContent className="pt-6">
-        <div className="space-y-3">
-          {/* Header */}
-          <div className="flex items-center space-x-3">
-            <Link to={`/profile/${post.author_username}`}>
-              <Avatar className="w-10 h-10 ring-2 ring-offset-2 ring-transparent hover:ring-rose-500 transition-all">
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-teal-500 text-white">
-                  {post.author_username[0].toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-            </Link>
-            <div className="flex-1">
+        <div className="flex items-start space-x-3">
+          <Link to={`/profile/${post.author_username}`}>
+            <Avatar>
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-teal-500 text-white">
+                {post.author_username[0].toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
+          <div className="flex-1">
+            <div className="flex items-center space-x-2">
               <Link to={`/profile/${post.author_username}`} className="font-semibold hover:underline">
                 {post.author_username}
               </Link>
-              <p className="text-sm text-gray-500">{formatDate(post.created_at)}</p>
+              <span className="text-sm text-gray-500">{formatDate(post.created_at)}</span>
             </div>
-          </div>
+            <p className="mt-2 text-gray-800 whitespace-pre-wrap">{post.content}</p>
 
-          {/* Content */}
-          {displayContent.trim() && (
-            <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">{displayContent}</p>
-          )}
-
-          {/* Image */}
-          {postImage && (
-            <div className="rounded-lg overflow-hidden">
-              <img src={postImage} alt="Post" className="w-full max-h-96 object-cover" />
-            </div>
-          )}
-
-          {/* Actions Bar */}
-          <div className="flex items-center justify-between pt-3 border-t">
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-6 mt-4">
               <button
                 onClick={onLike}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${post.liked_by_user ? 'text-rose-600 bg-rose-50' : 'text-gray-600 hover:bg-gray-100'} transition-all`}
+                className={`flex items-center space-x-2 ${post.liked_by_user ? 'text-rose-600' : 'text-gray-600 hover:text-rose-600'} transition-colors`}
                 data-testid="like-post-btn"
               >
                 <Heart className={`w-5 h-5 ${post.liked_by_user ? 'fill-current' : ''}`} />
-                <span className="text-sm font-medium">{post.likes_count > 0 && post.likes_count}</span>
+                <span className="text-sm">{post.likes_count}</span>
               </button>
               <button
                 onClick={fetchComments}
-                className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all"
+                className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors"
                 data-testid="comment-post-btn"
               >
                 <MessageCircle className="w-5 h-5" />
-                <span className="text-sm font-medium">{post.comments_count > 0 && post.comments_count}</span>
+                <span className="text-sm">{post.comments_count}</span>
               </button>
-              <button className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all">
+              <button className="flex items-center space-x-2 text-gray-600 hover:text-green-600 transition-colors">
                 <Share2 className="w-5 h-5" />
               </button>
             </div>
-          </div>
 
-          {/* Comments Section */}
-          {showComments && (
-            <div className="mt-4 space-y-3 border-t pt-4">
-              <div className="flex space-x-2">
-                <Input
-                  placeholder="Add a comment..."
-                  value={commentContent}
-                  onChange={(e) => setCommentContent(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleComment()}
-                  data-testid="comment-input"
-                />
-                <Button onClick={handleComment} size="sm" data-testid="submit-comment-btn">Post</Button>
-              </div>
-              {comments.map((comment) => (
-                <div key={comment.id} className="flex items-start space-x-2">
-                  <Avatar className="w-8 h-8">
-                    <AvatarFallback className="text-xs bg-gradient-to-br from-purple-500 to-pink-500 text-white">
-                      {comment.username[0].toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 bg-gray-50 rounded-lg p-2">
-                    <p className="text-sm font-semibold">{comment.username}</p>
-                    <p className="text-sm text-gray-700">{comment.content}</p>
-                  </div>
+            {showComments && (
+              <div className="mt-4 space-y-3 border-t pt-4">
+                <div className="flex space-x-2">
+                  <Input
+                    placeholder="Add a comment..."
+                    value={commentContent}
+                    onChange={(e) => setCommentContent(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleComment()}
+                    data-testid="comment-input"
+                  />
+                  <Button onClick={handleComment} size="sm" data-testid="submit-comment-btn">Post</Button>
                 </div>
-              ))}
-            </div>
-          )}
+                {comments.map((comment) => (
+                  <div key={comment.id} className="flex items-start space-x-2">
+                    <Avatar className="w-8 h-8">
+                      <AvatarFallback className="text-xs bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                        {comment.username[0].toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 bg-gray-50 rounded-lg p-2">
+                      <p className="text-sm font-semibold">{comment.username}</p>
+                      <p className="text-sm text-gray-700">{comment.content}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -442,124 +465,9 @@ const BlogCard = ({ blog, onLike, compact = false }) => {
   );
 };
 
-const TrendingSidebar = ({ user }) => {
-  const [trendingUsers, setTrendingUsers] = useState([]);
-
-  useEffect(() => {
-    fetchTrending();
-  }, []);
-
-  const fetchTrending = async () => {
-    try {
-      const response = await axios.get(`${API}/users/trending?limit=5`);
-      setTrendingUsers(response.data);
-    } catch (error) {
-      console.error('Failed to load trending');
-    }
-  };
-
-  const handleFollow = async (userId) => {
-    try {
-      await axios.post(`${API}/users/${userId}/follow`);
-      toast.success('Followed!');
-      fetchTrending();
-    } catch (error) {
-      toast.error('Failed to follow');
-    }
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Trending Users</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {trendingUsers.map((trendingUser) => (
-          <div key={trendingUser.id} className="flex items-center justify-between">
-            <Link to={`/profile/${trendingUser.username}`} className="flex items-center space-x-2">
-              <Avatar className="w-10 h-10">
-                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
-                  {trendingUser.username[0].toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="font-semibold text-sm">{trendingUser.username}</p>
-                <p className="text-xs text-gray-500">{trendingUser.followers_count} followers</p>
-              </div>
-            </Link>
-            {!trendingUser.is_following && (
-              <Button size="sm" variant="outline" onClick={() => handleFollow(trendingUser.id)}>
-                Follow
-              </Button>
-            )}
-          </div>
-        ))}
-      </CardContent>
-    </Card>
-  );
-};
-
-const SocialPage = ({ user }) => {
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchPosts();
-  }, []);
-
-  const fetchPosts = async () => {
-    try {
-      const response = await axios.get(`${API}/posts`);
-      setPosts(response.data);
-    } catch (error) {
-      toast.error('Failed to load posts');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLike = async (post) => {
-    try {
-      if (post.liked_by_user) {
-        await axios.delete(`${API}/likes/post/${post.id}`);
-      } else {
-        await axios.post(`${API}/likes/post/${post.id}`);
-      }
-      fetchPosts();
-    } catch (error) {
-      toast.error('Failed to update like');
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center pt-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600"></div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 pt-20 pb-12">
-      <div className="max-w-2xl mx-auto px-4 space-y-6">
-        <h1 className="text-3xl font-bold mb-6">Social Feed</h1>
-        {posts.map((post) => (
-          <PostCard
-            key={post.id}
-            post={post}
-            onLike={() => handleLike(post)}
-            onComment={fetchPosts}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
-
 const HomePage = ({ user }) => {
   const [feed, setFeed] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     fetchFeed();
@@ -602,84 +510,45 @@ const HomePage = ({ user }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 pt-20 pb-12">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Feed */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Stories Section */}
-            <Card className="overflow-hidden">
-              <CardContent className="p-4">
-                <Stories user={user} />
-              </CardContent>
-            </Card>
-
-            {/* Create Post Box - Facebook Style */}
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <Avatar className="w-10 h-10">
-                    <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white">
-                      {user.username[0].toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <button
-                    onClick={() => setShowCreateModal(true)}
-                    className="flex-1 text-left px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-500 transition-colors"
-                    data-testid="whats-on-mind-btn"
-                  >
-                    What's on your mind, {user.username}?
-                  </button>
-                </div>
-                <div className="flex items-center justify-around mt-3 pt-3 border-t">
-                  <button
-                    onClick={() => setShowCreateModal(true)}
-                    className="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <FileText className="w-5 h-5 text-rose-600" />
-                    <span className="font-medium text-gray-700 hidden sm:inline">Blog Article</span>
-                  </button>
-                  <button
-                    onClick={() => setShowCreateModal(true)}
-                    className="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <MessageCircle className="w-5 h-5 text-blue-600" />
-                    <span className="font-medium text-gray-700 hidden sm:inline">Quick Post</span>
-                  </button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Create Modal */}
-            <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <EnhancedPostModal onClose={() => setShowCreateModal(false)} />
-              </DialogContent>
-            </Dialog>
-
-            {feed.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <p className="text-gray-600">No posts yet. Share something with your network!</p>
-                </CardContent>
-              </Card>
-            ) : (
-              feed.map((item) => (
-                <div key={`${item.type}-${item.id}`}>
-                  {item.type === 'blog' ? (
-                    <BlogCard blog={item} onLike={() => handleLike(item)} />
-                  ) : (
-                    <PostCard post={item} onLike={() => handleLike(item)} onComment={fetchFeed} />
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Sidebar */}
-          <div className="hidden lg:block space-y-6">
-            <TrendingSidebar user={user} />
-          </div>
+      <div className="max-w-4xl mx-auto px-4 space-y-6">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">
+            Welcome to PenLink
+          </h1>
+          <p className="text-gray-600">Where thoughts meet community</p>
         </div>
+
+        {feed.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <p className="text-gray-600 mb-4">No content yet. Be the first to create!</p>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button data-testid="start-creating-btn">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Start Creating
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Create Content</DialogTitle>
+                  </DialogHeader>
+                  <CreateContentModal />
+                </DialogContent>
+              </Dialog>
+            </CardContent>
+          </Card>
+        ) : (
+          feed.map((item) => (
+            <div key={`${item.type}-${item.id}`}>
+              {item.type === 'blog' ? (
+                <BlogCard blog={item} onLike={() => handleLike(item)} />
+              ) : (
+                <PostCard post={item} onLike={() => handleLike(item)} onComment={fetchFeed} />
+              )}
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
@@ -913,139 +782,6 @@ const BlogDetailPage = ({ user }) => {
   );
 };
 
-const EditProfileModal = ({ user, onUpdate }) => {
-  const [username, setUsername] = useState(user.username);
-  const [bio, setBio] = useState(user.bio);
-  const [avatar, setAvatar] = useState(user.avatar || '');
-  const [loading, setLoading] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-
-  const handleAvatarUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    // Check file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image size should be less than 2MB');
-      return;
-    }
-
-    setUploadingAvatar(true);
-    try {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatar(reader.result);
-        toast.success('Profile picture uploaded!');
-        setUploadingAvatar(false);
-      };
-      reader.onerror = () => {
-        toast.error('Failed to read image');
-        setUploadingAvatar(false);
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      toast.error('Failed to upload image');
-      setUploadingAvatar(false);
-    }
-  };
-
-  const handleUpdate = async () => {
-    setLoading(true);
-    try {
-      const updates = {};
-      if (username !== user.username) updates.username = username;
-      if (bio !== user.bio) updates.bio = bio;
-      if (avatar !== user.avatar) updates.avatar = avatar;
-      
-      if (Object.keys(updates).length === 0) {
-        toast.info('No changes to save');
-        setLoading(false);
-        return;
-      }
-
-      await axios.put(`${API}/users/profile`, updates);
-      toast.success('Profile updated!');
-      setTimeout(() => onUpdate(), 500);
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to update profile');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* Profile Picture */}
-      <div className="flex flex-col items-center space-y-4">
-        <Avatar className="w-24 h-24">
-          {avatar ? (
-            <img src={avatar} alt={username} className="w-full h-full object-cover" />
-          ) : (
-            <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white text-3xl">
-              {username[0].toUpperCase()}
-            </AvatarFallback>
-          )}
-        </Avatar>
-        <div className="w-full space-y-2">
-          <Label>Profile Picture</Label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleAvatarUpload}
-            className="hidden"
-            id="avatar-upload"
-            data-testid="avatar-upload-input"
-          />
-          <label
-            htmlFor="avatar-upload"
-            className="flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 w-full"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="text-sm">{uploadingAvatar ? 'Uploading...' : 'Upload New Photo'}</span>
-          </label>
-          {avatar && (
-            <button
-              onClick={() => setAvatar('')}
-              className="text-xs text-red-600 hover:underline w-full text-center"
-            >
-              Remove Photo
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Username */}
-      <div>
-        <Label>Username</Label>
-        <Input
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          data-testid="edit-username-input"
-        />
-      </div>
-
-      {/* Bio */}
-      <div>
-        <Label>Bio</Label>
-        <Textarea
-          placeholder="Tell us about yourself..."
-          value={bio}
-          onChange={(e) => setBio(e.target.value)}
-          rows={4}
-          maxLength={500}
-          data-testid="edit-bio-input"
-        />
-        <p className="text-xs text-gray-500 mt-1">{bio.length}/500 characters</p>
-      </div>
-
-      {/* Save Button */}
-      <Button onClick={handleUpdate} disabled={loading} className="w-full" data-testid="save-profile-btn">
-        {loading ? 'Saving...' : 'Save Changes'}
-      </Button>
-    </div>
-  );
-};
-
 const ProfilePage = ({ currentUser }) => {
   const { username } = useParams();
   const [user, setUser] = useState(null);
@@ -1127,22 +863,7 @@ const ProfilePage = ({ currentUser }) => {
                   </div>
                 </div>
               </div>
-              {isOwnProfile ? (
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" data-testid="edit-profile-btn">
-                      <Edit className="w-4 h-4 mr-2" />
-                      Edit Profile
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Edit Profile</DialogTitle>
-                    </DialogHeader>
-                    <EditProfileModal user={user} onUpdate={fetchProfile} />
-                  </DialogContent>
-                </Dialog>
-              ) : currentUser && (
+              {!isOwnProfile && currentUser && (
                 <Button
                   onClick={handleFollow}
                   variant={user.is_following ? "outline" : "default"}
@@ -1224,138 +945,67 @@ const AuthPage = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex bg-white">
-      {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-rose-500 via-amber-500 to-teal-500 p-12 flex-col justify-between">
-        <div>
-          <div className="flex items-center space-x-3 mb-8">
-            <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center">
-              <span className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">P</span>
-            </div>
-            <h1 className="text-4xl font-bold text-white">PenLink</h1>
-          </div>
-          <div className="space-y-6 text-white">
-            <h2 className="text-5xl font-bold leading-tight">Connect. Share. Inspire.</h2>
-            <p className="text-xl opacity-90">Where your thoughts meet a vibrant community</p>
-            <div className="space-y-4 mt-12">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Share Your Stories</h3>
-                  <p className="text-sm opacity-80">Write blogs and quick posts</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Users className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Build Community</h3>
-                  <p className="text-sm opacity-80">Connect with like-minded people</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Heart className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Engage & Grow</h3>
-                  <p className="text-sm opacity-80">Like, comment, and share ideas</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="text-white/60 text-sm">
-          <p>© 2025 PenLink. All rights reserved.</p>
-        </div>
-      </div>
-
-      {/* Right Side - Auth Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
-        <Card className="w-full max-w-md shadow-xl border-0">
-          <CardHeader className="text-center space-y-2 pb-8">
-            <div className="lg:hidden mx-auto w-16 h-16 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 flex items-center justify-center mb-4">
-              <span className="text-2xl font-bold text-white">P</span>
-            </div>
-            <CardTitle className="text-3xl font-bold">
-              {isLogin ? 'Welcome Back' : 'Create Account'}
-            </CardTitle>
-            <CardDescription className="text-base">
-              {isLogin ? 'Login to continue your journey' : 'Join thousands of creators today'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="username" className="text-sm font-medium">Username</Label>
-                  <Input
-                    id="username"
-                    placeholder="Choose a unique username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                    className="h-11"
-                    data-testid="username-input"
-                  />
-                </div>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-100 via-amber-50 to-teal-100">
+      <Card className="w-full max-w-md shadow-2xl">
+        <CardHeader className="text-center">
+          <CardTitle className="text-4xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent mb-2">
+            PenLink
+          </CardTitle>
+          <CardDescription className="text-base">
+            {isLogin ? 'Welcome back!' : 'Join our community'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {!isLogin && (
+              <div>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   required
-                  className="h-11"
-                  data-testid="email-input"
+                  data-testid="username-input"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="h-11"
-                  data-testid="password-input"
-                />
-              </div>
-              <Button 
-                type="submit" 
-                className="w-full h-11 text-base font-medium bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-700 hover:to-amber-700" 
-                disabled={loading} 
-                data-testid="auth-submit-btn"
-              >
-                {loading ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Loading...</span>
-                  </div>
-                ) : (isLogin ? 'Login' : 'Sign Up')}
-              </Button>
-            </form>
-            <div className="text-center mt-6">
-              <button
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-sm text-gray-600 hover:text-rose-600 transition-colors"
-                data-testid="toggle-auth-btn"
-              >
-                {isLogin ? "Don't have an account? " : 'Already have an account? '}
-                <span className="font-semibold">{isLogin ? 'Sign up' : 'Login'}</span>
-              </button>
+            )}
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                data-testid="email-input"
+              />
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <div>
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                data-testid="password-input"
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={loading} data-testid="auth-submit-btn">
+              {loading ? 'Loading...' : (isLogin ? 'Login' : 'Sign Up')}
+            </Button>
+          </form>
+          <div className="text-center mt-4">
+            <button
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-sm text-rose-600 hover:underline"
+              data-testid="toggle-auth-btn"
+            >
+              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Login'}
+            </button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
@@ -1379,19 +1029,13 @@ function App() {
 
           return (
             <BrowserRouter>
-              <div className="flex flex-col min-h-screen">
-                <Header user={user} logout={logout} />
-                <div className="flex-1">
-                  <Routes>
-                    <Route path="/" element={<HomePage user={user} />} />
-                    <Route path="/social" element={<SocialPage user={user} />} />
-                    <Route path="/blogs" element={<BlogsPage user={user} />} />
-                    <Route path="/blog/:blogId" element={<BlogDetailPage user={user} />} />
-                    <Route path="/profile/:username" element={<ProfilePage currentUser={user} />} />
-                  </Routes>
-                </div>
-                <Footer />
-              </div>
+              <Navigation user={user} logout={logout} />
+              <Routes>
+                <Route path="/" element={<HomePage user={user} />} />
+                <Route path="/blogs" element={<BlogsPage user={user} />} />
+                <Route path="/blog/:blogId" element={<BlogDetailPage user={user} />} />
+                <Route path="/profile/:username" element={<ProfilePage currentUser={user} />} />
+              </Routes>
             </BrowserRouter>
           );
         }}
