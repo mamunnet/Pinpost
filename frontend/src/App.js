@@ -406,42 +406,85 @@ const HomePage = ({ user }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 pt-20 pb-12">
-      <div className="max-w-4xl mx-auto px-4 space-y-6">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">
-            Welcome to PenLink
-          </h1>
-          <p className="text-gray-600">Where thoughts meet community</p>
-        </div>
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Feed */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Stories Section */}
+            <Card className="overflow-hidden">
+              <CardContent className="p-4">
+                <Stories user={user} />
+              </CardContent>
+            </Card>
 
-        {feed.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <p className="text-gray-600 mb-4">No content yet. Be the first to create!</p>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button data-testid="start-creating-btn">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Start Creating
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <EnhancedPostModal onClose={() => {}} currentUser={user} />
-                </DialogContent>
-              </Dialog>
-            </CardContent>
-          </Card>
-        ) : (
-          feed.map((item) => (
-            <div key={`${item.type}-${item.id}`}>
-              {item.type === 'blog' ? (
-                <BlogCard blog={item} onLike={() => handleLike(item)} />
-              ) : (
-                <PostCard post={item} onLike={() => handleLike(item)} onComment={fetchFeed} />
-              )}
-            </div>
-          ))
-        )}
+            {/* Create Post Box - Facebook Style */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <Avatar className="w-10 h-10">
+                    <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white">
+                      {user.username[0].toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="flex-1 text-left px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-500 transition-colors"
+                    data-testid="whats-on-mind-btn"
+                  >
+                    What's on your mind, {user.username}?
+                  </button>
+                </div>
+                <div className="flex items-center justify-around mt-3 pt-3 border-t">
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <FileText className="w-5 h-5 text-rose-600" />
+                    <span className="font-medium text-gray-700 hidden sm:inline">Blog Article</span>
+                  </button>
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <MessageCircle className="w-5 h-5 text-blue-600" />
+                    <span className="font-medium text-gray-700 hidden sm:inline">Quick Post</span>
+                  </button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Create Modal */}
+            <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <EnhancedPostModal onClose={() => setShowCreateModal(false)} currentUser={user} />
+              </DialogContent>
+            </Dialog>
+
+            {/* Feed Content */}
+            {feed.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <p className="text-gray-600">No posts yet. Share something with your network!</p>
+                </CardContent>
+              </Card>
+            ) : (
+              feed.map((item) => (
+                <div key={`${item.type}-${item.id}`}>
+                  {item.type === 'blog' ? (
+                    <BlogCard blog={item} onLike={() => handleLike(item)} />
+                  ) : (
+                    <PostCard post={item} onLike={() => handleLike(item)} onComment={fetchFeed} />
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="hidden lg:block space-y-6">
+            <TrendingSidebar user={user} />
+          </div>
+        </div>
       </div>
     </div>
   );
