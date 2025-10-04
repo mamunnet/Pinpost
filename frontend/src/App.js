@@ -525,12 +525,16 @@ const HomePage = ({ user }) => {
                 </CardContent>
               </Card>
             ) : (
-              feed.map((item) => (
+              feed.map((item, index) => (
                 <div key={`${item.type}-${item.id}`}>
                   {item.type === 'blog' ? (
                     <BlogCard blog={item} onLike={() => handleLike(item)} />
                   ) : (
                     <PostCard post={item} onLike={() => handleLike(item)} onComment={fetchFeed} />
+                  )}
+                  {/* Insert ad every 3 posts */}
+                  {(index + 1) % 3 === 0 && index < feed.length - 1 && (
+                    <AdCard key={`ad-${index}`} adIndex={Math.floor(index / 3)} />
                   )}
                 </div>
               ))
