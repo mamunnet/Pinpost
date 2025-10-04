@@ -626,11 +626,8 @@ const HomePage = ({ user }) => {
 
             {/* Create Modal */}
             <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Create Content</DialogTitle>
-                </DialogHeader>
-                <CreateContentModal />
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <EnhancedPostModal onClose={() => setShowCreateModal(false)} />
               </DialogContent>
             </Dialog>
 
