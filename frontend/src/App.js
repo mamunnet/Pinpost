@@ -815,8 +815,10 @@ const ProfilePage = ({ currentUser }) => {
     try {
       if (user.is_following) {
         await axios.delete(`${API}/users/${user.id}/follow`);
+        toast.success('Unfollowed successfully');
       } else {
         await axios.post(`${API}/users/${user.id}/follow`);
+        toast.success('Followed successfully');
       }
       fetchProfile();
     } catch (error) {
