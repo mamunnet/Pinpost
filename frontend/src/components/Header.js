@@ -190,7 +190,7 @@ export const Header = ({ user, logout }) => {
       <div className="max-w-7xl mx-auto px-2 sm:px-4">
         <div className="flex items-center justify-between h-14 sm:h-16">
           <div className="flex items-center space-x-2 sm:space-x-6">
-            <Link to="/" className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">PenLink</Link>
+            <Link to="/" className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 text-white font-bold text-xl">P</Link>
             <nav className="flex items-center space-x-0.5 sm:space-x-1">
               <Link to="/" className="flex items-center space-x-1 px-2 sm:px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700" data-testid="nav-home">
                 <Home className="w-5 h-5" />
