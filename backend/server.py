@@ -172,6 +172,27 @@ async def get_optional_user(credentials: Optional[HTTPAuthorizationCredentials] 
     except:
         return None
 
+async def create_notification(user_id: str, notif_type: str, actor_id: str, actor_username: str, actor_avatar: str, message: str, post_id: str = None, post_type: str = None, comment_id: str = None):
+    """Helper to create notifications"""
+    if user_id == actor_id:
+        return  # Don't notify yourself
+    
+    notification = {
+        "id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "type": notif_type,
+        "actor_id": actor_id,
+        "actor_username": actor_username,
+        "actor_avatar": actor_avatar,
+        "post_id": post_id,
+        "post_type": post_type,
+        "comment_id": comment_id,
+        "message": message,
+        "read": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.notifications.insert_one(notification)
+
 # Auth routes
 @api_router.post("/auth/register")
 async def register(user_data: UserCreate):
