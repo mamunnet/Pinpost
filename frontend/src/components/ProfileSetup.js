@@ -21,27 +21,14 @@ export const ProfileSetup = ({ user, onComplete }) => {
     avatar: "",
     cover_photo: "",
     date_of_birth: "",
-    location: "",
-    website: ""
+    location: ""
   });
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
-  const [imageFiles, setImageFiles] = useState({
-    avatar: null,
-    cover: null
-  });
-  const [imageStyles, setImageStyles] = useState({
-    avatar: { objectPosition: 'center center', objectFit: 'cover' },
-    cover: { objectPosition: 'center center', objectFit: 'cover' }
-  });
-  const [showImageControls, setShowImageControls] = useState({
-    avatar: false,
-    cover: false
-  });
-  const [uploadingImage, setUploadingImage] = useState({
-    avatar: false,
-    cover: false
-  });
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [avatarPosition, setAvatarPosition] = useState({ x: 50, y: 50, zoom: 100 });
+  const [coverPosition, setCoverPosition] = useState({ x: 50, y: 50, zoom: 100 });
+  const [isDragging, setIsDragging] = useState(false);
   
   const avatarInputRef = useRef(null);
   const coverInputRef = useRef(null);
