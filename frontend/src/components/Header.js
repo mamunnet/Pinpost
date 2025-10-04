@@ -254,13 +254,18 @@ export const Header = ({ user, logout }) => {
                     <div className="p-4 border-b border-gray-100">
                       <div className="flex items-center space-x-3">
                         <Avatar className="w-12 h-12">
-                          <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white text-lg font-bold">
-                            {user.username[0].toUpperCase()}
-                          </AvatarFallback>
+                          {user.avatar ? (
+                            <img src={user.avatar} alt={user.name || user.username} className="w-full h-full object-cover rounded-full" />
+                          ) : (
+                            <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white text-lg font-bold">
+                              {(user.name || user.username)[0].toUpperCase()}
+                            </AvatarFallback>
+                          )}
                         </Avatar>
                         <div>
-                          <p className="font-semibold text-gray-900">{user.username}</p>
-                          <p className="text-sm text-gray-500">{user.email}</p>
+                          <p className="font-semibold text-gray-900">{user.name || user.username}</p>
+                          <p className="text-sm text-gray-500">@{user.username}</p>
+                          <p className="text-xs text-gray-400">{user.email}</p>
                         </div>
                       </div>
                     </div>
