@@ -468,6 +468,11 @@ class PenLinkAPITester:
             "users/trending",
             200
         )
+        
+        # Note: This might return empty array if only one user exists (current user is excluded)
+        if success:
+            self.log_test("Get Trending Users", True, f"Returned {len(response) if isinstance(response, list) else 0} trending users")
+        
         return success
 
     def test_notifications(self):
