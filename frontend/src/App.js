@@ -500,7 +500,7 @@ const HomePage = ({ user }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 pt-20 pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 pt-24 pb-12">
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Feed */}
