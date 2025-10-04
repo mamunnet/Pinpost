@@ -53,8 +53,19 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
 const StoryViewer = ({ stories, initialIndex, onClose, onView }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [progress, setProgress] = useState(0);
+  const [showReactions, setShowReactions] = useState(false);
   
   const currentStory = stories[currentIndex];
+
+  const handleReaction = async (reaction) => {
+    try {
+      await axios.post(`${API}/stories/${currentStory.id}/react`, { reaction });
+      setShowReactions(false);
+      toast.success(`Reacted with ${reaction}!`);
+    } catch (error) {
+      toast.error('Failed to react to story');
+    }
+  };
 
   useEffect(() => {
     if (currentStory) {
