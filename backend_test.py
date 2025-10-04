@@ -494,16 +494,19 @@ class PenLinkAPITester:
             return self.get_results()
 
         self.test_auth_me()
+        self.test_auth_login_existing_user()
 
         # Content creation tests
         self.test_create_blog_post()
         self.test_create_short_post()
+        self.test_create_story()
 
         # Content retrieval tests
         self.test_get_blogs()
         self.test_get_posts()
         self.test_get_feed()
         self.test_get_blog_detail()
+        self.test_get_stories()
 
         # Interaction tests
         self.test_like_blog()
@@ -512,11 +515,18 @@ class PenLinkAPITester:
         self.test_comment_on_blog()
         self.test_get_blog_comments()
         self.test_comment_on_post()
+        
+        # Stories interaction tests
+        self.test_view_story()
+        self.test_get_user_stories()
 
         # User profile tests
         self.test_get_user_profile()
         self.test_get_user_blogs()
         self.test_get_user_posts()
+        
+        # Trending algorithm test
+        self.test_trending_content()
 
         return self.get_results()
 
