@@ -189,8 +189,7 @@ async def get_optional_user(credentials: Optional[HTTPAuthorizationCredentials] 
 
 async def create_notification(user_id: str, notif_type: str, actor_id: str, actor_username: str, actor_avatar: str, message: str, post_id: str = None, post_type: str = None, comment_id: str = None):
     """Helper to create notifications"""
-    if user_id == actor_id:
-        return  # Don't notify yourself
+    # Allow self-notifications so users can see their own activity
     
     notification = {
         "id": str(uuid.uuid4()),
