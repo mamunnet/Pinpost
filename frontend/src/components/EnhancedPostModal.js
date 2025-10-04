@@ -3,11 +3,9 @@ import axios from "axios";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Smile, MapPin, Palette, Image as ImageIcon, Upload } from "lucide-react";
+import { Smile, MapPin, Palette, Upload, Bold, Italic, List, Heading } from "lucide-react";
 import { toast } from "sonner";
 import EmojiPicker from 'emoji-picker-react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -19,27 +17,6 @@ const bgColors = [
   { name: 'Forest', value: '#95E1D3', gradient: 'bg-gradient-to-br from-green-300 to-emerald-500' },
   { name: 'Purple', value: '#A855F7', gradient: 'bg-gradient-to-br from-purple-400 to-pink-400' },
   { name: 'Golden', value: '#F59E0B', gradient: 'bg-gradient-to-br from-yellow-400 to-orange-500' },
-];
-
-const quillModules = {
-  toolbar: [
-    [{ 'header': [1, 2, 3, false] }],
-    ['bold', 'italic', 'underline', 'strike'],
-    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-    ['blockquote', 'code-block'],
-    [{ 'align': [] }],
-    ['link'],
-    ['clean']
-  ],
-};
-
-const quillFormats = [
-  'header',
-  'bold', 'italic', 'underline', 'strike',
-  'list', 'bullet',
-  'blockquote', 'code-block',
-  'align',
-  'link'
 ];
 
 export const EnhancedPostModal = ({ onClose }) => {
@@ -60,11 +37,10 @@ export const EnhancedPostModal = ({ onClose }) => {
   
   const [loading, setLoading] = useState(false);
 
-  const handleImageUpload = async (event, type = 'blog') => {
+  const handleImageUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Check file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Image size should be less than 5MB');
       return;
@@ -72,7 +48,6 @@ export const EnhancedPostModal = ({ onClose }) => {
 
     setUploadingImage(true);
     try {
-      // Convert to base64
       const reader = new FileReader();
       reader.onloadend = () => {
         setBlogImage(reader.result);
@@ -93,8 +68,46 @@ export const EnhancedPostModal = ({ onClose }) => {
   const handleEmojiClick = (emojiData) => {
     if (contentType === 'post') {
       setPostContent(prev => prev + emojiData.emoji);
+    } else {
+      setBlogContent(prev => prev + emojiData.emoji);
     }
     setShowEmojiPicker(false);
+  };
+
+  const insertFormatting = (format) => {
+    const textarea = document.querySelector('[data-testid="blog-content-textarea"]');
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = blogContent.substring(start, end);
+    let newText = '';
+
+    switch(format) {
+      case 'heading1':
+        newText = `# ${selectedText || 'Heading'}`;
+        break;
+      case 'heading2':
+        newText = `## ${selectedText || 'Subheading'}`;
+        break;
+      case 'bold':
+        newText = `**${selectedText || 'bold text'}**`;
+        break;
+      case 'italic':
+        newText = `*${selectedText || 'italic text'}*`;
+        break;
+      case 'list':
+        newText = `- ${selectedText || 'list item'}`;
+        break;
+      default:
+        return;
+    }
+
+    const newContent = blogContent.substring(0, start) + newText + blogContent.substring(end);
+    setBlogContent(newContent);
+    
+    // Focus textarea
+    setTimeout(() => textarea.focus(), 0);
   };
 
   const handleCreatePost = async () => {
@@ -304,19 +317,67 @@ export const EnhancedPostModal = ({ onClose }) => {
               data-testid="blog-excerpt-input"
             />
 
-            {/* Rich Text Editor */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Content</label>
-              <ReactQuill
-                theme="snow"
-                value={blogContent}
-                onChange={setBlogContent}
-                modules={quillModules}
-                formats={quillFormats}
-                placeholder="Write your blog content..."
-                className="bg-white"
-              />
+            {/* Formatting Toolbar */}
+            <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg border">
+              <button
+                onClick={() => insertFormatting('heading1')}
+                className="p-2 hover:bg-gray-200 rounded"
+                title="Heading 1"
+              >
+                <Heading className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => insertFormatting('heading2')}
+                className="p-2 hover:bg-gray-200 rounded text-sm font-bold"
+                title="Heading 2"
+              >
+                H2
+              </button>
+              <button
+                onClick={() => insertFormatting('bold')}
+                className="p-2 hover:bg-gray-200 rounded"
+                title="Bold"
+              >
+                <Bold className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => insertFormatting('italic')}
+                className="p-2 hover:bg-gray-200 rounded"
+                title="Italic"
+              >
+                <Italic className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => insertFormatting('list')}
+                className="p-2 hover:bg-gray-200 rounded"
+                title="List"
+              >
+                <List className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className="p-2 hover:bg-gray-200 rounded ml-auto"
+                title="Emoji"
+              >
+                <Smile className="w-4 h-4" />
+              </button>
             </div>
+
+            {/* Content Textarea with Markdown support */}
+            <Textarea
+              placeholder="Write your blog content... (Markdown supported: # Heading, **bold**, *italic*, - list)"
+              value={blogContent}
+              onChange={(e) => setBlogContent(e.target.value)}
+              rows={12}
+              className="resize-none font-serif"
+              data-testid="blog-content-textarea"
+            />
+
+            {showEmojiPicker && (
+              <div className="absolute z-50 right-0">
+                <EmojiPicker onEmojiClick={handleEmojiClick} />
+              </div>
+            )}
 
             <Input
               placeholder="Tags (comma separated)"
