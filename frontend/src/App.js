@@ -226,35 +226,34 @@ const PostCard = ({ post, onLike, onComment }) => {
           </button>
         </div>
 
-            {showComments && (
-              <div className="mt-4 space-y-3 border-t pt-4">
-                <div className="flex space-x-2">
-                  <Input
-                    placeholder="Add a comment..."
-                    value={commentContent}
-                    onChange={(e) => setCommentContent(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleComment()}
-                    data-testid="comment-input"
-                  />
-                  <Button onClick={handleComment} size="sm" data-testid="submit-comment-btn">Post</Button>
+        {/* Comments Section */}
+        {showComments && (
+          <div className="mt-4 space-y-3 border-t pt-4">
+            <div className="flex space-x-2">
+              <Input
+                placeholder="Add a comment..."
+                value={commentContent}
+                onChange={(e) => setCommentContent(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleComment()}
+                data-testid="comment-input"
+              />
+              <Button onClick={handleComment} size="sm" data-testid="submit-comment-btn">Post</Button>
+            </div>
+            {comments.map((comment) => (
+              <div key={comment.id} className="flex items-start space-x-2">
+                <Avatar className="w-8 h-8">
+                  <AvatarFallback className="text-xs bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                    {comment.username[0].toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 bg-gray-50 rounded-lg p-2">
+                  <p className="text-sm font-semibold">{comment.username}</p>
+                  <p className="text-sm text-gray-700">{comment.content}</p>
                 </div>
-                {comments.map((comment) => (
-                  <div key={comment.id} className="flex items-start space-x-2">
-                    <Avatar className="w-8 h-8">
-                      <AvatarFallback className="text-xs bg-gradient-to-br from-purple-500 to-pink-500 text-white">
-                        {comment.username[0].toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 bg-gray-50 rounded-lg p-2">
-                      <p className="text-sm font-semibold">{comment.username}</p>
-                      <p className="text-sm text-gray-700">{comment.content}</p>
-                    </div>
-                  </div>
-                ))}
               </div>
-            )}
+            ))}
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );
