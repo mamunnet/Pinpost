@@ -17,6 +17,7 @@ import { EnhancedPostModal } from "@/components/EnhancedPostModal";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Stories } from "@/components/Stories";
+import { ProfileSetup } from "@/components/ProfileSetup";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
