@@ -882,7 +882,7 @@ const ProfilePage = ({ currentUser }) => {
   const isOwnProfile = currentUser && currentUser.username === username;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 pt-20 pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 pt-24 pb-12">
       <div className="max-w-6xl mx-auto px-4">
         <Card className="mb-8">
           <CardContent className="pt-6">
