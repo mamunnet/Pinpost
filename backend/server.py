@@ -142,8 +142,12 @@ class Notification(BaseModel):
 
 class UserUpdate(BaseModel):
     username: Optional[str] = None
+    name: Optional[str] = None
     bio: Optional[str] = None
+    location: Optional[str] = None
+    date_of_birth: Optional[str] = None
     avatar: Optional[str] = None
+    cover_photo: Optional[str] = None
 
 class StoryCreate(BaseModel):
     content: str
