@@ -104,7 +104,15 @@ const SocialPage = ({ user }) => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 pt-20 pb-12">
       <div className="max-w-2xl mx-auto px-4 space-y-6">
         <h1 className="text-3xl font-bold mb-6">Social Feed</h1>
-        {posts.map((post) => (<PostCard key={post.id} post={post} user={user} onLike={() => handleLike(post)} onComment={fetchPosts} />))}
+        {posts.map((post, index) => (
+          <div key={post.id}>
+            <PostCard post={post} user={user} onLike={() => handleLike(post)} onComment={fetchPosts} />
+            {/* Insert ad every 4 posts */}
+            {(index + 1) % 4 === 0 && index < posts.length - 1 && (
+              <AdCard adIndex={Math.floor(index / 4)} />
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
