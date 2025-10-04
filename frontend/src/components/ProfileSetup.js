@@ -26,6 +26,21 @@ export const ProfileSetup = ({ user, onComplete }) => {
   });
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
+  const [imageFiles, setImageFiles] = useState({
+    avatar: null,
+    cover: null
+  });
+  const [imageStyles, setImageStyles] = useState({
+    avatar: { objectPosition: 'center center', objectFit: 'cover' },
+    cover: { objectPosition: 'center center', objectFit: 'cover' }
+  });
+  const [showImageControls, setShowImageControls] = useState({
+    avatar: false,
+    cover: false
+  });
+  
+  const avatarInputRef = useRef(null);
+  const coverInputRef = useRef(null);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
