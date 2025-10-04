@@ -258,6 +258,8 @@ async def follow_user(user_id: str, current_user_id: str = Depends(get_current_u
     if existing_follow:
         raise HTTPException(status_code=400, detail="Already following")
     
+    current_user = await db.users.find_one({"id": current_user_id})
+    
     await db.follows.insert_one({
         "id": str(uuid.uuid4()),
         "follower_id": current_user_id,
@@ -267,6 +269,16 @@ async def follow_user(user_id: str, current_user_id: str = Depends(get_current_u
     
     await db.users.update_one({"id": user_id}, {"$inc": {"followers_count": 1}})
     await db.users.update_one({"id": current_user_id}, {"$inc": {"following_count": 1}})
+    
+    # Create notification
+    await create_notification(
+        user_id=user_id,
+        notif_type="follow",
+        actor_id=current_user_id,
+        actor_username=current_user["username"],
+        actor_avatar=current_user.get("avatar", ""),
+        message=f"{current_user['username']} started following you"
+    )
     
     return {"message": "Followed successfully"}
 
