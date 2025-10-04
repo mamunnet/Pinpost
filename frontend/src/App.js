@@ -1415,6 +1415,11 @@ function App() {
             return <AuthPage onLogin={login} />;
           }
 
+          // Show profile setup if user hasn't completed profile
+          if (user && !user.profile_completed) {
+            return <ProfileSetup user={user} onComplete={(updatedUser) => setUser(updatedUser)} />;
+          }
+
           return (
             <BrowserRouter>
               <div className="flex flex-col min-h-screen">
