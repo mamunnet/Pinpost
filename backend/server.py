@@ -830,8 +830,15 @@ async def get_feed(skip: int = 0, limit: int = 20, following_only: bool = False,
     # Process blogs
     blog_items = []
     for blog in blogs:
+        # Get author info
+        author = await db.users.find_one({"id": blog["author_id"]})
+        
         blog_data = BlogPost(**blog).dict()
         blog_data["type"] = "blog"
+        if author:
+            blog_data["author_name"] = author.get("name", "")
+            blog_data["author_avatar"] = author.get("avatar", "")
+        
         if current_user_id:
             liked = await db.likes.find_one({"user_id": current_user_id, "post_id": blog["id"], "post_type": "blog"})
             blog_data["liked_by_user"] = bool(liked)
@@ -840,8 +847,15 @@ async def get_feed(skip: int = 0, limit: int = 20, following_only: bool = False,
     # Process posts
     post_items = []
     for post in posts:
+        # Get author info
+        author = await db.users.find_one({"id": post["author_id"]})
+        
         post_data = ShortPost(**post).dict()
         post_data["type"] = "post"
+        if author:
+            post_data["author_name"] = author.get("name", "")
+            post_data["author_avatar"] = author.get("avatar", "")
+        
         if current_user_id:
             liked = await db.likes.find_one({"user_id": current_user_id, "post_id": post["id"], "post_type": "post"})
             post_data["liked_by_user"] = bool(liked)
