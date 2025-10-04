@@ -644,6 +644,117 @@ async def get_trending_users(limit: int = 5, current_user_id: Optional[str] = De
         result.append(user_data)
     return result
 
+# Stories routes
+@api_router.post("/stories", response_model=Story)
+async def create_story(story_data: StoryCreate, user_id: str = Depends(get_current_user)):
+    user = await db.users.find_one({"id": user_id})
+    
+    story_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc)
+    expires_at = now + timedelta(hours=24)
+    
+    story = {
+        "id": story_id,
+        "user_id": user_id,
+        "username": user["username"],
+        "user_avatar": user.get("avatar", ""),
+        "content": story_data.content,
+        "media_url": story_data.media_url or "",
+        "views_count": 0,
+        "created_at": now.isoformat(),
+        "expires_at": expires_at.isoformat()
+    }
+    await db.stories.insert_one(story)
+    return Story(**story)
+
+@api_router.get("/stories")
+async def get_stories(current_user_id: Optional[str] = Depends(get_optional_user)):
+    # Get stories from last 24 hours
+    now = datetime.now(timezone.utc)
+    cutoff = (now - timedelta(hours=24)).isoformat()
+    
+    # Get all stories that haven't expired
+    all_stories = await db.stories.find({
+        "created_at": {"$gte": cutoff}
+    }).sort("created_at", -1).to_list(100)
+    
+    # Group by user - only show latest story per user
+    user_stories = {}
+    for story in all_stories:
+        user_id = story["user_id"]
+        if user_id not in user_stories:
+            user_stories[user_id] = []
+        user_stories[user_id].append(Story(**story))
+    
+    # Get following list if user is logged in
+    following_ids = []
+    if current_user_id:
+        following = await db.follows.find({"follower_id": current_user_id}).to_list(1000)
+        following_ids = [f["following_id"] for f in following]
+        following_ids.append(current_user_id)  # Include own stories
+    
+    # Filter to show only followed users' stories (or all if not logged in)
+    result = []
+    for user_id, stories in user_stories.items():
+        if not current_user_id or user_id in following_ids:
+            result.append({
+                "user_id": stories[0].user_id,
+                "username": stories[0].username,
+                "user_avatar": stories[0].user_avatar,
+                "story_count": len(stories),
+                "latest_story": stories[0],
+                "stories": stories
+            })
+    
+    return result
+
+@api_router.get("/stories/user/{user_id}")
+async def get_user_stories(user_id: str):
+    now = datetime.now(timezone.utc)
+    cutoff = (now - timedelta(hours=24)).isoformat()
+    
+    stories = await db.stories.find({
+        "user_id": user_id,
+        "created_at": {"$gte": cutoff}
+    }).sort("created_at", -1).to_list(100)
+    
+    return [Story(**story) for story in stories]
+
+@api_router.post("/stories/{story_id}/view")
+async def view_story(story_id: str, current_user_id: str = Depends(get_current_user)):
+    story = await db.stories.find_one({"id": story_id})
+    if not story:
+        raise HTTPException(status_code=404, detail="Story not found")
+    
+    # Check if already viewed
+    existing_view = await db.story_views.find_one({
+        "story_id": story_id,
+        "user_id": current_user_id
+    })
+    
+    if not existing_view:
+        await db.story_views.insert_one({
+            "id": str(uuid.uuid4()),
+            "story_id": story_id,
+            "user_id": current_user_id,
+            "viewed_at": datetime.now(timezone.utc).isoformat()
+        })
+        await db.stories.update_one({"id": story_id}, {"$inc": {"views_count": 1}})
+    
+    return {"message": "Story viewed"}
+
+@api_router.delete("/stories/{story_id}")
+async def delete_story(story_id: str, user_id: str = Depends(get_current_user)):
+    story = await db.stories.find_one({"id": story_id})
+    if not story:
+        raise HTTPException(status_code=404, detail="Story not found")
+    if story["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    await db.stories.delete_one({"id": story_id})
+    await db.story_views.delete_many({"story_id": story_id})
+    return {"message": "Story deleted"}
+
 # Feed route - Combined blogs and posts
 @api_router.get("/feed")
 async def get_feed(skip: int = 0, limit: int = 20, following_only: bool = False, current_user_id: Optional[str] = Depends(get_optional_user)):
