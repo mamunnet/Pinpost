@@ -603,10 +603,20 @@ const BlogsPage = ({ user }) => {
           <p className="text-gray-600">Discover thoughtful long-form content</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {blogs.map((blog) => (
-            <BlogCard key={blog.id} blog={blog} onLike={() => handleLike(blog)} compact />
-          ))}
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {blogs.map((blog, index) => (
+              <div key={blog.id}>
+                <BlogCard blog={blog} onLike={() => handleLike(blog)} compact />
+                {/* Insert ad every 6 blogs */}
+                {(index + 1) % 6 === 0 && index < blogs.length - 1 && (
+                  <div className="md:col-span-2 mt-6">
+                    <AdCard adIndex={Math.floor(index / 6)} />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
