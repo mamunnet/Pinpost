@@ -891,33 +891,84 @@ const BlogDetailPage = ({ user }) => {
 const EditProfileModal = ({ user, onUpdate }) => {
   const [username, setUsername] = useState(user.username);
   const [bio, setBio] = useState(user.bio);
+  const [avatar, setAvatar] = useState(user.avatar || '');
   const [loading, setLoading] = useState(false);
 
   const handleUpdate = async () => {
     setLoading(true);
     try {
-      await axios.put(`${API}/users/profile`, { username, bio });
+      const updates = {};
+      if (username !== user.username) updates.username = username;
+      if (bio !== user.bio) updates.bio = bio;
+      if (avatar !== user.avatar) updates.avatar = avatar;
+      
+      if (Object.keys(updates).length === 0) {
+        toast.info('No changes to save');
+        return;
+      }
+
+      await axios.put(`${API}/users/profile`, updates);
       toast.success('Profile updated!');
-      onUpdate();
+      setTimeout(() => onUpdate(), 500);
     } catch (error) {
-      toast.error('Failed to update profile');
+      toast.error(error.response?.data?.detail || 'Failed to update profile');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Profile Picture */}
+      <div className="flex flex-col items-center space-y-4">
+        <Avatar className="w-24 h-24">
+          {avatar ? (
+            <img src={avatar} alt={username} className="w-full h-full object-cover" />
+          ) : (
+            <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white text-3xl">
+              {username[0].toUpperCase()}
+            </AvatarFallback>
+          )}
+        </Avatar>
+        <div className="w-full">
+          <Label>Profile Picture URL</Label>
+          <Input
+            placeholder="Enter image URL"
+            value={avatar}
+            onChange={(e) => setAvatar(e.target.value)}
+            data-testid="avatar-url-input"
+          />
+          <p className="text-xs text-gray-500 mt-1">Enter a URL to your profile picture</p>
+        </div>
+      </div>
+
+      {/* Username */}
       <div>
         <Label>Username</Label>
-        <Input value={username} onChange={(e) => setUsername(e.target.value)} />
+        <Input
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          data-testid="edit-username-input"
+        />
       </div>
+
+      {/* Bio */}
       <div>
         <Label>Bio</Label>
-        <Textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4} />
+        <Textarea
+          placeholder="Tell us about yourself..."
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
+          rows={4}
+          maxLength={500}
+          data-testid="edit-bio-input"
+        />
+        <p className="text-xs text-gray-500 mt-1">{bio.length}/500 characters</p>
       </div>
-      <Button onClick={handleUpdate} disabled={loading} className="w-full">
-        Save Changes
+
+      {/* Save Button */}
+      <Button onClick={handleUpdate} disabled={loading} className="w-full" data-testid="save-profile-btn">
+        {loading ? 'Saving...' : 'Save Changes'}
       </Button>
     </div>
   );
