@@ -637,21 +637,7 @@ const HomePage = ({ user }) => {
             {feed.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
-                  <p className="text-gray-600 mb-4">No content yet. Be the first to create!</p>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button data-testid="start-creating-btn">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Start Creating
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>Create Content</DialogTitle>
-                      </DialogHeader>
-                      <CreateContentModal />
-                    </DialogContent>
-                  </Dialog>
+                  <p className="text-gray-600">No posts yet. Share something with your network!</p>
                 </CardContent>
               </Card>
             ) : (
