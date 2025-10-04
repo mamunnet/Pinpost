@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Home, FileText, Users, Bell, Search, Plus, LogOut, User, Settings } from "lucide-react";
+import { Home, FileText, Users, Bell, Search, Plus, LogOut, User, Settings, TrendingUp, UserPlus, HelpCircle, Shield, Mail } from "lucide-react";
 import { toast } from "sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
