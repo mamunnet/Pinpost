@@ -910,6 +910,66 @@ const ProfilePage = ({ currentUser }) => {
   );
 };
 
+const AdCard = ({ adIndex }) => {
+  const ads = [
+    {
+      title: "Boost Your Writing",
+      description: "Join our premium writing tools and reach more readers.",
+      image: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=400&q=80",
+      cta: "Learn More",
+      sponsor: "PenLink Pro"
+    },
+    {
+      title: "Creative Workshop",
+      description: "Unlock your creative potential with our online courses.",
+      image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&q=80",
+      cta: "Start Free Trial",
+      sponsor: "CreativeHub"
+    },
+    {
+      title: "Coffee & Code",
+      description: "Perfect blend for writers and developers. Free delivery!",
+      image: "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=400&q=80",
+      cta: "Order Now",
+      sponsor: "ByteBrew"
+    },
+    {
+      title: "Digital Marketing",
+      description: "Grow your blog's audience with proven marketing strategies.",
+      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&q=80",
+      cta: "Get Started",
+      sponsor: "GrowthLabs"
+    }
+  ];
+
+  const ad = ads[adIndex % ads.length];
+
+  return (
+    <Card className="border-2 border-dashed border-gray-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-2">
+          <Badge variant="outline" className="text-xs text-gray-500">Sponsored</Badge>
+          <span className="text-xs text-gray-400">by {ad.sponsor}</span>
+        </div>
+        <div className="flex items-start space-x-4">
+          <img 
+            src={ad.image} 
+            alt={ad.title}
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover flex-shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-gray-900 mb-1 line-clamp-1">{ad.title}</h3>
+            <p className="text-sm text-gray-600 mb-3 line-clamp-2">{ad.description}</p>
+            <Button size="sm" variant="outline" className="text-xs">
+              {ad.cta}
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 const TrendingPage = ({ user }) => {
   const [trendingPosts, setTrendingPosts] = useState([]);
   const [trendingBlogs, setTrendingBlogs] = useState([]);
