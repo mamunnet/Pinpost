@@ -139,18 +139,128 @@ export const ProfileSetup = ({ user, onComplete }) => {
           </CardHeader>
 
           <CardContent className="space-y-6">
-            {/* Step 1: Basic Info */}
+            {/* Step 1: Basic Info + Profile Photo */}
             {step === 1 && (
               <div className="space-y-6">
                 <div className="text-center mb-6">
-                  <Avatar className="w-24 h-24 mx-auto mb-4">
-                    <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white text-2xl">
-                      {user.username[0].toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative inline-block">
+                    <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 mx-auto mb-4 border-4 border-white shadow-lg">
+                      {formData.avatar ? (
+                        <img 
+                          src={formData.avatar} 
+                          alt="Profile" 
+                          className="w-full h-full object-cover"
+                          style={getImageStyle(avatarPosition, true)}
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-rose-500 to-amber-500 flex items-center justify-center text-white text-2xl font-bold">
+                          {user.username[0].toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => avatarInputRef.current?.click()}
+                      disabled={uploadingImage}
+                      className="absolute bottom-2 right-2 w-8 h-8 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center transition-colors"
+                    >
+                      {uploadingImage ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <Camera className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
                   <p className="text-sm text-gray-500">@{user.username}</p>
                 </div>
 
+                {/* Profile Photo Upload */}
+                <div className="mb-6">
+                  <Label className="text-base font-medium mb-3 block text-center">
+                    {formData.avatar ? 'Change Profile Photo' : 'Add Profile Photo'}
+                  </Label>
+                  <div 
+                    onClick={() => !uploadingImage && avatarInputRef.current?.click()}
+                    className={`border-2 border-dashed border-gray-300 rounded-lg p-6 text-center transition-all ${
+                      uploadingImage 
+                        ? 'cursor-wait bg-rose-50 border-rose-300' 
+                        : 'cursor-pointer hover:border-rose-400 hover:bg-rose-50'
+                    }`}
+                  >
+                    {uploadingImage ? (
+                      <>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600 mx-auto mb-2"></div>
+                        <p className="text-sm text-rose-600">Uploading...</p>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-600">Click to upload profile photo</p>
+                        <p className="text-xs text-gray-400">JPG, PNG, WebP up to 5MB</p>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload('avatar', e.target.files[0])}
+                    className="hidden"
+                  />
+                </div>
+
+                {/* Profile Photo Position Controls */}
+                {formData.avatar && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <Label className="text-sm font-medium mb-3 block flex items-center">
+                      <Move3D className="w-4 h-4 mr-2" />
+                      Adjust Profile Photo Position
+                    </Label>
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-xs text-gray-600">Horizontal Position</Label>
+                        <Slider
+                          value={[avatarPosition.x]}
+                          onValueChange={([x]) => setAvatarPosition(prev => ({ ...prev, x }))}
+                          max={100}
+                          step={1}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-600">Vertical Position</Label>
+                        <Slider
+                          value={[avatarPosition.y]}
+                          onValueChange={([y]) => setAvatarPosition(prev => ({ ...prev, y }))}
+                          max={100}
+                          step={1}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-600">Zoom Level</Label>
+                        <Slider
+                          value={[avatarPosition.zoom]}
+                          onValueChange={([zoom]) => setAvatarPosition(prev => ({ ...prev, zoom }))}
+                          min={50}
+                          max={200}
+                          step={5}
+                          className="mt-1"
+                        />
+                      </div>
+                      <Button
+                        onClick={() => setAvatarPosition({ x: 50, y: 50, zoom: 100 })}
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                      >
+                        <RotateCcw className="w-4 h-4 mr-1" />
+                        Reset Position
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Basic Info */}
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="name" className="text-base font-medium">Full Name *</Label>
@@ -179,7 +289,7 @@ export const ProfileSetup = ({ user, onComplete }) => {
                 </div>
 
                 <Button onClick={nextStep} className="w-full h-12 text-base">
-                  Continue
+                  Continue to Cover Photo
                 </Button>
               </div>
             )}
