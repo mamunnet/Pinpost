@@ -101,7 +101,7 @@ const SocialPage = ({ user }) => {
   if (loading) return <div className="min-h-screen flex items-center justify-center pt-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600 mx-auto"></div></div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 pt-20 pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 pt-24 pb-12">
       <div className="max-w-2xl mx-auto px-4 space-y-6">
         <h1 className="text-3xl font-bold mb-6">Social Feed</h1>
         {posts.map((post, index) => (
