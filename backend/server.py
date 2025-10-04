@@ -535,12 +535,81 @@ async def delete_comment(comment_id: str, user_id: str = Depends(get_current_use
     
     return {"message": "Comment deleted successfully"}
 
+# Notification routes
+@api_router.get("/notifications", response_model=List[Notification])
+async def get_notifications(current_user_id: str = Depends(get_current_user)):
+    notifications = await db.notifications.find({"user_id": current_user_id}).sort("created_at", -1).limit(50).to_list(50)
+    return [Notification(**notif) for notif in notifications]
+
+@api_router.put("/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str, current_user_id: str = Depends(get_current_user)):
+    result = await db.notifications.update_one(
+        {"id": notification_id, "user_id": current_user_id},
+        {"$set": {"read": True}}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    return {"message": "Marked as read"}
+
+@api_router.put("/notifications/read-all")
+async def mark_all_notifications_read(current_user_id: str = Depends(get_current_user)):
+    await db.notifications.update_many(
+        {"user_id": current_user_id, "read": False},
+        {"$set": {"read": True}}
+    )
+    return {"message": "All notifications marked as read"}
+
+@api_router.get("/notifications/unread-count")
+async def get_unread_count(current_user_id: str = Depends(get_current_user)):
+    count = await db.notifications.count_documents({"user_id": current_user_id, "read": False})
+    return {"count": count}
+
+# Profile management
+@api_router.put("/users/profile")
+async def update_profile(profile_data: UserUpdate, current_user_id: str = Depends(get_current_user)):
+    update_data = {k: v for k, v in profile_data.dict().items() if v is not None}
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No data to update")
+    
+    # Check if username is taken
+    if "username" in update_data:
+        existing = await db.users.find_one({"username": update_data["username"], "id": {"$ne": current_user_id}})
+        if existing:
+            raise HTTPException(status_code=400, detail="Username already taken")
+    
+    await db.users.update_one({"id": current_user_id}, {"$set": update_data})
+    updated_user = await db.users.find_one({"id": current_user_id})
+    return User(**updated_user)
+
+# Trending users
+@api_router.get("/users/trending")
+async def get_trending_users(limit: int = 5, current_user_id: Optional[str] = Depends(get_optional_user)):
+    users = await db.users.find().sort("followers_count", -1).limit(limit).to_list(limit)
+    result = []
+    for user in users:
+        if user["id"] == current_user_id:
+            continue
+        user_data = User(**user).dict()
+        if current_user_id:
+            is_following = await db.follows.find_one({"follower_id": current_user_id, "following_id": user["id"]})
+            user_data["is_following"] = bool(is_following)
+        result.append(user_data)
+    return result
+
 # Feed route - Combined blogs and posts
 @api_router.get("/feed")
-async def get_feed(skip: int = 0, limit: int = 20, current_user_id: Optional[str] = Depends(get_optional_user)):
+async def get_feed(skip: int = 0, limit: int = 20, following_only: bool = False, current_user_id: Optional[str] = Depends(get_optional_user)):
+    # Filter by following if requested
+    filter_query = {}
+    if following_only and current_user_id:
+        following = await db.follows.find({"follower_id": current_user_id}).to_list(1000)
+        following_ids = [f["following_id"] for f in following]
+        filter_query = {"author_id": {"$in": following_ids}}
+    
     # Get blogs and posts
-    blogs = await db.blog_posts.find().sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
-    posts = await db.short_posts.find().sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+    blogs = await db.blog_posts.find(filter_query).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+    posts = await db.short_posts.find(filter_query).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     
     # Process blogs
     blog_items = []
