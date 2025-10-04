@@ -189,26 +189,31 @@ export const Header = ({ user, logout }) => {
     <header className="fixed top-0 w-full bg-white border-b border-gray-200 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-2 sm:px-4">
         <div className="flex items-center justify-between h-14 sm:h-16">
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            <Link to="/" className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 text-white font-bold text-xl flex-shrink-0">P</Link>
-            <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-hide max-w-xs sm:max-w-md md:max-w-lg" style={{scrollBehavior: 'smooth'}}>
-              <Link to="/" className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-home">
-                <Home className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden sm:inline font-medium text-sm sm:text-base">Home</span>
-              </Link>
-              <Link to="/social" className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-social">
-                <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden sm:inline font-medium text-sm sm:text-base">Social</span>
-              </Link>
-              <Link to="/blogs" className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-blogs">
-                <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden sm:inline font-medium text-sm sm:text-base">Blogs</span>
-              </Link>
-              <Link to="/trending" className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-trending">
-                <Search className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden sm:inline font-medium text-sm sm:text-base">Trending</span>
-              </Link>
-            </nav>
+          <div className="flex items-center space-x-3 sm:space-x-6">
+            <Link to="/" className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 text-white font-bold text-xl flex-shrink-0 shadow-lg">P</Link>
+            <div className="relative overflow-hidden">
+              <nav className="flex items-center gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-2 mb-2" style={{scrollBehavior: 'smooth', width: '300px', msOverflowStyle: 'none', scrollbarWidth: 'none'}}>
+                <Link to="/" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0 min-w-fit" data-testid="nav-home">
+                  <Home className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <span className="hidden md:inline font-semibold text-base">Home</span>
+                </Link>
+                <Link to="/social" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0 min-w-fit" data-testid="nav-social">
+                  <Users className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <span className="hidden md:inline font-semibold text-base">Social</span>
+                </Link>
+                <Link to="/blogs" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0 min-w-fit" data-testid="nav-blogs">
+                  <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <span className="hidden md:inline font-semibold text-base">Blogs</span>
+                </Link>
+                <Link to="/trending" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0 min-w-fit" data-testid="nav-trending">
+                  <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <span className="hidden md:inline font-semibold text-base">Trending</span>
+                </Link>
+              </nav>
+              {/* Navigation scroll indicators */}
+              <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent pointer-events-none"></div>
+              <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none"></div>
+            </div>
           </div>
           <div className="hidden lg:block flex-1 max-w-md mx-4">
             <div className="relative">
