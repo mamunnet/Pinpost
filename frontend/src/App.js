@@ -125,6 +125,7 @@ const PostCard = ({ post, onLike, onComment }) => {
   const [comments, setComments] = useState([]);
   const [commentContent, setCommentContent] = useState('');
   const [loadingComments, setLoadingComments] = useState(false);
+  const [showReactions, setShowReactions] = useState(false);
 
   const fetchComments = async () => {
     if (comments.length > 0) {
