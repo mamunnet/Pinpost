@@ -224,12 +224,25 @@ export const ProfileSetup = ({ user, onComplete }) => {
                       <div>
                         <Label className="text-sm text-gray-600 mb-2 block">Upload from Gallery</Label>
                         <div 
-                          onClick={() => avatarInputRef.current?.click()}
-                          className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-rose-400 hover:bg-rose-50 transition-all"
+                          onClick={() => !uploadingImage.avatar && avatarInputRef.current?.click()}
+                          className={`border-2 border-dashed border-gray-300 rounded-lg p-6 text-center transition-all ${
+                            uploadingImage.avatar 
+                              ? 'cursor-wait bg-rose-50 border-rose-300' 
+                              : 'cursor-pointer hover:border-rose-400 hover:bg-rose-50'
+                          }`}
                         >
-                          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                          <p className="text-sm text-gray-600">Click to upload photo</p>
-                          <p className="text-xs text-gray-400">JPG, PNG, WebP up to 5MB</p>
+                          {uploadingImage.avatar ? (
+                            <>
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600 mx-auto mb-2"></div>
+                              <p className="text-sm text-rose-600">Uploading...</p>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                              <p className="text-sm text-gray-600">Click to upload photo</p>
+                              <p className="text-xs text-gray-400">JPG, PNG, WebP up to 5MB</p>
+                            </>
+                          )}
                         </div>
                         <input
                           ref={avatarInputRef}
