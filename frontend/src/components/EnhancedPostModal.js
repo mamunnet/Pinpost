@@ -3,9 +3,11 @@ import axios from "axios";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { X, Smile, MapPin, Palette, Image as ImageIcon } from "lucide-react";
+import { Smile, MapPin, Palette, Image as ImageIcon, Upload } from "lucide-react";
 import { toast } from "sonner";
 import EmojiPicker from 'emoji-picker-react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -17,6 +19,27 @@ const bgColors = [
   { name: 'Forest', value: '#95E1D3', gradient: 'bg-gradient-to-br from-green-300 to-emerald-500' },
   { name: 'Purple', value: '#A855F7', gradient: 'bg-gradient-to-br from-purple-400 to-pink-400' },
   { name: 'Golden', value: '#F59E0B', gradient: 'bg-gradient-to-br from-yellow-400 to-orange-500' },
+];
+
+const quillModules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    ['blockquote', 'code-block'],
+    [{ 'align': [] }],
+    ['link'],
+    ['clean']
+  ],
+};
+
+const quillFormats = [
+  'header',
+  'bold', 'italic', 'underline', 'strike',
+  'list', 'bullet',
+  'blockquote', 'code-block',
+  'align',
+  'link'
 ];
 
 export const EnhancedPostModal = ({ onClose }) => {
@@ -33,14 +56,43 @@ export const EnhancedPostModal = ({ onClose }) => {
   const [blogExcerpt, setBlogExcerpt] = useState('');
   const [blogTags, setBlogTags] = useState('');
   const [blogImage, setBlogImage] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
   
   const [loading, setLoading] = useState(false);
+
+  const handleImageUpload = async (event, type = 'blog') => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBlogImage(reader.result);
+        toast.success('Image uploaded!');
+        setUploadingImage(false);
+      };
+      reader.onerror = () => {
+        toast.error('Failed to read image');
+        setUploadingImage(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      toast.error('Failed to upload image');
+      setUploadingImage(false);
+    }
+  };
 
   const handleEmojiClick = (emojiData) => {
     if (contentType === 'post') {
       setPostContent(prev => prev + emojiData.emoji);
-    } else {
-      setBlogContent(prev => prev + emojiData.emoji);
     }
     setShowEmojiPicker(false);
   };
@@ -212,48 +264,72 @@ export const EnhancedPostModal = ({ onClose }) => {
               className="text-lg font-semibold"
               data-testid="blog-title-input"
             />
-            <Input
-              placeholder="Cover image URL (optional)"
-              value={blogImage}
-              onChange={(e) => setBlogImage(e.target.value)}
-              data-testid="blog-image-input"
-            />
+            
+            {/* Image Upload */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Cover Image</label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="blog-image-upload"
+                />
+                <label
+                  htmlFor="blog-image-upload"
+                  className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50"
+                >
+                  <Upload className="w-4 h-4" />
+                  <span className="text-sm">{uploadingImage ? 'Uploading...' : 'Upload Image'}</span>
+                </label>
+                {blogImage && (
+                  <div className="flex items-center space-x-2">
+                    <img src={blogImage} alt="Preview" className="h-10 w-10 object-cover rounded" />
+                    <button
+                      onClick={() => setBlogImage('')}
+                      className="text-xs text-red-600 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <Input
               placeholder="Brief excerpt"
               value={blogExcerpt}
               onChange={(e) => setBlogExcerpt(e.target.value)}
               data-testid="blog-excerpt-input"
             />
-            <Textarea
-              placeholder="Write your blog content... (Markdown supported)"
-              value={blogContent}
-              onChange={(e) => setBlogContent(e.target.value)}
-              rows={12}
-              className="resize-none font-serif"
-              data-testid="blog-content-textarea"
-            />
+
+            {/* Rich Text Editor */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Content</label>
+              <ReactQuill
+                theme="snow"
+                value={blogContent}
+                onChange={setBlogContent}
+                modules={quillModules}
+                formats={quillFormats}
+                placeholder="Write your blog content..."
+                className="bg-white"
+              />
+            </div>
+
             <Input
               placeholder="Tags (comma separated)"
               value={blogTags}
               onChange={(e) => setBlogTags(e.target.value)}
               data-testid="blog-tags-input"
             />
-            <div className="flex items-center justify-between pt-3 border-t">
-              <button
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                className="p-2 hover:bg-gray-100 rounded-full"
-              >
-                <Smile className="w-5 h-5 text-gray-600" />
-              </button>
+
+            <div className="flex justify-end pt-3 border-t">
               <Button onClick={handleCreateBlog} disabled={loading} data-testid="publish-blog-btn">
                 Publish Blog
               </Button>
             </div>
-            {showEmojiPicker && (
-              <div className="absolute z-50 right-0">
-                <EmojiPicker onEmojiClick={handleEmojiClick} />
-              </div>
-            )}
           </div>
         )}
       </div>
