@@ -527,11 +527,8 @@ const HomePage = ({ user }) => {
                     Start Creating
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Create Content</DialogTitle>
-                  </DialogHeader>
-                  <CreateContentModal />
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <EnhancedPostModal onClose={() => {}} currentUser={user} />
                 </DialogContent>
               </Dialog>
             </CardContent>
