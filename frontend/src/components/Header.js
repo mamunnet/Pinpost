@@ -210,10 +210,43 @@ export const Header = ({ user, logout }) => {
             <div className="relative"><Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" /><Input type="text" placeholder="Search PenLink..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 bg-gray-100 border-none" /></div>
           </div>
           {user && (
-            <div className="flex items-center space-x-2">
-              <Dialog><DialogTrigger asChild><Button size="sm" data-testid="create-content-btn"><Plus className="w-4 h-4 mr-1" />Create</Button></DialogTrigger><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>Create Content</DialogTitle></DialogHeader><CreateContentModal /></DialogContent></Dialog>
+            <div className="flex items-center space-x-1 sm:space-x-2">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button size="sm" data-testid="create-content-btn" className="px-2 sm:px-4">
+                    <Plus className="w-4 h-4" />
+                    <span className="hidden sm:inline ml-1">Create</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader><DialogTitle>Create Content</DialogTitle></DialogHeader>
+                  <CreateContentModal />
+                </DialogContent>
+              </Dialog>
               <NotificationsDropdown user={user} />
-              <Popover><PopoverTrigger asChild><button data-testid="user-menu-btn"><Avatar className="w-9 h-9 hover:ring-2 hover:ring-rose-500"><AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white">{user.username[0].toUpperCase()}</AvatarFallback></Avatar></button></PopoverTrigger><PopoverContent className="w-56 p-2" align="end"><div className="space-y-1"><Link to={`/profile/${user.username}`}><button className="w-full flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-gray-100 text-left"><User className="w-4 h-4" /><span>Profile</span></button></Link><button onClick={logout} className="w-full flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-gray-100 text-left text-red-600" data-testid="logout-btn"><LogOut className="w-4 h-4" /><span>Logout</span></button></div></PopoverContent></Popover>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button data-testid="user-menu-btn">
+                    <Avatar className="w-8 h-8 sm:w-9 sm:h-9 hover:ring-2 hover:ring-rose-500">
+                      <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white text-sm">
+                        {user.username[0].toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-2" align="end">
+                  <div className="space-y-1">
+                    <Link to={`/profile/${user.username}`}>
+                      <button className="w-full flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-gray-100 text-left">
+                        <User className="w-4 h-4" /><span>Profile</span>
+                      </button>
+                    </Link>
+                    <button onClick={logout} className="w-full flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-gray-100 text-left text-red-600" data-testid="logout-btn">
+                      <LogOut className="w-4 h-4" /><span>Logout</span>
+                    </button>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           )}
         </div>
