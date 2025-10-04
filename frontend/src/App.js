@@ -239,25 +239,47 @@ const PostCard = ({ post, onLike, onComment }) => {
     return date.toLocaleDateString();
   };
 
+  // Extract image and clean content
+  let displayContent = post.content;
+  let postImage = null;
+  if (post.content.includes('[IMAGE]')) {
+    const parts = post.content.split('[IMAGE]');
+    displayContent = parts[0];
+    postImage = parts[1];
+  }
+
   return (
-    <Card className="hover:shadow-lg transition-shadow" data-testid="post-card">
+    <Card className="hover:shadow-lg transition-all duration-200" data-testid="post-card">
       <CardContent className="pt-6">
-        <div className="flex items-start space-x-3">
-          <Link to={`/profile/${post.author_username}`}>
-            <Avatar>
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-teal-500 text-white">
-                {post.author_username[0].toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-          </Link>
-          <div className="flex-1">
-            <div className="flex items-center space-x-2">
+        <div className="space-y-3">
+          {/* Header */}
+          <div className="flex items-center space-x-3">
+            <Link to={`/profile/${post.author_username}`}>
+              <Avatar className="w-10 h-10 ring-2 ring-offset-2 ring-transparent hover:ring-rose-500 transition-all">
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-teal-500 text-white">
+                  {post.author_username[0].toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
+            <div className="flex-1">
               <Link to={`/profile/${post.author_username}`} className="font-semibold hover:underline">
                 {post.author_username}
               </Link>
-              <span className="text-sm text-gray-500">{formatDate(post.created_at)}</span>
+              <p className="text-sm text-gray-500">{formatDate(post.created_at)}</p>
             </div>
-            <p className="mt-2 text-gray-800 whitespace-pre-wrap">{post.content}</p>
+          </div>
+
+          {/* Content */}
+          {displayContent.trim() && (
+            <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">{displayContent}</p>
+          )}
+
+          {/* Image */}
+          {postImage && (
+            <div className="rounded-lg overflow-hidden">
+              <img src={postImage} alt="Post" className="w-full max-h-96 object-cover" />
+            </div>
+          )}
 
             <div className="flex items-center space-x-6 mt-4">
               <button
