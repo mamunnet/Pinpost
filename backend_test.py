@@ -557,6 +557,11 @@ class PenLinkAPITester:
         
         # Trending algorithm test
         self.test_trending_content()
+        self.test_trending_users()
+        
+        # Notifications tests
+        self.test_notifications()
+        self.test_unread_notifications_count()
 
         return self.get_results()
 
