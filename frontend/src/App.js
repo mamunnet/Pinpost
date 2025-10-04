@@ -366,15 +366,19 @@ const BlogCard = ({ blog, onLike, compact = false }) => {
       <CardHeader>
         <div className="flex items-center space-x-2 mb-2">
           <Link to={`/profile/${blog.author_username}`} onClick={(e) => e.stopPropagation()}>
-            <Avatar className="w-10 h-10">
-              <AvatarFallback className="bg-gradient-to-br from-amber-500 to-rose-500 text-white">
-                {blog.author_username[0].toUpperCase()}
-              </AvatarFallback>
+            <Avatar className="w-12 h-12">
+              {blog.author_avatar ? (
+                <img src={blog.author_avatar} alt={blog.author_name || blog.author_username} className="w-full h-full object-cover rounded-full" />
+              ) : (
+                <AvatarFallback className="bg-gradient-to-br from-amber-500 to-rose-500 text-white">
+                  {(blog.author_name || blog.author_username)[0].toUpperCase()}
+                </AvatarFallback>
+              )}
             </Avatar>
           </Link>
           <div>
-            <p className="font-semibold">{blog.author_username}</p>
-            <p className="text-sm text-gray-500">{formatDate(blog.created_at)}</p>
+            <p className="font-semibold text-base">{blog.author_name || blog.author_username}</p>
+            <p className="text-sm text-gray-500">@{blog.author_username} • {formatDate(blog.created_at)}</p>
           </div>
         </div>
         <CardTitle className="text-2xl hover:text-rose-600 transition-colors">{blog.title}</CardTitle>
