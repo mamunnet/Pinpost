@@ -460,6 +460,36 @@ class PenLinkAPITester:
         
         return success
 
+    def test_trending_users(self):
+        """Test trending users endpoint"""
+        success, response = self.run_test(
+            "Get Trending Users",
+            "GET",
+            "users/trending",
+            200
+        )
+        return success
+
+    def test_notifications(self):
+        """Test notifications functionality"""
+        success, response = self.run_test(
+            "Get Notifications",
+            "GET",
+            "notifications",
+            200
+        )
+        return success
+
+    def test_unread_notifications_count(self):
+        """Test getting unread notifications count"""
+        success, response = self.run_test(
+            "Get Unread Notifications Count",
+            "GET",
+            "notifications/unread-count",
+            200
+        )
+        return success
+
     def test_auth_login_existing_user(self):
         """Test login with existing user credentials"""
         if not self.username:
