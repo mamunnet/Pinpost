@@ -734,6 +734,32 @@ async def update_profile(profile_data: UserUpdate, current_user_id: str = Depend
     updated_user = await db.users.find_one({"id": current_user_id})
     return User(**updated_user)
 
+@api_router.put("/users/avatar")
+async def update_avatar(avatar_data: dict, current_user_id: str = Depends(get_current_user)):
+    avatar_url = avatar_data.get("avatar", "")
+    await db.users.update_one({"id": current_user_id}, {"$set": {"avatar": avatar_url}})
+    updated_user = await db.users.find_one({"id": current_user_id})
+    return User(**updated_user)
+
+@api_router.delete("/users/avatar")
+async def remove_avatar(current_user_id: str = Depends(get_current_user)):
+    await db.users.update_one({"id": current_user_id}, {"$set": {"avatar": ""}})
+    updated_user = await db.users.find_one({"id": current_user_id})
+    return User(**updated_user)
+
+@api_router.put("/users/cover-photo")
+async def update_cover_photo(cover_data: dict, current_user_id: str = Depends(get_current_user)):
+    cover_url = cover_data.get("cover_photo", "")
+    await db.users.update_one({"id": current_user_id}, {"$set": {"cover_photo": cover_url}})
+    updated_user = await db.users.find_one({"id": current_user_id})
+    return User(**updated_user)
+
+@api_router.delete("/users/cover-photo")
+async def remove_cover_photo(current_user_id: str = Depends(get_current_user)):
+    await db.users.update_one({"id": current_user_id}, {"$set": {"cover_photo": ""}})
+    updated_user = await db.users.find_one({"id": current_user_id})
+    return User(**updated_user)
+
 # Removed - moved above username route to fix route conflict
 
 # Stories routes
