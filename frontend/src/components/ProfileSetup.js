@@ -39,11 +39,12 @@ export const ProfileSetup = ({ user, onComplete }) => {
 
   const handleFileUpload = async (field, file) => {
     if (file && file.type.startsWith('image/')) {
-      const imageType = field === 'avatar' ? 'avatar' : 'cover';
-      
       try {
-        // Set loading state
-        setUploadingImage(prev => ({ ...prev, [imageType]: true }));
+        setUploadingImage(true);
+        
+        // Create preview URL for immediate display
+        const previewUrl = URL.createObjectURL(file);
+        setFormData(prev => ({ ...prev, [field]: previewUrl }));
         
         // Upload to server
         const uploadFormData = new FormData();
@@ -55,38 +56,31 @@ export const ProfileSetup = ({ user, onComplete }) => {
           },
         });
         
-        // Use server URL
-        const imageUrl = `${BACKEND_URL}${response.data.url}`;
-        setFormData(prev => ({ ...prev, [field]: imageUrl }));
-        setImageFiles(prev => ({ ...prev, [imageType]: file }));
+        // Replace preview URL with server URL
+        const serverUrl = `${BACKEND_URL}${response.data.url}`;
+        setFormData(prev => ({ ...prev, [field]: serverUrl }));
         
         toast.success('Image uploaded successfully!');
       } catch (error) {
         console.error('Upload error:', error);
-        toast.error('Failed to upload image. Please try again.');
+        // On error, keep preview URL for now
+        toast.error('Upload failed, using preview image');
       } finally {
-        setUploadingImage(prev => ({ ...prev, [imageType]: false }));
+        setUploadingImage(false);
       }
     } else {
       toast.error('Please select a valid image file');
     }
   };
 
-  const handleImageAlignment = (imageType, property, value) => {
-    setImageStyles(prev => ({
-      ...prev,
-      [imageType]: {
-        ...prev[imageType],
-        [property]: value
-      }
-    }));
-  };
-
-  const toggleImageControls = (imageType) => {
-    setShowImageControls(prev => ({
-      ...prev,
-      [imageType]: !prev[imageType]
-    }));
+  const getImageStyle = (position, isCircle = false) => {
+    const { x, y, zoom } = position;
+    return {
+      transform: `translate(-${x}%, -${y}%) scale(${zoom / 100})`,
+      transformOrigin: `${x}% ${y}%`,
+      objectFit: 'cover',
+      objectPosition: `${x}% ${y}%`
+    };
   };
 
   const handleSubmit = async () => {
