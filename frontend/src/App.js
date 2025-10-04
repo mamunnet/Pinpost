@@ -212,26 +212,55 @@ const PostCard = ({ post, onLike, onComment }) => {
         )}
 
         {/* Actions */}
-        <div className="flex items-center space-x-2 pt-2">
-          <button
-            onClick={onLike}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${post.liked_by_user ? 'text-rose-600 bg-rose-50' : 'text-gray-600 hover:bg-gray-100'} transition-all`}
-            data-testid="like-post-btn"
-          >
-            <Heart className={`w-5 h-5 ${post.liked_by_user ? 'fill-current' : ''}`} />
-            <span className="text-sm font-medium">{post.likes_count > 0 && post.likes_count}</span>
-          </button>
-          <button
-            onClick={fetchComments}
-            className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all"
-            data-testid="comment-post-btn"
-          >
-            <MessageCircle className="w-5 h-5" />
-            <span className="text-sm font-medium">{post.comments_count > 0 && post.comments_count}</span>
-          </button>
-          <button className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all">
-            <Share2 className="w-5 h-5" />
-          </button>
+        <div className="pt-2">
+          <div className="flex items-center space-x-2">
+            <div className="relative">
+              <button
+                onClick={onLike}
+                onMouseEnter={() => setShowReactions(true)}
+                onMouseLeave={() => setShowReactions(false)}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${post.liked_by_user ? 'text-rose-600 bg-rose-50' : 'text-gray-600 hover:bg-gray-100'} transition-all`}
+                data-testid="like-post-btn"
+              >
+                <Heart className={`w-5 h-5 ${post.liked_by_user ? 'fill-current' : ''}`} />
+                <span className="text-sm font-medium">{post.likes_count > 0 && post.likes_count}</span>
+              </button>
+              
+              {/* Reaction Picker */}
+              {showReactions && (
+                <div 
+                  className="absolute bottom-full left-0 mb-2 bg-white rounded-full shadow-lg border px-2 py-1 flex space-x-1 z-10"
+                  onMouseEnter={() => setShowReactions(true)}
+                  onMouseLeave={() => setShowReactions(false)}
+                >
+                  {['❤️', '😍', '😂', '👍', '😮', '😢'].map((emoji, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        onLike();
+                        setShowReactions(false);
+                      }}
+                      className="text-lg hover:scale-125 transition-transform p-1"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <button
+              onClick={fetchComments}
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all"
+              data-testid="comment-post-btn"
+            >
+              <MessageCircle className="w-5 h-5" />
+              <span className="text-sm font-medium">{post.comments_count > 0 && post.comments_count}</span>
+            </button>
+            <button className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all">
+              <Share2 className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Comments Section */}
