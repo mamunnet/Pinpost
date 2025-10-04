@@ -533,6 +533,7 @@ const SocialPage = ({ user }) => {
 const HomePage = ({ user }) => {
   const [feed, setFeed] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     fetchFeed();
