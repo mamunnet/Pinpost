@@ -63,6 +63,7 @@ const AuthContext = ({ children }) => {
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Stories } from "@/components/Stories";
+import { EnhancedPostModal } from "@/components/EnhancedPostModal";
 
 const CreateContentModal = () => {
   const [contentType, setContentType] = useState('post');
