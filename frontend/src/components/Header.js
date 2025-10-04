@@ -206,8 +206,17 @@ export const Header = ({ user, logout }) => {
               </Link>
             </nav>
           </div>
-          <div className="hidden md:block flex-1 max-w-md mx-4">
-            <div className="relative"><Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" /><Input type="text" placeholder="Search PenLink..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 bg-gray-100 border-none" /></div>
+          <div className="hidden lg:block flex-1 max-w-md mx-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input 
+                type="text" 
+                placeholder="Search PenLink..." 
+                value={searchQuery} 
+                onChange={(e) => setSearchQuery(e.target.value)} 
+                className="pl-10 bg-gray-100 border-none" 
+              />
+            </div>
           </div>
           {user && (
             <div className="flex items-center space-x-1 sm:space-x-2">
