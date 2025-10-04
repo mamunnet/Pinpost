@@ -293,6 +293,37 @@ async def setup_profile(profile_data: ProfileSetup, user_id: str = Depends(get_c
     updated_user = await db.users.find_one({"id": user_id})
     return User(**updated_user)
 
+@api_router.post("/upload/image")
+async def upload_image(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
+    # Validate file type
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    
+    # Validate file size (10MB limit)
+    file_size = 0
+    content = await file.read()
+    file_size = len(content)
+    
+    if file_size > 10 * 1024 * 1024:  # 10MB
+        raise HTTPException(status_code=400, detail="File size must be less than 10MB")
+    
+    # Create uploads directory if it doesn't exist
+    upload_dir = Path("uploads")
+    upload_dir.mkdir(exist_ok=True)
+    
+    # Generate unique filename
+    file_extension = Path(file.filename).suffix if file.filename else ".jpg"
+    unique_filename = f"{uuid.uuid4()}{file_extension}"
+    file_path = upload_dir / unique_filename
+    
+    # Save file
+    with open(file_path, "wb") as buffer:
+        buffer.write(content)
+    
+    # Return file URL
+    file_url = f"/uploads/{unique_filename}"
+    return {"url": file_url, "filename": unique_filename}
+
 # User routes
 # Trending users (must be before dynamic {username} route)
 @api_router.get("/users/trending")
