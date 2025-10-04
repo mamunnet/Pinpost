@@ -1228,9 +1228,27 @@ const AuthPage = ({ onLogin }) => {
               Where thoughts meet community
             </h2>
             
-            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-              Share your ideas through blogs, connect with like-minded people, and discover trending content from writers around the world.
+            <p className="text-xl text-gray-600 mb-6 leading-relaxed">
+              PenLink bridges the gap between professional blogging and social connection. Share your expertise through in-depth articles, engage in quick conversations, and build meaningful relationships with creators worldwide.
             </p>
+
+            <div className="bg-white/60 rounded-2xl p-6 mb-8 border border-gray-100">
+              <h3 className="font-bold text-gray-800 text-lg mb-3">🚀 What makes PenLink special?</h3>
+              <ul className="space-y-2 text-gray-700">
+                <li className="flex items-start space-x-2">
+                  <span className="text-rose-500 font-bold">•</span>
+                  <span><strong>Hybrid Platform:</strong> Long-form blogs + quick social posts in one place</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="text-amber-500 font-bold">•</span>
+                  <span><strong>Smart Discovery:</strong> AI-powered trending algorithm finds the best content</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="text-teal-500 font-bold">•</span>
+                  <span><strong>Creator Focus:</strong> Tools designed for writers, bloggers, and thought leaders</span>
+                </li>
+              </ul>
+            </div>
 
             <div className="grid grid-cols-1 gap-6">
               <div className="flex items-start space-x-4">
