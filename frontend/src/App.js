@@ -1183,6 +1183,7 @@ function App() {
                     <Route path="/" element={<HomePage user={user} />} />
                     <Route path="/social" element={<SocialPage user={user} />} />
                     <Route path="/blogs" element={<BlogsPage user={user} />} />
+                    <Route path="/trending" element={<TrendingPage user={user} />} />
                     <Route path="/blog/:blogId" element={<BlogDetailPage user={user} />} />
                     <Route path="/profile/:username" element={<ProfilePage currentUser={user} />} />
                   </Routes>
