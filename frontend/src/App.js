@@ -916,7 +916,22 @@ const ProfilePage = ({ currentUser }) => {
                   </div>
                 </div>
               </div>
-              {!isOwnProfile && currentUser && (
+              {isOwnProfile ? (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" data-testid="edit-profile-btn">
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit Profile
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Edit Profile</DialogTitle>
+                    </DialogHeader>
+                    <EditProfileModal user={user} onUpdate={fetchProfile} />
+                  </DialogContent>
+                </Dialog>
+              ) : currentUser && (
                 <Button
                   onClick={handleFollow}
                   variant={user.is_following ? "outline" : "default"}
