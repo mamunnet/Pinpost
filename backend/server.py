@@ -45,11 +45,26 @@ class User(BaseModel):
     id: str
     username: str
     email: str
+    name: Optional[str] = ""
     bio: str = ""
     avatar: str = ""
+    cover_photo: Optional[str] = ""
+    date_of_birth: Optional[str] = ""
+    location: Optional[str] = ""
+    website: Optional[str] = ""
+    profile_completed: bool = False
     followers_count: int = 0
     following_count: int = 0
     created_at: str
+
+class ProfileSetup(BaseModel):
+    name: str
+    bio: Optional[str] = ""
+    avatar: Optional[str] = ""
+    cover_photo: Optional[str] = ""
+    date_of_birth: Optional[str] = ""
+    location: Optional[str] = ""
+    website: Optional[str] = ""
 
 class BlogPostCreate(BaseModel):
     title: str
