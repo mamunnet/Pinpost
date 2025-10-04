@@ -51,6 +51,29 @@ h1, h2, h3, h4, h5, h6 {
   display: none;
 }
 
+/* Enhanced navigation scrolling */
+.nav-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nav-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Ensure smooth scrolling on mobile */
+@media (max-width: 768px) {
+  .nav-scroll {
+    scroll-snap-type: x mandatory;
+  }
+  
+  .nav-scroll > * {
+    scroll-snap-align: start;
+  }
+}
+
 /* Quill editor customization */
 .ql-container {
   font-family: 'Inter', sans-serif;
