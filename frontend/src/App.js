@@ -361,13 +361,57 @@ const BlogCard = ({ blog, onLike, compact = false }) => {
 };
 
 const TrendingSidebar = ({ user }) => {
+  const [trendingUsers, setTrendingUsers] = useState([]);
+
+  useEffect(() => {
+    fetchTrending();
+  }, []);
+
+  const fetchTrending = async () => {
+    try {
+      const response = await axios.get(`${API}/users/trending?limit=5`);
+      setTrendingUsers(response.data);
+    } catch (error) {
+      console.error('Failed to load trending');
+    }
+  };
+
+  const handleFollow = async (userId) => {
+    try {
+      await axios.post(`${API}/users/${userId}/follow`);
+      toast.success('Followed!');
+      fetchTrending();
+    } catch (error) {
+      toast.error('Failed to follow');
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Trending</CardTitle>
+        <CardTitle className="text-lg">Trending Users</CardTitle>
       </CardHeader>
-      <CardContent>
-        <p className="text-gray-600">Coming soon...</p>
+      <CardContent className="space-y-4">
+        {trendingUsers.map((trendingUser) => (
+          <div key={trendingUser.id} className="flex items-center justify-between">
+            <Link to={`/profile/${trendingUser.username}`} className="flex items-center space-x-2">
+              <Avatar className="w-10 h-10">
+                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                  {trendingUser.username[0].toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-semibold text-sm">{trendingUser.username}</p>
+                <p className="text-xs text-gray-500">{trendingUser.followers_count} followers</p>
+              </div>
+            </Link>
+            {!trendingUser.is_following && (
+              <Button size="sm" variant="outline" onClick={() => handleFollow(trendingUser.id)}>
+                Follow
+              </Button>
+            )}
+          </div>
+        ))}
       </CardContent>
     </Card>
   );
