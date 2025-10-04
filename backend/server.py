@@ -397,7 +397,14 @@ async def get_blogs(skip: int = 0, limit: int = 20, current_user_id: Optional[st
     
     result = []
     for blog in blogs:
+        # Get author info
+        author = await db.users.find_one({"id": blog["author_id"]})
+        
         blog_data = BlogPost(**blog).dict()
+        if author:
+            blog_data["author_name"] = author.get("name", "")
+            blog_data["author_avatar"] = author.get("avatar", "")
+        
         if current_user_id:
             liked = await db.likes.find_one({"user_id": current_user_id, "post_id": blog["id"], "post_type": "blog"})
             blog_data["liked_by_user"] = bool(liked)
