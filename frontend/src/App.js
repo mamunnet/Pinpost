@@ -360,6 +360,19 @@ const BlogCard = ({ blog, onLike, compact = false }) => {
   );
 };
 
+const TrendingSidebar = ({ user }) => {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Trending</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-gray-600">Coming soon...</p>
+      </CardContent>
+    </Card>
+  );
+};
+
 const HomePage = ({ user }) => {
   const [feed, setFeed] = useState([]);
   const [loading, setLoading] = useState(true);
