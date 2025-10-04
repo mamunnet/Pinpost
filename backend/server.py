@@ -263,6 +263,28 @@ async def get_me(user_id: str = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="User not found")
     return User(**user)
 
+@api_router.post("/auth/setup-profile", response_model=User)
+async def setup_profile(profile_data: ProfileSetup, user_id: str = Depends(get_current_user)):
+    # Update user profile
+    update_data = {
+        "name": profile_data.name,
+        "bio": profile_data.bio,
+        "avatar": profile_data.avatar,
+        "cover_photo": profile_data.cover_photo,
+        "date_of_birth": profile_data.date_of_birth,
+        "location": profile_data.location,
+        "website": profile_data.website,
+        "profile_completed": True
+    }
+    
+    result = await db.users.update_one({"id": user_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Return updated user
+    updated_user = await db.users.find_one({"id": user_id})
+    return User(**updated_user)
+
 # User routes
 # Trending users (must be before dynamic {username} route)
 @api_router.get("/users/trending")
