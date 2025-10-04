@@ -281,27 +281,30 @@ const PostCard = ({ post, onLike, onComment }) => {
             </div>
           )}
 
-            <div className="flex items-center space-x-6 mt-4">
+          {/* Actions Bar */}
+          <div className="flex items-center justify-between pt-3 border-t">
+            <div className="flex items-center space-x-1">
               <button
                 onClick={onLike}
-                className={`flex items-center space-x-2 ${post.liked_by_user ? 'text-rose-600' : 'text-gray-600 hover:text-rose-600'} transition-colors`}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${post.liked_by_user ? 'text-rose-600 bg-rose-50' : 'text-gray-600 hover:bg-gray-100'} transition-all`}
                 data-testid="like-post-btn"
               >
                 <Heart className={`w-5 h-5 ${post.liked_by_user ? 'fill-current' : ''}`} />
-                <span className="text-sm">{post.likes_count}</span>
+                <span className="text-sm font-medium">{post.likes_count > 0 && post.likes_count}</span>
               </button>
               <button
                 onClick={fetchComments}
-                className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all"
                 data-testid="comment-post-btn"
               >
                 <MessageCircle className="w-5 h-5" />
-                <span className="text-sm">{post.comments_count}</span>
+                <span className="text-sm font-medium">{post.comments_count > 0 && post.comments_count}</span>
               </button>
-              <button className="flex items-center space-x-2 text-gray-600 hover:text-green-600 transition-colors">
+              <button className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all">
                 <Share2 className="w-5 h-5" />
               </button>
             </div>
+          </div>
 
             {showComments && (
               <div className="mt-4 space-y-3 border-t pt-4">
