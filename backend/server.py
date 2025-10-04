@@ -195,13 +195,14 @@ async def get_me(user_id: str = Depends(get_current_user)):
     return User(**user)
 
 # User routes
-@api_router.get("/users/{username}", response_model=User)
+@api_router.get("/users/{username}")
 async def get_user_profile(username: str, current_user_id: Optional[str] = Depends(get_optional_user)):
     user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
     user_data = User(**user).dict()
+    user_data["is_following"] = False
     if current_user_id:
         is_following = await db.follows.find_one({"follower_id": current_user_id, "following_id": user["id"]})
         user_data["is_following"] = bool(is_following)
