@@ -61,55 +61,7 @@ const AuthContext = ({ children }) => {
   return children({ user, token, login, logout, loading });
 };
 
-const Navigation = ({ user, logout }) => {
-  const navigate = useNavigate();
-
-  return (
-    <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-gray-200 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">
-              PenLink
-            </div>
-          </Link>
-
-          {user && (
-            <div className="flex items-center space-x-6">
-              <Link to="/" className="text-gray-700 hover:text-gray-900 transition-colors">
-                <Home className="w-5 h-5" />
-              </Link>
-              <Link to="/blogs" className="text-gray-700 hover:text-gray-900 transition-colors">
-                <FileText className="w-5 h-5" />
-              </Link>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-2" data-testid="create-content-btn">
-                    <Plus className="w-4 h-4" />
-                    Create
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <EnhancedPostModal onClose={() => {}} currentUser={user} />
-                </DialogContent>
-              </Dialog>
-              <Link to={`/profile/${user.username}`}>
-                <Avatar className="cursor-pointer hover:ring-2 hover:ring-rose-500 transition-all">
-                  <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white">
-                    {user.username[0].toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              </Link>
-              <Button variant="ghost" size="sm" onClick={logout} data-testid="logout-btn">
-                <LogOut className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
-    </nav>
-  );
-};
+// Navigation component removed - using Header from separate file
 
 // CreateContentModal removed - now using EnhancedPostModal
 
