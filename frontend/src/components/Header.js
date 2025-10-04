@@ -191,18 +191,18 @@ export const Header = ({ user, logout }) => {
         <div className="flex items-center justify-between h-14 sm:h-16">
           <div className="flex items-center space-x-2 sm:space-x-6">
             <Link to="/" className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 text-white font-bold text-xl">P</Link>
-            <nav className="flex items-center space-x-0.5 sm:space-x-1">
-              <Link to="/" className="flex items-center space-x-1 px-2 sm:px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700" data-testid="nav-home">
+            <nav className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+              <Link to="/" className="flex items-center space-x-2 px-3 sm:px-6 py-2 rounded-lg hover:bg-gray-100 text-gray-700 whitespace-nowrap" data-testid="nav-home">
                 <Home className="w-5 h-5" />
-                <span className="hidden sm:inline">Home</span>
+                <span className="hidden sm:inline font-medium">Home</span>
               </Link>
-              <Link to="/social" className="flex items-center space-x-1 px-2 sm:px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700" data-testid="nav-social">
+              <Link to="/social" className="flex items-center space-x-2 px-3 sm:px-6 py-2 rounded-lg hover:bg-gray-100 text-gray-700 whitespace-nowrap" data-testid="nav-social">
                 <Users className="w-5 h-5" />
-                <span className="hidden sm:inline">Social</span>
+                <span className="hidden sm:inline font-medium">Social</span>
               </Link>
-              <Link to="/blogs" className="flex items-center space-x-1 px-2 sm:px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700" data-testid="nav-blogs">
+              <Link to="/blogs" className="flex items-center space-x-2 px-3 sm:px-6 py-2 rounded-lg hover:bg-gray-100 text-gray-700 whitespace-nowrap" data-testid="nav-blogs">
                 <FileText className="w-5 h-5" />
-                <span className="hidden sm:inline">Blogs</span>
+                <span className="hidden sm:inline font-medium">Blogs</span>
               </Link>
             </nav>
           </div>
