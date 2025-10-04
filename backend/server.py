@@ -280,7 +280,6 @@ async def setup_profile(profile_data: ProfileSetup, user_id: str = Depends(get_c
         "cover_photo": profile_data.cover_photo,
         "date_of_birth": profile_data.date_of_birth,
         "location": profile_data.location,
-        "website": profile_data.website,
         "profile_completed": True
     }
     
