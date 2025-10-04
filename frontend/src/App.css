@@ -41,6 +41,33 @@ h1, h2, h3, h4, h5, h6 {
   background: #d14864;
 }
 
+/* Hide scrollbar for specific elements */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Quill editor customization */
+.ql-container {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  min-height: 300px;
+}
+
+.ql-editor {
+  min-height: 300px;
+  padding: 15px;
+}
+
+.ql-editor.ql-blank::before {
+  font-style: normal;
+  color: #9ca3af;
+}
+
 /* Smooth transitions */
 button, a {
   transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
