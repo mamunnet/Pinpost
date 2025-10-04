@@ -1224,67 +1224,138 @@ const AuthPage = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-100 via-amber-50 to-teal-100">
-      <Card className="w-full max-w-md shadow-2xl">
-        <CardHeader className="text-center">
-          <CardTitle className="text-4xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent mb-2">
-            PenLink
-          </CardTitle>
-          <CardDescription className="text-base">
-            {isLogin ? 'Welcome back!' : 'Join our community'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
-              <div>
-                <Label htmlFor="username">Username</Label>
+    <div className="min-h-screen flex bg-white">
+      {/* Left Side - Branding */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-rose-500 via-amber-500 to-teal-500 p-12 flex-col justify-between">
+        <div>
+          <div className="flex items-center space-x-3 mb-8">
+            <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center">
+              <span className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">P</span>
+            </div>
+            <h1 className="text-4xl font-bold text-white">PenLink</h1>
+          </div>
+          <div className="space-y-6 text-white">
+            <h2 className="text-5xl font-bold leading-tight">Connect. Share. Inspire.</h2>
+            <p className="text-xl opacity-90">Where your thoughts meet a vibrant community</p>
+            <div className="space-y-4 mt-12">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Share Your Stories</h3>
+                  <p className="text-sm opacity-80">Write blogs and quick posts</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Build Community</h3>
+                  <p className="text-sm opacity-80">Connect with like-minded people</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <Heart className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Engage & Grow</h3>
+                  <p className="text-sm opacity-80">Like, comment, and share ideas</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="text-white/60 text-sm">
+          <p>© 2025 PenLink. All rights reserved.</p>
+        </div>
+      </div>
+
+      {/* Right Side - Auth Form */}
+      <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
+        <Card className="w-full max-w-md shadow-xl border-0">
+          <CardHeader className="text-center space-y-2 pb-8">
+            <div className="lg:hidden mx-auto w-16 h-16 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 flex items-center justify-center mb-4">
+              <span className="text-2xl font-bold text-white">P</span>
+            </div>
+            <CardTitle className="text-3xl font-bold">
+              {isLogin ? 'Welcome Back' : 'Create Account'}
+            </CardTitle>
+            <CardDescription className="text-base">
+              {isLogin ? 'Login to continue your journey' : 'Join thousands of creators today'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {!isLogin && (
+                <div className="space-y-2">
+                  <Label htmlFor="username" className="text-sm font-medium">Username</Label>
+                  <Input
+                    id="username"
+                    placeholder="Choose a unique username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                    className="h-11"
+                    data-testid="username-input"
+                  />
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
                 <Input
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  id="email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
-                  data-testid="username-input"
+                  className="h-11"
+                  data-testid="email-input"
                 />
               </div>
-            )}
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                data-testid="email-input"
-              />
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="h-11"
+                  data-testid="password-input"
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full h-11 text-base font-medium bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-700 hover:to-amber-700" 
+                disabled={loading} 
+                data-testid="auth-submit-btn"
+              >
+                {loading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Loading...</span>
+                  </div>
+                ) : (isLogin ? 'Login' : 'Sign Up')}
+              </Button>
+            </form>
+            <div className="text-center mt-6">
+              <button
+                onClick={() => setIsLogin(!isLogin)}
+                className="text-sm text-gray-600 hover:text-rose-600 transition-colors"
+                data-testid="toggle-auth-btn"
+              >
+                {isLogin ? "Don't have an account? " : 'Already have an account? '}
+                <span className="font-semibold">{isLogin ? 'Sign up' : 'Login'}</span>
+              </button>
             </div>
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                data-testid="password-input"
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={loading} data-testid="auth-submit-btn">
-              {loading ? 'Loading...' : (isLogin ? 'Login' : 'Sign Up')}
-            </Button>
-          </form>
-          <div className="text-center mt-4">
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-rose-600 hover:underline"
-              data-testid="toggle-auth-btn"
-            >
-              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Login'}
-            </button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
