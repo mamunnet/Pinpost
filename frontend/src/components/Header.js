@@ -187,8 +187,8 @@ export const Header = ({ user, logout }) => {
   const [searchQuery, setSearchQuery] = useState('');
   return (
     <header className="fixed top-0 w-full bg-white border-b border-gray-200 z-50 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-14">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4">
+        <div className="flex items-center justify-between h-14 sm:h-16">
           <div className="flex items-center space-x-2 sm:space-x-6">
             <Link to="/" className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">PenLink</Link>
             <nav className="flex items-center space-x-0.5 sm:space-x-1">
