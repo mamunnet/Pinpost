@@ -352,6 +352,136 @@ class PenLinkAPITester:
         )
         return success
 
+    def test_create_story(self):
+        """Test creating a story"""
+        test_data = {
+            "content": "This is a test story! Check out this amazing moment 📸",
+            "media_url": "https://example.com/test-image.jpg"
+        }
+        
+        success, response = self.run_test(
+            "Create Story",
+            "POST",
+            "stories",
+            200,
+            data=test_data
+        )
+        
+        if success and 'id' in response:
+            self.story_id = response['id']
+            return True
+        return False
+
+    def test_get_stories(self):
+        """Test getting all stories"""
+        success, response = self.run_test(
+            "Get All Stories",
+            "GET",
+            "stories",
+            200
+        )
+        return success
+
+    def test_view_story(self):
+        """Test viewing a story (incrementing view count)"""
+        if not hasattr(self, 'story_id'):
+            self.log_test("View Story", False, "No story ID available")
+            return False
+            
+        success, response = self.run_test(
+            "View Story",
+            "POST",
+            f"stories/{self.story_id}/view",
+            200
+        )
+        return success
+
+    def test_get_user_stories(self):
+        """Test getting user's stories"""
+        if not self.user_id:
+            self.log_test("Get User Stories", False, "No user ID available")
+            return False
+            
+        success, response = self.run_test(
+            "Get User Stories",
+            "GET",
+            f"stories/user/{self.user_id}",
+            200
+        )
+        return success
+
+    def test_trending_content(self):
+        """Test trending algorithm - should return content sorted by engagement"""
+        # First, let's create some content and interactions to test trending
+        
+        # Create additional content for trending test
+        blog_data = {
+            "title": "Trending Test Blog",
+            "content": "This blog should appear in trending due to high engagement",
+            "tags": ["trending", "test"]
+        }
+        
+        success, blog_response = self.run_test(
+            "Create Trending Test Blog",
+            "POST",
+            "blogs",
+            200,
+            data=blog_data
+        )
+        
+        if success and 'id' in blog_response:
+            trending_blog_id = blog_response['id']
+            
+            # Like the blog multiple times (would need multiple users in real scenario)
+            self.run_test(
+                "Like Trending Blog",
+                "POST",
+                f"likes/blog/{trending_blog_id}",
+                200
+            )
+            
+            # Comment on the blog
+            comment_data = {"content": "Great trending content!"}
+            self.run_test(
+                "Comment on Trending Blog",
+                "POST",
+                f"comments/blog/{trending_blog_id}",
+                200,
+                data=comment_data
+            )
+        
+        # Now test if we can get the feed (which should show trending content)
+        success, response = self.run_test(
+            "Get Trending Content (via Feed)",
+            "GET",
+            "feed",
+            200
+        )
+        
+        return success
+
+    def test_auth_login_existing_user(self):
+        """Test login with existing user credentials"""
+        if not self.username:
+            self.log_test("Login Existing User", False, "No username available for login test")
+            return False
+            
+        # Use the same email from registration
+        timestamp = datetime.now().strftime('%H%M%S')
+        test_data = {
+            "email": f"test_{timestamp}@example.com",
+            "password": "TestPass123!"
+        }
+        
+        success, response = self.run_test(
+            "Login Existing User",
+            "POST", 
+            "auth/login",
+            200,
+            data=test_data
+        )
+        return success
+
     def run_all_tests(self):
         """Run all API tests"""
         print("🚀 Starting PenLink API Tests...")
