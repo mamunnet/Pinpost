@@ -462,36 +462,10 @@ class PenLinkAPITester:
 
     def test_trending_users(self):
         """Test trending users endpoint"""
-        # Test without authentication first
-        url = f"{self.api_url}/users/trending"
-        test_headers = {'Content-Type': 'application/json'}
-        
-        try:
-            response = requests.get(url, headers=test_headers, timeout=10)
-            success = response.status_code == 200
-            details = f"Status: {response.status_code}"
-            
-            if success:
-                try:
-                    response_data = response.json()
-                    details += f", Response: {json.dumps(response_data, indent=2)[:200]}..."
-                    details += f", Returned {len(response_data) if isinstance(response_data, list) else 0} trending users"
-                except:
-                    details += f", Response: {response.text[:200]}..."
-            else:
-                details += f", Expected: 200"
-                try:
-                    error_data = response.json()
-                    details += f", Error: {error_data}"
-                except:
-                    details += f", Error: {response.text[:200]}"
-
-            self.log_test("Get Trending Users", success, details)
-            return success
-
-        except Exception as e:
-            self.log_test("Get Trending Users", False, f"Exception: {str(e)}")
-            return False
+        # KNOWN ISSUE: Route conflict - /users/{username} catches /users/trending
+        # The trending users route should be defined before the dynamic username route
+        self.log_test("Get Trending Users", False, "BACKEND ISSUE: Route conflict - /users/{username} intercepts /users/trending. Need to reorder routes in backend.")
+        return False
 
     def test_notifications(self):
         """Test notifications functionality"""
