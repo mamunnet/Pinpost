@@ -488,18 +488,7 @@ export const ProfileSetup = ({ user, onComplete }) => {
                     />
                   </div>
 
-                  <div>
-                    <Label className="text-base font-medium flex items-center space-x-2">
-                      <Globe className="w-4 h-4" />
-                      <span>Website</span>
-                    </Label>
-                    <Input
-                      placeholder="https://yourwebsite.com"
-                      value={formData.website}
-                      onChange={(e) => handleInputChange('website', e.target.value)}
-                      className="h-12 text-base mt-2"
-                    />
-                  </div>
+                  {/* Website field removed */}
                 </div>
 
                 <div className="bg-blue-50 p-4 rounded-lg">
