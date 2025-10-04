@@ -66,6 +66,50 @@ const AuthContext = ({ children }) => {
 
 // Navigation component removed - using Header from separate file
 
+const SocialPage = ({ user }) => {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const fetchPosts = async () => {
+    try {
+      const response = await axios.get(`${API}/posts`);
+      setPosts(response.data);
+    } catch (error) {
+      toast.error('Failed to load posts');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLike = async (post) => {
+    try {
+      if (post.liked_by_user) {
+        await axios.delete(`${API}/likes/post/${post.id}`);
+      } else {
+        await axios.post(`${API}/likes/post/${post.id}`);
+      }
+      fetchPosts();
+    } catch (error) {
+      toast.error('Failed to update like');
+    }
+  };
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center pt-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600 mx-auto"></div></div>;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 pt-20 pb-12">
+      <div className="max-w-2xl mx-auto px-4 space-y-6">
+        <h1 className="text-3xl font-bold mb-6">Social Feed</h1>
+        {posts.map((post) => (<PostCard key={post.id} post={post} user={user} onLike={() => handleLike(post)} onComment={fetchPosts} />))}
+      </div>
+    </div>
+  );
+};
+
 // CreateContentModal removed - now using EnhancedPostModal
 
 const PostCard = ({ post, onLike, onComment }) => {
