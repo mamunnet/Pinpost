@@ -189,9 +189,9 @@ export const Header = ({ user, logout }) => {
     <header className="fixed top-0 w-full bg-white border-b border-gray-200 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-14">
-          <div className="flex items-center space-x-6">
-            <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">PenLink</Link>
-            <nav className="flex items-center space-x-1">
+          <div className="flex items-center space-x-2 sm:space-x-6">
+            <Link to="/" className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">PenLink</Link>
+            <nav className="flex items-center space-x-0.5 sm:space-x-1">
               <Link to="/" className="flex items-center space-x-1 px-2 sm:px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700" data-testid="nav-home">
                 <Home className="w-5 h-5" />
                 <span className="hidden sm:inline">Home</span>
