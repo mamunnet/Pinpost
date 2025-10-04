@@ -24,7 +24,10 @@ export const EditProfileModal = ({ user, onClose, onUpdate }) => {
     setLoading(true);
 
     try {
-      const response = await axios.put(`${API}/users/profile`, formData);
+      const token = localStorage.getItem('token');
+      const response = await axios.put(`${API}/users/profile`, formData, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       toast.success('Profile updated successfully!');
       onUpdate(response.data);
     } catch (error) {
