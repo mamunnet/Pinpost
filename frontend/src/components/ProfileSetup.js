@@ -349,12 +349,25 @@ export const ProfileSetup = ({ user, onComplete }) => {
                       <div>
                         <Label className="text-sm text-gray-600 mb-2 block">Upload from Gallery</Label>
                         <div 
-                          onClick={() => coverInputRef.current?.click()}
-                          className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-amber-400 hover:bg-amber-50 transition-all"
+                          onClick={() => !uploadingImage.cover && coverInputRef.current?.click()}
+                          className={`border-2 border-dashed border-gray-300 rounded-lg p-6 text-center transition-all ${
+                            uploadingImage.cover 
+                              ? 'cursor-wait bg-amber-50 border-amber-300' 
+                              : 'cursor-pointer hover:border-amber-400 hover:bg-amber-50'
+                          }`}
                         >
-                          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                          <p className="text-sm text-gray-600">Click to upload cover</p>
-                          <p className="text-xs text-gray-400">JPG, PNG, WebP up to 10MB</p>
+                          {uploadingImage.cover ? (
+                            <>
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600 mx-auto mb-2"></div>
+                              <p className="text-sm text-amber-600">Uploading...</p>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                              <p className="text-sm text-gray-600">Click to upload cover</p>
+                              <p className="text-xs text-gray-400">JPG, PNG, WebP up to 10MB</p>
+                            </>
+                          )}
                         </div>
                         <input
                           ref={coverInputRef}
