@@ -316,14 +316,18 @@ const BlogCard = ({ blog, onLike, compact = false }) => {
       <Card className="hover:shadow-xl transition-all cursor-pointer group" onClick={() => navigate(`/blog/${blog.id}`)} data-testid="blog-card">
         <CardHeader>
           <div className="flex items-center space-x-2 mb-2">
-            <Avatar className="w-8 h-8">
-              <AvatarFallback className="bg-gradient-to-br from-amber-500 to-rose-500 text-white text-xs">
-                {blog.author_username[0].toUpperCase()}
-              </AvatarFallback>
+            <Avatar className="w-10 h-10">
+              {blog.author_avatar ? (
+                <img src={blog.author_avatar} alt={blog.author_name || blog.author_username} className="w-full h-full object-cover rounded-full" />
+              ) : (
+                <AvatarFallback className="bg-gradient-to-br from-amber-500 to-rose-500 text-white text-sm">
+                  {(blog.author_name || blog.author_username)[0].toUpperCase()}
+                </AvatarFallback>
+              )}
             </Avatar>
             <div>
-              <p className="text-sm font-semibold">{blog.author_username}</p>
-              <p className="text-xs text-gray-500">{formatDate(blog.created_at)}</p>
+              <p className="text-sm font-semibold">{blog.author_name || blog.author_username}</p>
+              <p className="text-xs text-gray-500">@{blog.author_username} • {formatDate(blog.created_at)}</p>
             </div>
           </div>
           <CardTitle className="text-xl group-hover:text-rose-600 transition-colors line-clamp-2">{blog.title}</CardTitle>
