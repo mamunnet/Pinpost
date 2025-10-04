@@ -110,6 +110,25 @@ class Comment(BaseModel):
     content: str
     created_at: str
 
+class Notification(BaseModel):
+    id: str
+    user_id: str
+    type: str  # follow, like, comment, reply
+    actor_id: str
+    actor_username: str
+    actor_avatar: str
+    post_id: Optional[str] = None
+    post_type: Optional[str] = None
+    comment_id: Optional[str] = None
+    message: str
+    read: bool = False
+    created_at: str
+
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    bio: Optional[str] = None
+    avatar: Optional[str] = None
+
 # Helper functions
 def hash_password(password: str) -> str:
     password_bytes = password.encode('utf-8')
