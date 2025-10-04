@@ -220,18 +220,6 @@ export const Header = ({ user, logout }) => {
           </div>
           {user && (
             <div className="flex items-center space-x-1 sm:space-x-2">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button size="sm" data-testid="create-content-btn" className="px-2 sm:px-4">
-                    <Plus className="w-4 h-4" />
-                    <span className="hidden sm:inline ml-1">Create</span>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader><DialogTitle>Create Content</DialogTitle></DialogHeader>
-                  <CreateContentModal />
-                </DialogContent>
-              </Dialog>
               <NotificationsDropdown user={user} />
               <Popover>
                 <PopoverTrigger asChild>
