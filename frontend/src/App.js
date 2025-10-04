@@ -518,45 +518,55 @@ const HomePage = ({ user }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 pt-20 pb-12">
-      <div className="max-w-4xl mx-auto px-4 space-y-6">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">
-            Welcome to PenLink
-          </h1>
-          <p className="text-gray-600">Where thoughts meet community</p>
-        </div>
-
-        {feed.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <p className="text-gray-600 mb-4">No content yet. Be the first to create!</p>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button data-testid="start-creating-btn">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Start Creating
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Create Content</DialogTitle>
-                  </DialogHeader>
-                  <CreateContentModal />
-                </DialogContent>
-              </Dialog>
-            </CardContent>
-          </Card>
-        ) : (
-          feed.map((item) => (
-            <div key={`${item.type}-${item.id}`}>
-              {item.type === 'blog' ? (
-                <BlogCard blog={item} onLike={() => handleLike(item)} />
-              ) : (
-                <PostCard post={item} onLike={() => handleLike(item)} onComment={fetchFeed} />
-              )}
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Feed */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="text-center mb-6">
+              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">
+                Welcome to PenLink
+              </h1>
+              <p className="text-gray-600">Where thoughts meet community</p>
             </div>
-          ))
-        )}
+
+            {feed.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <p className="text-gray-600 mb-4">No content yet. Be the first to create!</p>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button data-testid="start-creating-btn">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Start Creating
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Create Content</DialogTitle>
+                      </DialogHeader>
+                      <CreateContentModal />
+                    </DialogContent>
+                  </Dialog>
+                </CardContent>
+              </Card>
+            ) : (
+              feed.map((item) => (
+                <div key={`${item.type}-${item.id}`}>
+                  {item.type === 'blog' ? (
+                    <BlogCard blog={item} onLike={() => handleLike(item)} />
+                  ) : (
+                    <PostCard post={item} onLike={() => handleLike(item)} onComment={fetchFeed} />
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="hidden lg:block space-y-6">
+            <TrendingSidebar user={user} />
+          </div>
+        </div>
       </div>
     </div>
   );
