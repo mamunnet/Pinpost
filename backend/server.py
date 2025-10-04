@@ -66,7 +66,6 @@ class ProfileSetup(BaseModel):
     cover_photo: Optional[str] = ""
     date_of_birth: Optional[str] = ""
     location: Optional[str] = ""
-    website: Optional[str] = ""
 
 class BlogPostCreate(BaseModel):
     title: str
