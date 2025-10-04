@@ -249,6 +249,21 @@ async def get_me(user_id: str = Depends(get_current_user)):
     return User(**user)
 
 # User routes
+# Trending users (must be before dynamic {username} route)
+@api_router.get("/users/trending")
+async def get_trending_users(limit: int = 5, current_user_id: Optional[str] = Depends(get_optional_user)):
+    users = await db.users.find().sort("followers_count", -1).limit(limit).to_list(limit)
+    result = []
+    for user in users:
+        if user["id"] == current_user_id:
+            continue
+        user_data = User(**user).dict()
+        if current_user_id:
+            is_following = await db.follows.find_one({"follower_id": current_user_id, "following_id": user["id"]})
+            user_data["is_following"] = bool(is_following)
+        result.append(user_data)
+    return result
+
 @api_router.get("/users/{username}")
 async def get_user_profile(username: str, current_user_id: Optional[str] = Depends(get_optional_user)):
     user = await db.users.find_one({"username": username})
