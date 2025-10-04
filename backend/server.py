@@ -489,7 +489,14 @@ async def get_posts(skip: int = 0, limit: int = 50, current_user_id: Optional[st
     
     result = []
     for post in posts:
+        # Get author info
+        author = await db.users.find_one({"id": post["author_id"]})
+        
         post_data = ShortPost(**post).dict()
+        if author:
+            post_data["author_name"] = author.get("name", "")
+            post_data["author_avatar"] = author.get("avatar", "")
+        
         if current_user_id:
             liked = await db.likes.find_one({"user_id": current_user_id, "post_id": post["id"], "post_type": "post"})
             post_data["liked_by_user"] = bool(liked)
