@@ -16,9 +16,8 @@ RUN if [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
 # Copy frontend source
 COPY frontend/ .
 
-# Set build-time environment variable
-ARG REACT_APP_BACKEND_URL=http://bartaaddaa.com:8000
-ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
+# Set backend URL to empty string - nginx will proxy all API calls
+ENV REACT_APP_BACKEND_URL=""
 
 # Build the app
 RUN if [ -f yarn.lock ]; then yarn build; \
