@@ -1,66 +1,129 @@
-# 📌 Pinpost - Social Media & Blogging Platform
+# 📌 Pinpost# 📌 Pinpost - Social Media & Blogging Platform
 
-A modern, full-stack social media and blogging platform built with React, FastAPI, and MongoDB. Share posts, write blogs, follow users, and engage with real-time notifications.
 
-![Pinpost Banner](https://via.placeholder.com/1200x300/4F46E5/ffffff?text=Pinpost+-+Share+Your+Story)
 
-## ✨ Features
+A modern social media platform with blogs, posts, stories, and real-time notifications.A modern, full-stack social media and blogging platform built with React, FastAPI, and MongoDB. Share posts, write blogs, follow users, and engage with real-time notifications.
 
-### 🎯 Core Features
+
+
+## 🚀 Tech Stack![Pinpost Banner](https://via.placeholder.com/1200x300/4F46E5/ffffff?text=Pinpost+-+Share+Your+Story)
+
+
+
+- **Frontend:** React 19, Tailwind CSS, shadcn/ui## ✨ Features
+
+- **Backend:** FastAPI, MongoDB Atlas
+
+- **Deployment:** Docker, Nginx### 🎯 Core Features
+
 - **User Authentication** - Secure JWT-based authentication with bcrypt password hashing
-- **User Profiles** - Customizable profiles with avatars, cover photos, and bio
+
+## 🛠️ Setup- **User Profiles** - Customizable profiles with avatars, cover photos, and bio
+
 - **Social Feed** - Share posts with text, images, and locations
-- **Blog Platform** - Write and publish long-form articles with rich formatting
-- **Real-time Notifications** - WebSocket-powered instant notifications
-- **Comments & Likes** - Engage with posts and blogs
-- **Follow System** - Follow users and see their content
+
+### Prerequisites- **Blog Platform** - Write and publish long-form articles with rich formatting
+
+- Python 3.11+- **Real-time Notifications** - WebSocket-powered instant notifications
+
+- Node.js 20+- **Comments & Likes** - Engage with posts and blogs
+
+- MongoDB Atlas account- **Follow System** - Follow users and see their content
+
 - **Stories** - Share temporary stories that expire after 24 hours
-- **Search & Filters** - Find users, posts, and blogs easily
+
+### Installation- **Search & Filters** - Find users, posts, and blogs easily
+
 - **Responsive Design** - Beautiful UI that works on all devices
 
-### 🔥 Advanced Features
-- **Trending Users** - Discover popular creators
-- **Activity Stats** - Track your engagement
+```bash
+
+# Clone repository### 🔥 Advanced Features
+
+git clone https://github.com/mamunnet/Pinpost.git- **Trending Users** - Discover popular creators
+
+cd Pinpost- **Activity Stats** - Track your engagement
+
 - **Who to Follow** - Smart user recommendations
-- **Geolocation** - Share your location with posts
-- **Image Uploads** - Share photos with your content
-- **Mobile Optimized** - Perfect typography and responsive layouts
-- **Modern UI** - Built with shadcn/ui and Tailwind CSS
 
-## 🚀 Quick Start
+# Backend setup- **Geolocation** - Share your location with posts
 
-> **🎯 For Non-Technical Users:** Want to deploy in 15 minutes? Check out our **[QUICK_START.md](QUICK_START.md)** guide made specifically for vibe coders!
+cd backend- **Image Uploads** - Share photos with your content
 
-> **📚 Documentation Index:** Not sure where to start? See **[DOCS_INDEX.md](DOCS_INDEX.md)** for all guides!
+pip install -r requirements.txt- **Mobile Optimized** - Perfect typography and responsive layouts
 
-### Prerequisites
+cp .env.example .env- **Modern UI** - Built with shadcn/ui and Tailwind CSS
+
+# Edit .env with your MongoDB URL
+
+uvicorn server:app --reload --host 0.0.0.0 --port 8000## 🚀 Quick Start
+
+
+
+# Frontend setup (in new terminal)> **🎯 For Non-Technical Users:** Want to deploy in 15 minutes? Check out our **[QUICK_START.md](QUICK_START.md)** guide made specifically for vibe coders!
+
+cd frontend
+
+npm install> **📚 Documentation Index:** Not sure where to start? See **[DOCS_INDEX.md](DOCS_INDEX.md)** for all guides!
+
+npm start
+
+```### Prerequisites
+
 - Python 3.11+
-- Node.js 20+
+
+### Environment Variables- Node.js 20+
+
 - MongoDB Atlas account (free tier available)
-- Docker & Docker Compose (for production)
 
-### Development Setup
+Create `.env` in root directory:- Docker & Docker Compose (for production)
 
-1. **Clone the repository**
+
+
+```env### Development Setup
+
+MONGO_URL=mongodb+srv://username:password@cluster.mongodb.net/?retryWrites=true&w=majority
+
+DB_NAME=your_database_name1. **Clone the repository**
+
+SECRET_KEY=your-secret-key   ```bash
+
+FRONTEND_URL=http://localhost:3000   git clone https://github.com/yourusername/Pinpost.git
+
+ENVIRONMENT=development   cd Pinpost
+
+```   ```
+
+
+
+## 🐳 Docker Deployment2. **Backend Setup**
+
    ```bash
-   git clone https://github.com/yourusername/Pinpost.git
-   cd Pinpost
-   ```
 
-2. **Backend Setup**
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   
+```bash   cd backend
+
+docker-compose up -d --build   pip install -r requirements.txt
+
+```   
+
    # Create .env file
-   cp .env.example .env
-   # Edit .env with your MongoDB connection string
-   
-   # Run backend
-   uvicorn server:app --reload --host 0.0.0.0 --port 8000
-   ```
 
-3. **Frontend Setup**
+Access:   cp .env.example .env
+
+- Frontend: http://localhost   # Edit .env with your MongoDB connection string
+
+- Backend API: http://localhost:8000   
+
+- API Docs: http://localhost:8000/docs   # Run backend
+
+   uvicorn server:app --reload --host 0.0.0.0 --port 8000
+
+## 📝 License   ```
+
+
+
+MIT License3. **Frontend Setup**
+
    ```bash
    cd frontend
    npm install
