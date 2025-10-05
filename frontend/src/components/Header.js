@@ -11,8 +11,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Home, FileText, Users, Bell, Search, LogOut, User, Settings, TrendingUp, UserPlus, HelpCircle, Shield, Mail, Menu, Wifi, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
 const API = `${BACKEND_URL}/api`;
+
+// Create WebSocket URL properly
+const getWebSocketUrl = (userId) => {
+  const wsProtocol = BACKEND_URL.startsWith('https') ? 'wss' : 'ws';
+  const wsHost = BACKEND_URL.replace(/^https?:\/\//, '');
+  return `${wsProtocol}://${wsHost}/ws/notifications/${userId}`;
+};
 
 const NotificationsDropdown = ({ user }) => {
   const [notifications, setNotifications] = useState([]);
@@ -32,6 +39,103 @@ const NotificationsDropdown = ({ user }) => {
       setUnreadCount(countRes.data.count);
     } catch (error) {
       console.error('Failed to fetch notifications');
+    }
+  };
+
+  const showInstantNotification = (notification) => {
+    // Determine notification type and customize toast
+    const notificationConfig = {
+      follow: { 
+        icon: '👤', 
+        type: 'success',
+        description: 'started following you'
+      },
+      like: { 
+        icon: '❤️', 
+        type: 'default',
+        description: 'liked your post'
+      },
+      comment: { 
+        icon: '💬', 
+        type: 'info',
+        description: 'commented on your post'
+      },
+      reply: { 
+        icon: '↩️', 
+        type: 'info',
+        description: 'replied to your comment'
+      }
+    };
+
+    const config = notificationConfig[notification.type] || { 
+      icon: '🔔', 
+      type: 'default',
+      description: 'sent you a notification'
+    };
+
+    // Show instant toast notification
+    const toastFunction = toast[config.type] || toast;
+    toastFunction(
+      `${config.icon} ${notification.actor_username} ${config.description}`, {
+        description: notification.message,
+        duration: 5000,
+        action: {
+          label: "View",
+          onClick: () => {
+            // Navigate to relevant content if available
+            if (notification.post_id) {
+              if (notification.post_type === 'blog') {
+                navigate(`/blog/${notification.post_id}`);
+              } else {
+                navigate(`/post/${notification.post_id}`);
+              }
+            } else if (notification.type === 'follow') {
+              navigate(`/profile/${notification.actor_username}`);
+            }
+          }
+        }
+      }
+    );
+
+    // Show browser notification if permission granted
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      const browserNotification = new Notification(`${config.icon} PenLink`, {
+        body: `${notification.actor_username} ${config.description}`,
+        icon: notification.actor_avatar || '/logo192.png',
+        badge: '/logo192.png',
+        tag: notification.id,
+        requireInteraction: false,
+        silent: false
+      });
+
+      // Auto close browser notification after 5 seconds
+      setTimeout(() => {
+        browserNotification.close();
+      }, 5000);
+
+      // Handle notification click
+      browserNotification.onclick = () => {
+        window.focus();
+        if (notification.post_id) {
+          if (notification.post_type === 'blog') {
+            navigate(`/blog/${notification.post_id}`);
+          } else {
+            navigate(`/post/${notification.post_id}`);
+          }
+        } else if (notification.type === 'follow') {
+          navigate(`/profile/${notification.actor_username}`);
+        }
+        browserNotification.close();
+      };
+    }
+
+    // Play subtle notification sound
+    try {
+      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMcBjiE0fHNeSsFJG++7t6QQAoUVKzn6rRLFws=' );
+      audio.volume = 0.3;
+      audio.play().catch(() => {}); // Ignore errors if audio doesn't work
+    } catch (error) {
+      // Ignore audio errors
     }
   };
 
@@ -133,102 +237,7 @@ const NotificationsDropdown = ({ user }) => {
     };
   }, [user]);
 
-  const showInstantNotification = (notification) => {
-    // Determine notification type and customize toast
-    const notificationConfig = {
-      follow: { 
-        icon: '👤', 
-        type: 'success',
-        description: 'started following you'
-      },
-      like: { 
-        icon: '❤️', 
-        type: 'default',
-        description: 'liked your post'
-      },
-      comment: { 
-        icon: '💬', 
-        type: 'info',
-        description: 'commented on your post'
-      },
-      reply: { 
-        icon: '↩️', 
-        type: 'info',
-        description: 'replied to your comment'
-      }
-    };
-
-    const config = notificationConfig[notification.type] || { 
-      icon: '🔔', 
-      type: 'default',
-      description: 'sent you a notification'
-    };
-
-    // Show instant toast notification
-    const toastFunction = toast[config.type] || toast;
-    toastFunction(
-      `${config.icon} ${notification.actor_username} ${config.description}`, {
-        description: notification.message,
-        duration: 5000,
-        action: {
-          label: "View",
-          onClick: () => {
-            // Navigate to relevant content if available
-            if (notification.post_id) {
-              if (notification.post_type === 'blog') {
-                navigate(`/blog/${notification.post_id}`);
-              } else {
-                navigate(`/post/${notification.post_id}`);
-              }
-            } else if (notification.type === 'follow') {
-              navigate(`/profile/${notification.actor_username}`);
-            }
-          }
-        }
-      }
-    );
-
-    // Show browser notification if permission granted
-    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-      const browserNotification = new Notification(`${config.icon} PenLink`, {
-        body: `${notification.actor_username} ${config.description}`,
-        icon: notification.actor_avatar || '/logo192.png',
-        badge: '/logo192.png',
-        tag: notification.id,
-        requireInteraction: false,
-        silent: false
-      });
-
-      // Auto close browser notification after 5 seconds
-      setTimeout(() => {
-        browserNotification.close();
-      }, 5000);
-
-      // Handle notification click
-      browserNotification.onclick = () => {
-        window.focus();
-        if (notification.post_id) {
-          if (notification.post_type === 'blog') {
-            navigate(`/blog/${notification.post_id}`);
-          } else {
-            navigate(`/post/${notification.post_id}`);
-          }
-        } else if (notification.type === 'follow') {
-          navigate(`/profile/${notification.actor_username}`);
-        }
-        browserNotification.close();
-      };
-    }
-
-    // Play subtle notification sound
-    try {
-      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMcBjiE0fHNeSsFJG++7t6QQAoUVKzn6rRLFws=' );
-      audio.volume = 0.3;
-      audio.play().catch(() => {}); // Ignore errors if audio doesn't work
-    } catch (error) {
-      // Ignore audio errors
-    }
-  };
+  const handleMarkAllRead = async () => {
     try {
       await axios.put(`${API}/notifications/read-all`);
       fetchNotifications();

@@ -21,6 +21,7 @@ import { ProfileSetup } from "@/components/ProfileSetup";
 import { EditProfileModal } from "@/components/EditProfileModal";
 import { EditCoverPhotoModal } from "@/components/EditCoverPhotoModal";
 import { EditAvatarModal } from "@/components/EditAvatarModal";
+import { NotificationTester } from "@/components/NotificationTester";
 import { PostDetailPage } from "@/pages/PostDetailPage";
 import { MenuPage } from "@/pages/MenuPage";
 
@@ -148,13 +149,26 @@ const SocialPage = ({ user }) => {
     try {
       if (post.liked_by_user) {
         await axios.delete(`${API}/likes/post/${post.id}`);
+        // Show unlike notification
+        toast('💔 Post unliked', {
+          description: 'Removed from your liked posts',
+          duration: 2000
+        });
       } else {
         await axios.post(`${API}/likes/post/${post.id}`);
+        // Show like notification
+        toast.success('❤️ Post liked!', {
+          description: 'Added to your liked posts and user notified',
+          duration: 3000
+        });
       }
       // Update post in the list immediately
       setPosts(posts.map(p => p.id === post.id ? {...p, liked_by_user: !p.liked_by_user, likes_count: p.liked_by_user ? p.likes_count - 1 : p.likes_count + 1} : p));
     } catch (error) {
-      toast.error('Failed to update like');
+      toast.error('❌ Failed to update like', {
+        description: 'Please try again or check your connection.',
+        duration: 4000
+      });
     }
   };
 
@@ -358,6 +372,13 @@ const SocialPage = ({ user }) => {
               </CardContent>
             </Card>
 
+            {/* Notification Tester - for debugging */}
+            <Card className="bg-white/80 backdrop-blur-sm border border-slate-200/60 shadow-xl">
+              <CardContent className="p-4">
+                <NotificationTester />
+              </CardContent>
+            </Card>
+
             {/* Quick Stats */}
             <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-teal-50">
               <CardHeader className="pb-3">
@@ -434,10 +455,26 @@ const WhoToFollow = ({ user }) => {
   const handleFollow = async (userId) => {
     try {
       await axios.post(`${API}/users/${userId}/follow`);
-      toast.success('Followed!');
+      
+      // Find the user being followed for personalized notification
+      const followedUser = suggestedUsers.find(u => u.id === userId);
+      const username = followedUser ? followedUser.username : 'User';
+      
+      toast.success(`👤 Following ${username}!`, {
+        description: 'You will now see their posts in your feed and they have been notified.',
+        duration: 4000,
+        action: {
+          label: "View Profile",
+          onClick: () => navigate(`/profile/${username}`)
+        }
+      });
+      
       fetchSuggestions();
     } catch (error) {
-      toast.error('Failed to follow');
+      toast.error('❌ Failed to follow user', {
+        description: 'Please try again or check your connection.',
+        duration: 4000
+      });
     }
   };
 
@@ -517,9 +554,19 @@ const PostCard = ({ post, onLike, onComment }) => {
       const response = await axios.post(`${API}/comments/post/${post.id}`, { content: commentContent });
       setComments([response.data, ...comments]);
       setCommentContent('');
+      
+      // Show instant success notification
+      toast.success('💬 Comment added successfully!', {
+        description: 'Your comment has been posted and others will be notified.',
+        duration: 3000
+      });
+      
       if (onComment) onComment();
     } catch (error) {
-      toast.error('Failed to add comment');
+      toast.error('❌ Failed to add comment', {
+        description: 'Please try again or check your connection.',
+        duration: 4000
+      });
     }
   };
 
