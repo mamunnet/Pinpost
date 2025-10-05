@@ -76,8 +76,9 @@ def test_mongodb_connection():
             mongo_url,
             tls=True,
             tlsAllowInvalidCertificates=True,
-            serverSelectionTimeoutMS=5000,
-            connectTimeoutMS=10000,
+            tlsInsecure=True,
+            serverSelectionTimeoutMS=10000,
+            connectTimeoutMS=15000,
         )
         
         async def test_ping():

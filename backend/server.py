@@ -24,15 +24,19 @@ ROOT_DIR = Path(__file__).parent
 if os.getenv('ENVIRONMENT') != 'production':
     load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection with SSL/TLS configuration
+# MongoDB connection with enhanced SSL/TLS configuration for Docker
 mongo_url = os.environ['MONGO_URL']
+
 client = AsyncIOMotorClient(
     mongo_url,
+    # Enhanced SSL settings for Docker compatibility
     tls=True,
     tlsAllowInvalidCertificates=True,
-    serverSelectionTimeoutMS=5000,
-    connectTimeoutMS=10000,
-    retryWrites=True
+    tlsInsecure=True,
+    serverSelectionTimeoutMS=10000,
+    connectTimeoutMS=15000,
+    retryWrites=True,
+    w='majority'
 )
 db = client[os.environ['DB_NAME']]
 
