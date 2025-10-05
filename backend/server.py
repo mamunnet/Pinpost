@@ -29,10 +29,9 @@ mongo_url = os.environ['MONGO_URL']
 
 client = AsyncIOMotorClient(
     mongo_url,
-    # Enhanced SSL settings for Docker compatibility
+    # Use only tlsAllowInvalidCertificates (not tlsInsecure)
     tls=True,
     tlsAllowInvalidCertificates=True,
-    tlsInsecure=True,
     serverSelectionTimeoutMS=10000,
     connectTimeoutMS=15000,
     retryWrites=True,

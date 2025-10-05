@@ -76,7 +76,6 @@ def test_mongodb_connection():
             mongo_url,
             tls=True,
             tlsAllowInvalidCertificates=True,
-            tlsInsecure=True,
             serverSelectionTimeoutMS=10000,
             connectTimeoutMS=15000,
         )
