@@ -24,14 +24,14 @@ ROOT_DIR = Path(__file__).parent
 if os.getenv('ENVIRONMENT') != 'production':
     load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection - SSL settings are in the connection string
+# MongoDB connection - Let pymongo handle SSL automatically
 mongo_url = os.environ['MONGO_URL']
 
-# Simple connection - all SSL config is in the URL
+# Minimal connection - let Motor/PyMongo handle SSL/TLS automatically
 client = AsyncIOMotorClient(
     mongo_url,
-    serverSelectionTimeoutMS=10000,
-    connectTimeoutMS=15000,
+    serverSelectionTimeoutMS=30000,
+    connectTimeoutMS=30000,
 )
 db = client[os.environ['DB_NAME']]
 

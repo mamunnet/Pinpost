@@ -10,7 +10,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - MONGO_URL=mongodb+srv://pinpostmaria:iubbDYjmSiA5uwyQ@pinpost.4ccvhj6.mongodb.net/?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE
+      - MONGO_URL=mongodb+srv://pinpostmaria:iubbDYjmSiA5uwyQ@pinpost.4ccvhj6.mongodb.net/?retryWrites=true&w=majority
       - DB_NAME=penlink_database
       - SECRET_KEY=4f8a2e9c7b6d5a3f1e9c8b7a6d5f4e3c2b1a9f8e7d6c5b4a3f2e1d9c8b7a6f5e
       - FRONTEND_URL=https://bartaaddaa.com
