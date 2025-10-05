@@ -24,31 +24,40 @@ ROOT_DIR = Path(__file__).parent
 if os.getenv('ENVIRONMENT') != 'production':
     load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection with custom SSL context to bypass handshake issues
+# MongoDB connection with custom SSL context to bypass handshake issues in production
 import ssl
 mongo_url = os.environ['MONGO_URL']
 
-# Create a custom SSL context that accepts any certificate
-try:
-    ssl_context = ssl.create_default_context()
-    ssl_context.check_hostname = False
-    ssl_context.verify_mode = ssl.CERT_NONE
-    
+# Create a custom SSL context only for production (Docker) environment
+if os.getenv('ENVIRONMENT') == 'production':
+    try:
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+        
+        client = AsyncIOMotorClient(
+            mongo_url,
+            ssl_context=ssl_context,
+            serverSelectionTimeoutMS=30000,
+            connectTimeoutMS=30000,
+        )
+        logging.info("MongoDB client created with custom SSL context for production")
+    except Exception as e:
+        logging.error(f"Failed to create MongoDB client with SSL context: {e}")
+        # Fallback to basic connection
+        client = AsyncIOMotorClient(
+            mongo_url,
+            serverSelectionTimeoutMS=30000,
+            connectTimeoutMS=30000,
+        )
+else:
+    # Local development - use basic connection without SSL context
     client = AsyncIOMotorClient(
         mongo_url,
-        ssl_context=ssl_context,
         serverSelectionTimeoutMS=30000,
         connectTimeoutMS=30000,
     )
-    logging.info("MongoDB client created with custom SSL context")
-except Exception as e:
-    logging.error(f"Failed to create MongoDB client with SSL context: {e}")
-    # Fallback to basic connection
-    client = AsyncIOMotorClient(
-        mongo_url,
-        serverSelectionTimeoutMS=30000,
-        connectTimeoutMS=30000,
-    )
+    logging.info("MongoDB client created for local development")
     
 db = client[os.environ['DB_NAME']]
 
@@ -57,12 +66,12 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production'
 ALGORITHM = "HS256"
 security = HTTPBearer()
 
-# Create the main app
-app = FastAPI()
-api_router = APIRouter(prefix="/api")
+# Lifespan context manager for startup/shutdown events
+from contextlib import asynccontextmanager
 
-@app.on_event("startup")
-async def init_db():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
     try:
         # Verify DB connection and ensure unique indexes
         await db.command('ping')
@@ -71,6 +80,16 @@ async def init_db():
         logging.info("Database connected; ensured users indexes.")
     except Exception as e:
         logging.error(f"Startup DB initialization failed: {e}")
+    
+    yield
+    
+    # Shutdown
+    client.close()
+    logging.info("MongoDB client closed")
+
+# Create the main app with lifespan handler
+app = FastAPI(lifespan=lifespan)
+api_router = APIRouter(prefix="/api")
 
 # WebSocket connection manager for real-time notifications
 class ConnectionManager:
@@ -1170,7 +1189,3 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
