@@ -74,8 +74,6 @@ def test_mongodb_connection():
         
         client = AsyncIOMotorClient(
             mongo_url,
-            tls=True,
-            tlsAllowInvalidCertificates=True,
             serverSelectionTimeoutMS=10000,
             connectTimeoutMS=15000,
         )
