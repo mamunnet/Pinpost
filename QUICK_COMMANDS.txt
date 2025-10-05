@@ -1,0 +1,151 @@
+# Quick Setup Commands for Copy-Paste
+# For Hostinger VPS - Just copy these one by one!
+
+# ═══════════════════════════════════════════════════
+# 🚀 PINPOST QUICK DEPLOY - COPY & PASTE EDITION
+# ═══════════════════════════════════════════════════
+
+# ────────────────────────────────────────────────────
+# Step 1: Download Pinpost
+# ────────────────────────────────────────────────────
+cd /root && git clone https://github.com/mamunnet/Pinpost.git && cd Pinpost
+
+
+# ────────────────────────────────────────────────────
+# Step 2: Run Easy Deploy Script
+# ────────────────────────────────────────────────────
+bash easy-deploy.sh
+
+
+# ═══════════════════════════════════════════════════
+# That's it! The script will ask you for:
+# 1. Your MongoDB connection string
+# 2. Your domain or IP address
+# 
+# Then it does EVERYTHING automatically!
+# ═══════════════════════════════════════════════════
+
+
+# ────────────────────────────────────────────────────
+# Alternative: Manual Setup (if script doesn't work)
+# ────────────────────────────────────────────────────
+
+# Install Docker Compose
+curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose
+
+
+# Create config file
+cat > .env << 'EOF'
+MONGO_URL=PASTE_YOUR_MONGODB_URL_HERE
+DB_NAME=pinpost_production
+SECRET_KEY=WILL_BE_GENERATED
+FRONTEND_URL=http://YOUR_IP_HERE
+MAX_FILE_SIZE=10485760
+UPLOAD_DIR=./uploads
+ENVIRONMENT=production
+EOF
+
+
+# Edit the config
+nano .env
+# Press Ctrl+X, then Y, then Enter to save
+
+
+# Generate secret key
+SECRET_KEY=$(openssl rand -hex 32) && sed -i "s/SECRET_KEY=.*/SECRET_KEY=$SECRET_KEY/" .env
+
+
+# Open firewall ports
+ufw allow 80 && ufw allow 443 && ufw allow 8000
+
+
+# Deploy!
+docker-compose up -d --build
+
+
+# Check status
+docker-compose ps
+
+
+# ────────────────────────────────────────────────────
+# Daily Commands (Copy & Paste as needed)
+# ────────────────────────────────────────────────────
+
+# View logs
+docker-compose logs -f
+
+# Restart
+docker-compose restart
+
+# Stop
+docker-compose down
+
+# Start
+docker-compose up -d
+
+# Update to latest version
+git pull && docker-compose up -d --build
+
+# Backup
+tar -czf backup-$(date +%Y%m%d).tar.gz backend/uploads .env
+
+# Check disk space
+df -h
+
+# Check if running
+docker-compose ps
+
+
+# ────────────────────────────────────────────────────
+# Troubleshooting Commands
+# ────────────────────────────────────────────────────
+
+# See backend logs
+docker-compose logs backend
+
+# See frontend logs
+docker-compose logs frontend
+
+# Restart backend only
+docker-compose restart backend
+
+# Restart frontend only
+docker-compose restart frontend
+
+# Check MongoDB connection
+docker-compose exec backend python -c "from pymongo import MongoClient; import os; MongoClient(os.getenv('MONGO_URL')).admin.command('ping'); print('✅ MongoDB Connected!')"
+
+# Fix upload permissions
+chmod -R 777 backend/uploads && docker-compose restart
+
+# Clean Docker
+docker system prune -f
+
+# Nuclear option (start fresh)
+docker-compose down && docker system prune -a -f && docker-compose up -d --build
+
+
+# ────────────────────────────────────────────────────
+# SSL Setup (for domain with HTTPS)
+# ────────────────────────────────────────────────────
+
+# Install Certbot
+apt update && apt install certbot python3-certbot-nginx -y
+
+# Stop containers
+docker-compose down
+
+# Get SSL certificate (replace yourdomain.com)
+certbot certonly --standalone -d yourdomain.com -d www.yourdomain.com
+
+# Update nginx config for SSL
+# (Advanced - see HOSTINGER_DEPLOYMENT.md)
+
+# Restart
+docker-compose up -d
+
+
+# ════════════════════════════════════════════════════
+# 🎉 YOU'RE DONE!
+# Visit: http://YOUR_IP_ADDRESS
+# ════════════════════════════════════════════════════

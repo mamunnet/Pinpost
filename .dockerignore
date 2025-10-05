@@ -1,0 +1,62 @@
+# Node modules
+node_modules/
+frontend/node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+backend/__pycache__/
+*.pyc
+venv/
+env/
+ENV/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+backend/.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Build outputs
+frontend/build/
+dist/
+build/
+
+# Testing
+coverage/
+.coverage
+.pytest_cache/
+test_reports/
+
+# Documentation
+*.md
+!README.md
+
+# Uploads (should be in volume)
+backend/uploads/*
+uploads/*
+
+# Logs
+*.log
+logs/

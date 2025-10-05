@@ -1010,6 +1010,23 @@ async def websocket_notifications(websocket: WebSocket, user_id: str):
         logging.error(f"WebSocket error for user {user_id}: {e}")
         manager.disconnect(user_id)
 
+# Health check endpoint
+@api_router.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring and load balancers"""
+    try:
+        # Check MongoDB connection
+        await db.command('ping')
+        return {
+            "status": "healthy",
+            "service": "pinpost-api",
+            "database": "connected",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logging.error(f"Health check failed: {e}")
+        raise HTTPException(status_code=503, detail="Service unavailable")
+
 # Include router
 app.include_router(api_router)
 

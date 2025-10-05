@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Heart, MessageCircle, Share2, Bookmark, Edit, Trash2, Plus, Home, FileText, User, LogOut, Search, Users, TrendingUp, Camera, MapPin, Calendar, Flame, Sparkles, Clock } from "lucide-react";
+import { Heart, MessageCircle, Share2, Bookmark, Edit, Trash2, Plus, Home, FileText, User, LogOut, Search, Users, TrendingUp, Camera, MapPin, Calendar, Flame, Sparkles, Clock, ArrowLeft } from "lucide-react";
 import { EnhancedPostModal } from "@/components/EnhancedPostModal";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -76,21 +76,70 @@ const AuthContext = ({ children }) => {
 // Navigation component removed - using Header from separate file
 
 const SocialPage = ({ user }) => {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [filter, setFilter] = useState('all'); // all, following, trending
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredPosts, setFilteredPosts] = useState([]);
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    fetchPosts(true);
+  }, [filter]);
 
-  const fetchPosts = async () => {
+  useEffect(() => {
+    // Filter posts based on search query
+    if (searchQuery.trim()) {
+      const filtered = posts.filter(post => 
+        post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.author_username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (post.author_name && post.author_name.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+      setFilteredPosts(filtered);
+    } else {
+      setFilteredPosts(posts);
+    }
+  }, [searchQuery, posts]);
+
+  const fetchPosts = async (reset = false) => {
     try {
-      const response = await axios.get(`${API}/posts`);
-      setPosts(response.data);
+      if (reset) {
+        setLoading(true);
+        setPage(0);
+      } else {
+        setLoadingMore(true);
+      }
+
+      const currentPage = reset ? 0 : page;
+      const skip = currentPage * 10;
+      
+      let endpoint = `${API}/posts?skip=${skip}&limit=10`;
+      if (filter === 'following') {
+        endpoint = `${API}/feed?skip=${skip}&limit=10&following_only=true`;
+      } else if (filter === 'trending') {
+        endpoint = `${API}/posts?skip=${skip}&limit=10&sort=trending`;
+      }
+
+      const response = await axios.get(endpoint);
+      const newPosts = response.data;
+
+      if (reset) {
+        setPosts(newPosts);
+      } else {
+        setPosts([...posts, ...newPosts]);
+      }
+
+      setHasMore(newPosts.length === 10);
+      setPage(currentPage + 1);
     } catch (error) {
       toast.error('Failed to load posts');
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -101,29 +150,291 @@ const SocialPage = ({ user }) => {
       } else {
         await axios.post(`${API}/likes/post/${post.id}`);
       }
-      fetchPosts();
+      // Update post in the list immediately
+      setPosts(posts.map(p => p.id === post.id ? {...p, liked_by_user: !p.liked_by_user, likes_count: p.liked_by_user ? p.likes_count - 1 : p.likes_count + 1} : p));
     } catch (error) {
       toast.error('Failed to update like');
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center pt-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600 mx-auto"></div></div>;
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore) {
+      fetchPosts(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center pt-20">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading social feed...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 pt-24 pb-12">
-      <div className="max-w-2xl mx-auto px-4 space-y-6">
-        <h1 className="text-3xl font-bold mb-6">Social Feed</h1>
-        {posts.map((post, index) => (
-          <div key={post.id}>
-            <PostCard post={post} user={user} onLike={() => handleLike(post)} onComment={fetchPosts} />
-            {/* Insert ad every 4 posts */}
-            {(index + 1) % 4 === 0 && index < posts.length - 1 && (
-              <AdCard adIndex={Math.floor(index / 4)} />
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="flex gap-6">
+          {/* Main Feed */}
+          <div className="flex-1 max-w-2xl mx-auto space-y-6">
+            {/* Header with Filters */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-20 z-10 border-0">
+              <div className="flex items-center justify-between mb-4">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
+                  Social Feed
+                </h1>
+                <Button 
+                  onClick={() => setShowCreateModal(true)}
+                  className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Post
+                </Button>
+              </div>
+
+              {/* Search Bar */}
+              <div className="mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    placeholder="Search posts, people..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 bg-gray-50 border-0 focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>
+              </div>
+
+              {/* Filter Tabs */}
+              <div className="flex gap-2">
+                <Button
+                  variant={filter === 'all' ? 'default' : 'outline'}
+                  onClick={() => setFilter('all')}
+                  className={`flex-1 ${filter === 'all' ? 'bg-gradient-to-r from-blue-600 to-teal-600' : ''}`}
+                >
+                  <Home className="w-4 h-4 mr-2" />
+                  All Posts
+                </Button>
+                <Button
+                  variant={filter === 'following' ? 'default' : 'outline'}
+                  onClick={() => setFilter('following')}
+                  className={`flex-1 ${filter === 'following' ? 'bg-gradient-to-r from-blue-600 to-teal-600' : ''}`}
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Following
+                </Button>
+                <Button
+                  variant={filter === 'trending' ? 'default' : 'outline'}
+                  onClick={() => setFilter('trending')}
+                  className={`flex-1 ${filter === 'trending' ? 'bg-gradient-to-r from-blue-600 to-teal-600' : ''}`}
+                >
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Trending
+                </Button>
+              </div>
+            </div>
+
+            {/* Posts List */}
+            {filteredPosts.length === 0 ? (
+              <Card className="text-center py-12">
+                <CardContent>
+                  <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                    {searchQuery ? 'No posts found' : 'No posts yet'}
+                  </h3>
+                  <p className="text-gray-500 mb-4">
+                    {searchQuery 
+                      ? 'Try a different search query'
+                      : filter === 'following' 
+                        ? 'Follow some people to see their posts here'
+                        : 'Be the first to create a post!'}
+                  </p>
+                  {!searchQuery && (
+                    <Button onClick={() => setShowCreateModal(true)} className="bg-gradient-to-r from-blue-600 to-teal-600">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Post
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                {filteredPosts.map((post, index) => (
+                  <div key={post.id}>
+                    <PostCard post={post} user={user} onLike={() => handleLike(post)} onComment={() => fetchPosts(true)} />
+                    {/* Insert ad every 4 posts */}
+                    {(index + 1) % 4 === 0 && index < filteredPosts.length - 1 && (
+                      <AdCard adIndex={Math.floor(index / 4)} />
+                    )}
+                  </div>
+                ))}
+
+                {/* Load More Button */}
+                {hasMore && !searchQuery && (
+                  <div className="text-center py-6">
+                    <Button
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
+                      variant="outline"
+                      className="px-8"
+                    >
+                      {loadingMore ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                          Loading...
+                        </>
+                      ) : (
+                        <>
+                          Load More Posts
+                          <span className="ml-2">↓</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
-        ))}
+
+          {/* Right Sidebar - Suggestions */}
+          <div className="hidden lg:block w-80 space-y-6">
+            {/* Who to Follow */}
+            <Card className="sticky top-20 shadow-lg border-0">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-bold flex items-center gap-2">
+                  <Users className="w-5 h-5 text-blue-600" />
+                  Who to Follow
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <WhoToFollow user={user} />
+              </CardContent>
+            </Card>
+
+            {/* Quick Stats */}
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-teal-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-bold">Your Activity</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-sm text-gray-600 flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4 text-blue-600" />
+                    Posts
+                  </span>
+                  <span className="font-bold text-blue-600">
+                    {posts.filter(p => p.author_id === user?.id).length}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-sm text-gray-600 flex items-center gap-2">
+                    <Heart className="w-4 h-4 text-rose-600" />
+                    Likes Given
+                  </span>
+                  <span className="font-bold text-rose-600">
+                    {posts.filter(p => p.liked_by_user).length}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-sm text-gray-600 flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-green-600" />
+                    Engagement
+                  </span>
+                  <span className="font-bold text-green-600">
+                    {posts.reduce((acc, p) => acc + (p.author_id === user?.id ? p.likes_count + p.comments_count : 0), 0)}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
+
+      {/* Create Post Modal */}
+      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <EnhancedPostModal onClose={() => {
+            setShowCreateModal(false);
+            fetchPosts(true);
+          }} currentUser={user} />
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+};
+
+// WhoToFollow Component
+const WhoToFollow = ({ user }) => {
+  const navigate = useNavigate();
+  const [suggestedUsers, setSuggestedUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchSuggestions();
+  }, []);
+
+  const fetchSuggestions = async () => {
+    try {
+      const response = await axios.get(`${API}/users/trending?limit=3`);
+      setSuggestedUsers(response.data.filter(u => u.id !== user?.id));
+    } catch (error) {
+      console.error('Failed to load suggestions');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFollow = async (userId) => {
+    try {
+      await axios.post(`${API}/users/${userId}/follow`);
+      toast.success('Followed!');
+      fetchSuggestions();
+    } catch (error) {
+      toast.error('Failed to follow');
+    }
+  };
+
+  if (loading) {
+    return <div className="animate-pulse space-y-3">
+      {[1,2,3].map(i => <div key={i} className="h-16 bg-gray-100 rounded"></div>)}
+    </div>;
+  }
+
+  return (
+    <>
+      {suggestedUsers.slice(0, 3).map((suggestedUser) => (
+        <div key={suggestedUser.id} className="flex items-center justify-between py-2">
+          <div 
+            className="flex items-center gap-2 flex-1 cursor-pointer"
+            onClick={() => navigate(`/profile/${suggestedUser.username}`)}
+          >
+            <Avatar className="w-10 h-10">
+              {suggestedUser.avatar ? (
+                <img src={suggestedUser.avatar} alt={suggestedUser.username} className="w-full h-full object-cover" />
+              ) : (
+                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm">
+                  {suggestedUser.username[0].toUpperCase()}
+                </AvatarFallback>
+              )}
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold truncate">{suggestedUser.name || suggestedUser.username}</p>
+              <p className="text-xs text-gray-500 truncate">@{suggestedUser.username}</p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => handleFollow(suggestedUser.id)}
+            className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-xs px-3"
+          >
+            Follow
+          </Button>
+        </div>
+      ))}
+    </>
   );
 };
 
@@ -929,6 +1240,7 @@ const BlogsPage = ({ user }) => {
 
 const BlogDetailPage = ({ user }) => {
   const { blogId } = useParams();
+  const navigate = useNavigate();
   const [blog, setBlog] = useState(null);
   const [comments, setComments] = useState([]);
   const [commentContent, setCommentContent] = useState('');
@@ -994,66 +1306,91 @@ const BlogDetailPage = ({ user }) => {
   }
 
   return (
-    <div className="min-h-screen bg-white pt-24 pb-12">
-      <article className="max-w-4xl mx-auto px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-amber-50 pt-24 pb-12">
+      <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Back Button */}
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="mb-6 hover:bg-gray-100"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
+
         <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-4">
+          <div className="flex items-center space-x-3 mb-6">
             <Link to={`/profile/${blog.author_username}`}>
-              <Avatar className="w-12 h-12">
+              <Avatar className="w-12 h-12 sm:w-14 sm:h-14">
                 <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white">
                   {blog.author_username[0].toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             </Link>
             <div>
-              <Link to={`/profile/${blog.author_username}`} className="font-semibold hover:underline">
+              <Link to={`/profile/${blog.author_username}`} className="font-semibold text-base sm:text-lg hover:underline">
                 {blog.author_username}
               </Link>
-              <p className="text-sm text-gray-500">
+              <p className="text-xs sm:text-sm text-gray-500">
                 {new Date(blog.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
               </p>
             </div>
           </div>
 
-          <h1 className="text-5xl font-bold mb-4 leading-tight">{blog.title}</h1>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight text-gray-900" style={{fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"}}>
+            {blog.title}
+          </h1>
           
-          <div className="flex space-x-2 mb-6">
+          <div className="flex flex-wrap gap-2 mb-6">
             {blog.tags.map((tag) => (
-              <Badge key={tag} variant="secondary">{tag}</Badge>
+              <Badge key={tag} variant="secondary" className="text-xs sm:text-sm">{tag}</Badge>
             ))}
           </div>
 
           {blog.cover_image && (
-            <img src={blog.cover_image} alt={blog.title} className="w-full h-96 object-cover rounded-lg mb-6" />
+            <img src={blog.cover_image} alt={blog.title} className="w-full h-48 sm:h-64 md:h-80 lg:h-96 object-cover rounded-xl shadow-lg mb-6" />
           )}
         </div>
 
-        <div className="prose prose-lg max-w-none mb-12" data-testid="blog-content">
-          <div className="whitespace-pre-wrap leading-relaxed">{blog.content}</div>
+        <div className="mb-12">
+          <div 
+            className="text-gray-800 text-base sm:text-lg leading-relaxed sm:leading-loose whitespace-pre-wrap break-words" 
+            style={{
+              fontFamily: "'Georgia', 'Charter', 'Iowan Old Style', 'Times New Roman', serif",
+              fontSize: 'clamp(1rem, 2.5vw, 1.125rem)',
+              lineHeight: '1.75',
+              letterSpacing: '0.01em'
+            }}
+            data-testid="blog-content"
+          >
+            {blog.content}
+          </div>
         </div>
 
-        <div className="border-t border-b py-4 mb-8">
-          <div className="flex items-center space-x-8">
+        <div className="border-t border-b py-4 sm:py-6 mb-8 bg-white/50 backdrop-blur-sm rounded-lg px-4">
+          <div className="flex items-center justify-around sm:justify-start sm:space-x-12">
             <button
               onClick={handleLike}
               className={`flex items-center space-x-2 ${blog.liked_by_user ? 'text-rose-600' : 'text-gray-600 hover:text-rose-600'} transition-colors`}
               data-testid="like-blog-detail-btn"
             >
-              <Heart className={`w-6 h-6 ${blog.liked_by_user ? 'fill-current' : ''}`} />
-              <span className="font-semibold">{blog.likes_count}</span>
+              <Heart className={`w-5 h-5 sm:w-6 sm:h-6 ${blog.liked_by_user ? 'fill-current' : ''}`} />
+              <span className="font-semibold text-sm sm:text-base">{blog.likes_count}</span>
             </button>
             <div className="flex items-center space-x-2 text-gray-600">
-              <MessageCircle className="w-6 h-6" />
-              <span className="font-semibold">{blog.comments_count}</span>
+              <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+              <span className="font-semibold text-sm sm:text-base">{blog.comments_count}</span>
             </div>
             <button className="flex items-center space-x-2 text-gray-600 hover:text-green-600 transition-colors">
-              <Share2 className="w-6 h-6" />
+              <Share2 className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           </div>
         </div>
 
         <div className="space-y-6">
-          <h2 className="text-2xl font-bold">Comments</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900" style={{fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"}}>
+            Comments
+          </h2>
           
           {user && (
             <div className="flex space-x-3">
