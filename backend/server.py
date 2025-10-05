@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, File, UploadFile
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, File, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
@@ -9,11 +9,13 @@ import logging
 import shutil
 from pathlib import Path
 from pydantic import BaseModel, Field, EmailStr
-from typing import List, Optional
+from typing import List, Optional, Dict
 import uuid
 from datetime import datetime, timezone, timedelta
 import jwt
 import bcrypt
+import json
+import asyncio
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -31,6 +33,40 @@ security = HTTPBearer()
 # Create the main app
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
+
+# WebSocket connection manager for real-time notifications
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: Dict[str, WebSocket] = {}
+    
+    async def connect(self, user_id: str, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections[user_id] = websocket
+        logging.info(f"WebSocket connected for user: {user_id}")
+    
+    def disconnect(self, user_id: str):
+        if user_id in self.active_connections:
+            del self.active_connections[user_id]
+            logging.info(f"WebSocket disconnected for user: {user_id}")
+    
+    async def send_notification(self, user_id: str, message: dict):
+        if user_id in self.active_connections:
+            try:
+                await self.active_connections[user_id].send_json(message)
+                logging.info(f"Sent notification to user {user_id}: {message.get('type')}")
+            except Exception as e:
+                logging.error(f"Error sending notification to {user_id}: {e}")
+                self.disconnect(user_id)
+    
+    async def broadcast(self, message: dict, exclude_user: str = None):
+        for user_id, connection in list(self.active_connections.items()):
+            if user_id != exclude_user:
+                try:
+                    await connection.send_json(message)
+                except:
+                    self.disconnect(user_id)
+
+manager = ConnectionManager()
 
 # Models
 class UserCreate(BaseModel):
@@ -226,6 +262,14 @@ async def create_notification(user_id: str, notif_type: str, actor_id: str, acto
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.notifications.insert_one(notification)
+    
+    # Send real-time notification via WebSocket
+    await manager.send_notification(user_id, {
+        "type": "new_notification",
+        "notification": notification
+    })
+    
+    logging.info(f"Created notification for user {user_id}: {notif_type} from {actor_username}")
 
 # Auth routes
 @api_router.post("/auth/register")
@@ -544,6 +588,29 @@ async def get_posts(skip: int = 0, limit: int = 50, current_user_id: Optional[st
         result.append(post_data)
     
     return result
+
+@api_router.get("/posts/{post_id}", response_model=ShortPost)
+async def get_post_by_id(post_id: str, current_user_id: Optional[str] = Depends(get_optional_user)):
+    post = await db.short_posts.find_one({"id": post_id})
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    # Get author info
+    author = await db.users.find_one({"id": post["author_id"]})
+    
+    post_data = ShortPost(**post).dict()
+    if author:
+        post_data["author_name"] = author.get("name", "")
+        post_data["author_avatar"] = author.get("avatar", "")
+    
+    # Check if current user liked this post
+    if current_user_id:
+        liked = await db.likes.find_one({"user_id": current_user_id, "post_id": post["id"], "post_type": "post"})
+        post_data["liked_by_user"] = bool(liked)
+    else:
+        post_data["liked_by_user"] = False
+    
+    return post_data
 
 @api_router.delete("/posts/{post_id}")
 async def delete_post(post_id: str, user_id: str = Depends(get_current_user)):
@@ -925,6 +992,23 @@ async def get_feed(skip: int = 0, limit: int = 20, following_only: bool = False,
     combined.sort(key=lambda x: x["created_at"], reverse=True)
     
     return combined[:limit]
+
+# WebSocket endpoint for real-time notifications
+@app.websocket("/ws/notifications/{user_id}")
+async def websocket_notifications(websocket: WebSocket, user_id: str):
+    await manager.connect(user_id, websocket)
+    try:
+        while True:
+            # Keep connection alive and receive any ping/pong messages
+            data = await websocket.receive_text()
+            if data == "ping":
+                await websocket.send_text("pong")
+    except WebSocketDisconnect:
+        manager.disconnect(user_id)
+        logging.info(f"WebSocket disconnected for user: {user_id}")
+    except Exception as e:
+        logging.error(f"WebSocket error for user {user_id}: {e}")
+        manager.disconnect(user_id)
 
 # Include router
 app.include_router(api_router)

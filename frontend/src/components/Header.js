@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Home, FileText, Users, Bell, Search, Plus, LogOut, User, Settings, TrendingUp, UserPlus, HelpCircle, Shield, Mail, Menu } from "lucide-react";
+import { Home, FileText, Users, Bell, Search, Plus, LogOut, User, Settings, TrendingUp, UserPlus, HelpCircle, Shield, Mail, Menu, Wifi, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -91,6 +91,8 @@ const NotificationsDropdown = ({ user }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
+  const [wsConnected, setWsConnected] = useState(false);
+  const wsRef = useRef(null);
   const navigate = useNavigate();
 
   const fetchNotifications = async () => {
@@ -106,12 +108,86 @@ const NotificationsDropdown = ({ user }) => {
     }
   };
 
+  // WebSocket connection for real-time notifications
   useEffect(() => {
-    if (user) {
-      fetchNotifications();
-      const interval = setInterval(fetchNotifications, 30000);
-      return () => clearInterval(interval);
+    if (!user) return;
+
+    fetchNotifications();
+
+    // WebSocket connection
+    const wsUrl = `${BACKEND_URL.replace('http', 'ws')}/ws/notifications/${user.id}`;
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log('✅ WebSocket connected for real-time notifications');
+      setWsConnected(true);
+      
+      // Send periodic ping to keep connection alive
+      const pingInterval = setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send('ping');
+        }
+      }, 30000);
+      
+      ws.pingInterval = pingInterval;
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === 'new_notification') {
+          // Add new notification to the top of the list
+          setNotifications(prev => [data.notification, ...prev]);
+          setUnreadCount(prev => prev + 1);
+          
+          // Show browser notification if permission granted
+          if (Notification.permission === 'granted') {
+            new Notification('New Notification', {
+              body: data.notification.message,
+              icon: '/logo.png',
+              badge: '/logo.png'
+            });
+          }
+          
+          // Play notification sound (optional)
+          const audio = new Audio('/notification.mp3');
+          audio.volume = 0.3;
+          audio.play().catch(() => {}); // Ignore errors if audio file doesn't exist
+          
+          console.log('📬 New notification received:', data.notification);
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('❌ WebSocket error:', error);
+      setWsConnected(false);
+    };
+
+    ws.onclose = () => {
+      console.log('🔌 WebSocket disconnected');
+      setWsConnected(false);
+      if (ws.pingInterval) {
+        clearInterval(ws.pingInterval);
+      }
+    };
+
+    // Request notification permission
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
     }
+
+    // Cleanup on unmount
+    return () => {
+      if (ws.pingInterval) {
+        clearInterval(ws.pingInterval);
+      }
+      ws.close();
+    };
   }, [user]);
 
   const handleMarkAllRead = async () => {
@@ -155,14 +231,28 @@ const NotificationsDropdown = ({ user }) => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button className="relative p-2 hover:bg-gray-100 rounded-full" data-testid="notifications-bell">
+        <button className="relative p-2 hover:bg-gray-100 rounded-full group" data-testid="notifications-bell">
           <Bell className="w-5 h-5 text-gray-700" />
-          {unreadCount > 0 && <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-rose-600">{unreadCount > 9 ? '9+' : unreadCount}</Badge>}
+          {unreadCount > 0 && (
+            <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-rose-600 animate-pulse">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </Badge>
+          )}
+          {/* WebSocket connection indicator */}
+          <div className={`absolute bottom-0 right-0 w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500' : 'bg-gray-400'}`} title={wsConnected ? 'Real-time connected' : 'Offline mode'}></div>
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-96 p-0" align="end">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="font-semibold text-lg">Notifications</h3>
+        <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-rose-50 to-pink-50">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-lg">Notifications</h3>
+            {wsConnected && (
+              <div className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                <Wifi className="w-3 h-3" />
+                <span>Live</span>
+              </div>
+            )}
+          </div>
           {unreadCount > 0 && <Button variant="ghost" size="sm" onClick={handleMarkAllRead}>Mark all read</Button>}
         </div>
         <ScrollArea className="h-96">
@@ -170,7 +260,7 @@ const NotificationsDropdown = ({ user }) => {
             <div className="p-8 text-center text-gray-500"><Bell className="w-12 h-12 mx-auto mb-2 text-gray-300" /><p>No notifications</p></div>
           ) : (
             notifications.map((notif) => (
-              <button key={notif.id} onClick={() => handleNotificationClick(notif)} className={`w-full p-4 flex items-start space-x-3 hover:bg-gray-50 border-b text-left ${!notif.read ? 'bg-blue-50' : ''}`}>
+              <button key={notif.id} onClick={() => handleNotificationClick(notif)} className={`w-full p-4 flex items-start space-x-3 hover:bg-gray-50 border-b text-left transition-colors ${!notif.read ? 'bg-blue-50' : ''}`}>
                 <div className="text-2xl">{notif.type === 'follow' ? '👤' : notif.type === 'like' ? '❤️' : '💬'}</div>
                 <div className="flex-1"><p className="text-sm"><span className="font-semibold">{notif.actor_username}</span> {notif.message.replace(notif.actor_username, '').trim()}</p><p className="text-xs text-gray-500 mt-1">{formatTime(notif.created_at)}</p></div>
                 {!notif.read && <div className="w-2 h-2 bg-rose-600 rounded-full mt-2"></div>}

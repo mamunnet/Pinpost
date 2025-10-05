@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { MapPin, Palette, Upload, Bold, Italic, List, Heading, Image as ImageIcon, AtSign } from "lucide-react";
+import { MapPin, Palette, Upload, Bold, Italic, List, Heading, Image as ImageIcon, AtSign, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -18,11 +18,15 @@ const bgColors = [
   { name: 'Golden', value: '#F59E0B', gradient: 'bg-gradient-to-br from-yellow-400 to-orange-500' },
 ];
 
-export const EnhancedPostModal = ({ onClose, currentUser }) => {
-  const [contentType, setContentType] = useState('post');
+export const EnhancedPostModal = ({ onClose, currentUser, initialTab = 'post' }) => {
+  const [contentType, setContentType] = useState(initialTab);
   const [postContent, setPostContent] = useState('');
   const [postImage, setPostImage] = useState('');
   const [location, setLocation] = useState('');
+  const [loadingLocation, setLoadingLocation] = useState(false);
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const locationInputRef = useRef(null);
   const [bgColor, setBgColor] = useState('transparent');
   const [showBgPicker, setShowBgPicker] = useState(false);
   const [uploadingPostImage, setUploadingPostImage] = useState(false);
@@ -36,6 +40,173 @@ export const EnhancedPostModal = ({ onClose, currentUser }) => {
   const [uploadingImage, setUploadingImage] = useState(false);
   
   const [loading, setLoading] = useState(false);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (locationInputRef.current && !locationInputRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Search for locations as user types (Nominatim Search API)
+  const searchLocations = async (query) => {
+    if (!query || query.length < 3) {
+      setLocationSuggestions([]);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`,
+        {
+          headers: {
+            'User-Agent': 'PenLink Social App'
+          }
+        }
+      );
+
+      const data = await response.json();
+      
+      const suggestions = data.map(item => ({
+        display_name: item.display_name,
+        name: item.name,
+        address: item.address,
+        formatted: formatLocationFromAddress(item.address, item.name)
+      }));
+
+      setLocationSuggestions(suggestions);
+      setShowSuggestions(true);
+    } catch (error) {
+      console.error('Location search error:', error);
+    }
+  };
+
+  // Format location from address object
+  const formatLocationFromAddress = (address, name) => {
+    const parts = [];
+    
+    // Add the name/place first
+    if (name) parts.push(name);
+    
+    // Add city/town/village
+    if (address.city) parts.push(address.city);
+    else if (address.town) parts.push(address.town);
+    else if (address.village) parts.push(address.village);
+    
+    // Add state/region
+    if (address.state) parts.push(address.state);
+    
+    // Add country
+    if (address.country) parts.push(address.country);
+    
+    // Remove duplicates and join
+    const unique = [...new Set(parts)];
+    return unique.join(', ');
+  };
+
+  // Handle location input change
+  const handleLocationChange = (e) => {
+    const value = e.target.value;
+    setLocation(value);
+    
+    // Debounce search
+    if (value.length >= 3) {
+      clearTimeout(window.locationSearchTimeout);
+      window.locationSearchTimeout = setTimeout(() => {
+        searchLocations(value);
+      }, 300); // Wait 300ms after user stops typing
+    } else {
+      setLocationSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  // Select a location from suggestions
+  const selectLocation = (suggestion) => {
+    setLocation(suggestion.formatted);
+    setLocationSuggestions([]);
+    setShowSuggestions(false);
+  };
+
+  // Get user's real location using browser Geolocation API
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser');
+      return;
+    }
+
+    setLoadingLocation(true);
+    toast.info('Getting your location...');
+    
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        try {
+          // Use OpenStreetMap's Nominatim service for reverse geocoding
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+            {
+              headers: {
+                'User-Agent': 'PenLink Social App'
+              }
+            }
+          );
+          
+          const data = await response.json();
+          
+          if (data && data.address) {
+            const formatted = formatLocationFromAddress(data.address, data.name);
+            setLocation(formatted);
+            toast.success('📍 Location detected!');
+          } else {
+            // Fallback to coordinates
+            setLocation(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+            toast.success('Location coordinates added!');
+          }
+        } catch (error) {
+          console.error('Reverse geocoding error:', error);
+          // Fallback to coordinates if geocoding fails
+          setLocation(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+          toast.success('Location coordinates added!');
+        } finally {
+          setLoadingLocation(false);
+        }
+      },
+      (error) => {
+        setLoadingLocation(false);
+        let errorMessage = 'Failed to get location';
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Location access denied. Please enable location permissions in your browser settings.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Location information unavailable. Make sure GPS/Location services are enabled.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'Location request timed out. Please try again.';
+            break;
+          default:
+            errorMessage = 'An error occurred while getting location.';
+        }
+        
+        toast.error(errorMessage);
+        // Keep the location input open for manual entry
+        setLocation('');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000, // Increased timeout to 15 seconds
+        maximumAge: 0
+      }
+    );
+  };
 
   const handlePostImageUpload = async (event) => {
     const file = event.target.files[0];
@@ -231,16 +402,86 @@ export const EnhancedPostModal = ({ onClose, currentUser }) => {
               </div>
             )}
 
-            {/* Location Input */}
+            {/* Location Input with Autocomplete */}
             {location !== null && (
-              <div className="flex items-center space-x-2">
-                <MapPin className="w-5 h-5 text-gray-500" />
-                <Input
-                  placeholder="Add location"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="flex-1"
-                />
+              <div className="relative" ref={locationInputRef}>
+                <div className="flex items-center space-x-2">
+                  <MapPin className="w-5 h-5 text-rose-600 flex-shrink-0" />
+                  <div className="relative flex-1">
+                    <Input
+                      placeholder="Search location (e.g., Lalgola) or detect"
+                      value={location}
+                      onChange={handleLocationChange}
+                      onFocus={() => location.length >= 3 && setShowSuggestions(true)}
+                      className="pr-8"
+                      disabled={loadingLocation}
+                    />
+                    {location && !loadingLocation && (
+                      <button
+                        onClick={() => {
+                          setLocation('');
+                          setLocationSuggestions([]);
+                          setShowSuggestions(false);
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={getCurrentLocation}
+                    disabled={loadingLocation}
+                    className="whitespace-nowrap flex-shrink-0"
+                  >
+                    {loadingLocation ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Getting...
+                      </>
+                    ) : (
+                      <>
+                        <MapPin className="w-4 h-4 mr-1" />
+                        Detect
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* Location Suggestions Dropdown */}
+                {showSuggestions && locationSuggestions.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {locationSuggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => selectLocation(suggestion)}
+                        className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b last:border-b-0 flex items-start space-x-2"
+                      >
+                        <MapPin className="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm text-gray-900 truncate">
+                            {suggestion.name}
+                          </p>
+                          <p className="text-xs text-gray-500 truncate">
+                            {suggestion.display_name}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* No results message */}
+                {showSuggestions && location.length >= 3 && locationSuggestions.length === 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+                    <p className="text-sm text-gray-500 text-center">
+                      No locations found. Try a different search or detect your location.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
