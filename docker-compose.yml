@@ -28,6 +28,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+      args:
+        - REACT_APP_BACKEND_URL=http://bartaaddaa.com:8000
     container_name: pinpost-frontend
     restart: unless-stopped
     ports:
