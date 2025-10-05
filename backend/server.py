@@ -1129,6 +1129,11 @@ async def health_check():
 # Include router
 app.include_router(api_router)
 
+# Add a simple root endpoint for health checks
+@app.get("/")
+async def root():
+    return {"message": "Pinpost Backend API", "status": "running"}
+
 # Mount static files for uploaded images
 uploads_dir = Path("uploads")
 uploads_dir.mkdir(exist_ok=True)
