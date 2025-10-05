@@ -2089,109 +2089,144 @@ const AuthPage = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-100 via-amber-50 to-teal-100 relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-white/20 backdrop-blur-sm"></div>
-      <div className="absolute top-0 left-0 w-96 h-96 bg-rose-300/30 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
-      <div className="absolute top-0 right-0 w-96 h-96 bg-amber-300/30 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse delay-1000"></div>
-      <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-teal-300/30 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse delay-2000"></div>
-
-      <div className="relative min-h-screen flex">
-        {/* Left Side - Branding & Information */}
-        <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-12 xl:px-16">
-          <div className="max-w-lg">
-            <div className="flex items-center space-x-3 mb-8">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-2xl">P</span>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Header with Logo */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-xl">P</span>
               </div>
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">
                 PenLink
               </h1>
             </div>
-
-            <h2 className="text-4xl font-bold text-gray-800 mb-4">
-              Where thoughts meet community
-            </h2>
-            
-            <p className="text-xl text-gray-600 mb-6 leading-relaxed">
-              PenLink bridges the gap between professional blogging and social connection. Share your expertise through in-depth articles, engage in quick conversations, and build meaningful relationships with creators worldwide.
-            </p>
-
-            <div className="bg-white/60 rounded-2xl p-6 mb-8 border border-gray-100">
-              <h3 className="font-bold text-gray-800 text-lg mb-3">🚀 What makes PenLink special?</h3>
-              <ul className="space-y-2 text-gray-700">
-                <li className="flex items-start space-x-2">
-                  <span className="text-rose-500 font-bold">•</span>
-                  <span><strong>Hybrid Platform:</strong> Long-form blogs + quick social posts in one place</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="text-amber-500 font-bold">•</span>
-                  <span><strong>Smart Discovery:</strong> AI-powered trending algorithm finds the best content</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="text-teal-500 font-bold">•</span>
-                  <span><strong>Creator Focus:</strong> Tools designed for writers, bloggers, and thought leaders</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6">
-              <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-teal-500 flex items-center justify-center flex-shrink-0">
-                  <FileText className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-800 text-lg">Rich Blogging</h3>
-                  <p className="text-gray-600">Create beautiful blog posts with rich formatting and engage your audience</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
-                  <Users className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-800 text-lg">Social Connection</h3>
-                  <p className="text-gray-600">Follow writers, share quick thoughts, and build meaningful connections</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center flex-shrink-0">
-                  <TrendingUp className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-800 text-lg">Trending Content</h3>
-                  <p className="text-gray-600">Discover what's popular and stay updated with the latest conversations</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
+      </header>
 
-        {/* Right Side - Auth Form */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
-          <Card className="w-full max-w-md shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-            <CardHeader className="text-center pb-8">
-              <div className="lg:hidden flex items-center justify-center space-x-3 mb-6">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-xl">P</span>
+      {/* Main Content */}
+      <div className="relative min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-8 sm:py-12">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-white/20 backdrop-blur-sm"></div>
+        <div className="absolute top-0 left-0 w-96 h-96 bg-rose-300/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-amber-300/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse delay-1000"></div>
+        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-teal-300/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse delay-2000"></div>
+
+        <div className="relative w-full max-w-6xl">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Left Side - Branding & Information */}
+            <div className="hidden lg:block">
+              <div className="max-w-lg">
+                <h2 className="text-4xl font-bold text-gray-800 mb-4">
+                  Where thoughts meet community
+                </h2>
+                
+                <p className="text-xl text-gray-600 mb-6 leading-relaxed">
+                  PenLink bridges the gap between professional blogging and social connection. Share your expertise through in-depth articles, engage in quick conversations, and build meaningful relationships with creators worldwide.
+                </p>
+
+                <div className="bg-white/60 rounded-2xl p-6 mb-8 border border-gray-100 shadow-lg">
+                  <h3 className="font-bold text-gray-800 text-lg mb-3">🚀 What makes PenLink special?</h3>
+                  <ul className="space-y-2 text-gray-700">
+                    <li className="flex items-start space-x-2">
+                      <span className="text-rose-500 font-bold">•</span>
+                      <span><strong>Hybrid Platform:</strong> Long-form blogs + quick social posts in one place</span>
+                    </li>
+                    <li className="flex items-start space-x-2">
+                      <span className="text-amber-500 font-bold">•</span>
+                      <span><strong>Smart Discovery:</strong> AI-powered trending algorithm finds the best content</span>
+                    </li>
+                    <li className="flex items-start space-x-2">
+                      <span className="text-teal-500 font-bold">•</span>
+                      <span><strong>Creator Focus:</strong> Tools designed for writers, bloggers, and thought leaders</span>
+                    </li>
+                  </ul>
                 </div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">
-                  PenLink
-                </h1>
+
+                <div className="grid grid-cols-1 gap-6">
+                  <div className="flex items-start space-x-4">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-teal-500 flex items-center justify-center flex-shrink-0">
+                      <FileText className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800 text-lg">Rich Blogging</h3>
+                      <p className="text-gray-600">Create beautiful blog posts with rich formatting and engage your audience</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-4">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                      <Users className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800 text-lg">Social Connection</h3>
+                      <p className="text-gray-600">Follow writers, share quick thoughts, and build meaningful connections</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-4">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center flex-shrink-0">
+                      <TrendingUp className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800 text-lg">Trending Content</h3>
+                      <p className="text-gray-600">Discover what's popular and stay updated with the latest conversations</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              
-              <CardTitle className="text-3xl font-bold text-gray-800 mb-2">
-                {isLogin ? 'Welcome back!' : 'Join PenLink'}
-              </CardTitle>
-              <CardDescription className="text-lg text-gray-600">
-                {isLogin 
-                  ? 'Sign in to continue your journey' 
-                  : 'Create your account and start sharing your thoughts'
-                }
-              </CardDescription>
-            </CardHeader>
+            </div>
+
+            {/* Right Side - Auth Form */}
+            <div className="w-full flex flex-col items-center justify-center">
+              {/* Mobile Hero Section */}
+              <div className="lg:hidden w-full max-w-md mb-8">
+                <div className="text-center mb-6">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-3">
+                    Where thoughts meet community
+                  </h2>
+                  <p className="text-base text-gray-600 leading-relaxed">
+                    Share your expertise through blogs, engage in conversations, and connect with creators worldwide.
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                  <div className="bg-white/60 rounded-xl p-4 border border-gray-100 shadow-md">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-teal-500 flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-5 h-5 text-white" />
+                      </div>
+                      <h3 className="font-semibold text-gray-800">Rich Blogging</h3>
+                    </div>
+                    <p className="text-sm text-gray-600">Create beautiful posts with rich formatting</p>
+                  </div>
+
+                  <div className="bg-white/60 rounded-xl p-4 border border-gray-100 shadow-md">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                        <Users className="w-5 h-5 text-white" />
+                      </div>
+                      <h3 className="font-semibold text-gray-800">Social Connect</h3>
+                    </div>
+                    <p className="text-sm text-gray-600">Follow writers and build connections</p>
+                  </div>
+                </div>
+              </div>
+
+              <Card className="w-full max-w-md shadow-2xl border-0 bg-white backdrop-blur-sm">
+                <CardHeader className="text-center pb-6">
+                  <CardTitle className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
+                    {isLogin ? 'Welcome back!' : 'Join PenLink'}
+                  </CardTitle>
+                  <CardDescription className="text-base sm:text-lg text-gray-600">
+                    {isLogin 
+                      ? 'Sign in to continue your journey' 
+                      : 'Create your account and start sharing your thoughts'
+                    }
+                  </CardDescription>
+                </CardHeader>
 
             <CardContent className="space-y-6">
               <form onSubmit={handleSubmit} className="space-y-5">
@@ -2276,6 +2311,31 @@ const AuthPage = ({ onLogin }) => {
               )}
             </CardContent>
           </Card>
+
+          {/* Mobile Features Section */}
+          <div className="lg:hidden w-full max-w-md mt-8">
+            <div className="bg-white/60 rounded-2xl p-6 border border-gray-100 shadow-lg">
+              <h3 className="font-bold text-gray-800 text-lg mb-4 text-center">
+                🚀 Why creators love PenLink
+              </h3>
+              <ul className="space-y-3 text-gray-700">
+                <li className="flex items-start space-x-3">
+                  <span className="text-rose-500 font-bold text-xl flex-shrink-0">•</span>
+                  <span className="text-sm"><strong>Hybrid Platform:</strong> Long-form blogs + quick social posts</span>
+                </li>
+                <li className="flex items-start space-x-3">
+                  <span className="text-amber-500 font-bold text-xl flex-shrink-0">•</span>
+                  <span className="text-sm"><strong>Smart Discovery:</strong> AI-powered trending algorithm</span>
+                </li>
+                <li className="flex items-start space-x-3">
+                  <span className="text-teal-500 font-bold text-xl flex-shrink-0">•</span>
+                  <span className="text-sm"><strong>Creator Focus:</strong> Tools for writers & thought leaders</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
