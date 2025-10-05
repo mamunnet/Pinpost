@@ -1062,6 +1062,15 @@ async def websocket_notifications(websocket: WebSocket, user_id: str):
         manager.disconnect(user_id)
 
 # Health check endpoint
+@api_router.get("/test")
+async def test_endpoint():
+    """Simple test endpoint to verify API is working"""
+    return {
+        "status": "API is working",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "message": "Backend is responding correctly"
+    }
+
 @api_router.get("/debug/env")
 async def debug_environment():
     """Debug endpoint to check environment variables and MongoDB connection"""
