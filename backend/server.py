@@ -194,6 +194,9 @@ class BlogPost(BaseModel):
 class ShortPostCreate(BaseModel):
     content: str
 
+class ShortPostUpdate(BaseModel):
+    content: Optional[str] = None
+
 class ShortPost(BaseModel):
     id: str
     author_id: str
@@ -710,6 +713,29 @@ async def delete_post(post_id: str, user_id: str = Depends(get_current_user)):
     await db.likes.delete_many({"post_id": post_id, "post_type": "post"})
     await db.comments.delete_many({"post_id": post_id, "post_type": "post"})
     return {"message": "Post deleted successfully"}
+
+@api_router.put("/posts/{post_id}", response_model=ShortPost)
+async def update_post(post_id: str, post_data: ShortPostUpdate, user_id: str = Depends(get_current_user)):
+    post = await db.short_posts.find_one({"id": post_id})
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    if post["author_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    update_data = {k: v for k, v in post_data.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.short_posts.update_one({"id": post_id}, {"$set": update_data})
+    updated_post = await db.short_posts.find_one({"id": post_id})
+    
+    # Get author info for response
+    author = await db.users.find_one({"id": updated_post["author_id"]})
+    result = ShortPost(**updated_post).dict()
+    if author:
+        result["author_name"] = author.get("name", "")
+        result["author_avatar"] = author.get("avatar", "")
+    
+    return result
 
 @api_router.get("/users/{username}/posts", response_model=List[ShortPost])
 async def get_user_posts(username: str, current_user_id: Optional[str] = Depends(get_optional_user)):

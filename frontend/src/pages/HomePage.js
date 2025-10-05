@@ -1,0 +1,281 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { MessageCircle, FileText, Heart } from "lucide-react";
+import { toast } from "sonner";
+import { EnhancedPostModal } from "@/components/EnhancedPostModal";
+import { Stories } from "@/components/Stories";
+import { PostCard } from "@/components/PostCard";
+import { BlogCard } from "@/components/BlogCard";
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
+
+// AdCard component - temporary placeholder for ads
+const AdCard = ({ adIndex }) => (
+  <div className="text-center p-4">
+    <div className="text-slate-400 text-sm">Advertisement Space {adIndex + 1}</div>
+    <div className="w-full h-32 bg-slate-100 rounded-lg mt-2 flex items-center justify-center">
+      <span className="text-slate-400">Ad Content</span>
+    </div>
+  </div>
+);
+
+// TrendingSidebar component - temporary placeholder
+const TrendingSidebar = ({ user }) => (
+  <div className="bg-white rounded-lg p-4 border border-slate-200">
+    <h3 className="font-semibold text-slate-800 mb-3">Trending</h3>
+    <div className="text-slate-500 text-sm">Trending content will appear here</div>
+  </div>
+);
+
+export const HomePage = ({ user }) => {
+  const [feed, setFeed] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [initialTab, setInitialTab] = useState('post');
+
+  useEffect(() => {
+    fetchFeed(true);
+  }, []);
+
+  // Infinite scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight || loadingMore || !hasMore) {
+        return;
+      }
+      
+      // Load more when user is near bottom (within 100px)
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+        fetchFeed(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [loadingMore, hasMore, page]);
+
+  const fetchFeed = async (reset = false) => {
+    try {
+      if (reset) {
+        setLoading(true);
+        setPage(0);
+      } else {
+        setLoadingMore(true);
+      }
+
+      const currentPage = reset ? 0 : page;
+      const skip = currentPage * 10;
+      
+      const response = await axios.get(`${API}/feed?skip=${skip}&limit=10`);
+      const newFeed = response.data;
+      
+      if (reset) {
+        setFeed(newFeed);
+      } else {
+        setFeed(prevFeed => [...prevFeed, ...newFeed]);
+      }
+      
+      setHasMore(newFeed.length === 10);
+      setPage(currentPage + 1);
+    } catch (error) {
+      toast.error('Failed to load feed');
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  const handleLike = async (item) => {
+    try {
+      if (item.liked_by_user) {
+        await axios.delete(`${API}/likes/${item.type}/${item.id}`);
+      } else {
+        await axios.post(`${API}/likes/${item.type}/${item.id}`);
+      }
+      
+      // Update the item in feed without refetching entire feed
+      setFeed(prevFeed => 
+        prevFeed.map(feedItem => 
+          feedItem.id === item.id && feedItem.type === item.type
+            ? {
+                ...feedItem, 
+                liked_by_user: !feedItem.liked_by_user,
+                likes_count: feedItem.liked_by_user 
+                  ? (feedItem.likes_count || 1) - 1 
+                  : (feedItem.likes_count || 0) + 1
+              }
+            : feedItem
+        )
+      );
+    } catch (error) {
+      toast.error('Failed to update like');
+    }
+  };
+
+  const handleComment = () => {
+    // Refresh feed to get updated comment counts
+    fetchFeed(true);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-600 mx-auto"></div>
+          <p className="mt-4 text-slate-600">Loading your feed...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-24 pb-12">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Feed */}
+          <div className="lg:col-span-2 space-y-3">
+            {/* Stories Section */}
+            <Card className="overflow-hidden shadow-sm hover:shadow-md transition-shadow border-slate-200 bg-white">
+              <CardContent className="p-6">
+                <Stories user={user} />
+              </CardContent>
+            </Card>
+
+            {/* Separator */}
+            <div className="border-b border-slate-300"></div>
+
+            {/* Create Post Box - Facebook Style */}
+            <div className="bg-white shadow-sm hover:shadow-md transition-shadow rounded-lg p-4 border border-slate-200">
+              <div className="flex items-center space-x-3">
+                <Avatar className="w-10 h-10 ring-2 ring-slate-200">
+                  <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white">
+                    {user.username[0].toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <button
+                  onClick={() => {
+                    setInitialTab('post');
+                    setShowCreateModal(true);
+                  }}
+                  className="flex-1 text-left px-4 py-3 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-600 transition-all duration-200 hover:shadow-sm border border-slate-200"
+                  data-testid="whats-on-mind-btn"
+                >
+                  What's on your mind, {user.username}?
+                </button>
+              </div>
+              <div className="flex items-center justify-around mt-4 pt-4 border-t border-slate-200">
+                <button
+                  onClick={() => {
+                    setInitialTab('blog');
+                    setShowCreateModal(true);
+                  }}
+                  className="flex items-center space-x-2 px-4 py-2 hover:bg-slate-100 rounded-lg transition-all group flex-1 justify-center border border-transparent hover:border-slate-200"
+                >
+                  <FileText className="w-5 h-5 text-slate-600 group-hover:scale-110 transition-transform" />
+                  <span className="font-medium text-slate-700 group-hover:text-slate-800 hidden sm:inline transition-colors">Blog Article</span>
+                </button>
+                <div className="w-px h-8 bg-slate-300"></div>
+                <button
+                  onClick={() => {
+                    setInitialTab('post');
+                    setShowCreateModal(true);
+                  }}
+                  className="flex items-center space-x-2 px-4 py-2 hover:bg-slate-100 rounded-lg transition-all group flex-1 justify-center border border-transparent hover:border-slate-200"
+                >
+                  <MessageCircle className="w-5 h-5 text-slate-600 group-hover:scale-110 transition-transform" />
+                  <span className="font-medium text-slate-700 group-hover:text-slate-800 hidden sm:inline transition-colors">Quick Post</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Create Modal */}
+            <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <EnhancedPostModal onClose={() => setShowCreateModal(false)} currentUser={user} initialTab={initialTab} />
+              </DialogContent>
+            </Dialog>
+
+            {/* Separator */}
+            <div className="border-b border-slate-300"></div>
+
+            {/* Feed Content */}
+            {feed.length === 0 && !loading ? (
+              <div className="bg-white shadow-sm rounded-lg text-center py-12 px-4 border border-slate-200">
+                <MessageCircle className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-slate-700 mb-2">Your feed is empty</h3>
+                <p className="text-slate-600 mb-4">Follow some people or create your first post to get started!</p>
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105"
+                >
+                  Create Your First Post
+                </button>
+              </div>
+            ) : (
+              <>
+                {feed.map((item, index) => (
+                  <div key={`${item.type}-${item.id}-${index}`} className="space-y-3">
+                    {item.type === 'blog' ? (
+                      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/50 hover:border-slate-300/50 transition-all duration-300 hover:shadow-lg overflow-hidden">
+                        <BlogCard blog={item} user={user} onLike={() => handleLike(item)} />
+                      </div>
+                    ) : (
+                      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/50 hover:border-slate-300/50 transition-all duration-300 hover:shadow-lg overflow-hidden">
+                        <PostCard post={item} user={user} onLike={() => handleLike(item)} onComment={handleComment} />
+                      </div>
+                    )}
+                    
+                    {/* Enhanced Ad Placement */}
+                    {(index + 1) % 5 === 0 && index < feed.length - 1 && (
+                      <div className="my-6">
+                        <div className="bg-gradient-to-r from-slate-100 to-slate-50 rounded-2xl border-2 border-dashed border-slate-300 p-6">
+                          <AdCard key={`ad-${Math.floor(index / 5)}`} adIndex={Math.floor(index / 5)} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                
+                {/* Infinite Scroll Loading Indicator */}
+                {loadingMore && (
+                  <div className="text-center py-8">
+                    <div className="inline-flex items-center px-6 py-3 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-full shadow-lg">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-600 mr-3"></div>
+                      <span className="text-slate-600 font-medium">Loading more posts...</span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* End of Feed Indicator */}
+                {!hasMore && feed.length > 0 && (
+                  <div className="text-center py-12">
+                    <div className="inline-flex items-center px-6 py-3 bg-slate-100 rounded-full">
+                      <Heart className="w-5 h-5 text-slate-500 mr-2" />
+                      <span className="text-slate-600 font-medium">You're all caught up!</span>
+                    </div>
+                    <p className="text-slate-500 text-sm mt-2">You've seen all the latest posts from your network</p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="hidden lg:block space-y-3">
+            <TrendingSidebar user={user} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default HomePage;
