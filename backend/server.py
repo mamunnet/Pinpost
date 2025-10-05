@@ -16,6 +16,7 @@ import jwt
 import bcrypt
 import json
 import asyncio
+from pymongo.errors import DuplicateKeyError, PyMongoError
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -40,6 +41,17 @@ security = HTTPBearer()
 # Create the main app
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
+
+@app.on_event("startup")
+async def init_db():
+    try:
+        # Verify DB connection and ensure unique indexes
+        await db.command('ping')
+        await db.users.create_index("email", unique=True)
+        await db.users.create_index("username", unique=True)
+        logging.info("Database connected; ensured users indexes.")
+    except Exception as e:
+        logging.error(f"Startup DB initialization failed: {e}")
 
 # WebSocket connection manager for real-time notifications
 class ConnectionManager:
@@ -236,7 +248,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         return user_id
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.JWTError:
+    except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
 async def get_optional_user(credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False))):
@@ -282,7 +294,7 @@ async def create_notification(user_id: str, notif_type: str, actor_id: str, acto
 @api_router.post("/auth/register")
 async def register(user_data: UserCreate):
     try:
-        # Check if user exists
+        # Check if user exists (pre-check to return friendly error)
         existing_user = await db.users.find_one({"$or": [{"email": user_data.email}, {"username": user_data.username}]})
         if existing_user:
             raise HTTPException(status_code=400, detail="User already exists")
@@ -307,7 +319,15 @@ async def register(user_data: UserCreate):
         await db.users.insert_one(user)
         
         token = create_access_token({"sub": user_id})
+        # Remove sensitive fields before returning
+        user.pop("password_hash", None)
         return {"token": token, "user": User(**user)}
+    except DuplicateKeyError:
+        # Handle race condition with unique index
+        raise HTTPException(status_code=400, detail="User already exists")
+    except PyMongoError as e:
+        logging.error(f"MongoDB error during registration: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
     except HTTPException:
         raise
     except Exception as e:
@@ -321,6 +341,8 @@ async def login(credentials: UserLogin):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     token = create_access_token({"sub": user["id"]})
+    # Remove sensitive fields before returning
+    user.pop("password_hash", None)
     return {"token": token, "user": User(**user)}
 
 @api_router.get("/auth/me", response_model=User)
@@ -328,6 +350,8 @@ async def get_me(user_id: str = Depends(get_current_user)):
     user = await db.users.find_one({"id": user_id})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    # Remove sensitive fields before returning
+    user.pop("password_hash", None)
     return User(**user)
 
 @api_router.post("/auth/setup-profile", response_model=User)
@@ -1050,10 +1074,12 @@ uploads_dir = Path("uploads")
 uploads_dir.mkdir(exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
+# Configure CORS using CORS_ORIGINS or FRONTEND_URL
+origins_env = os.environ.get('CORS_ORIGINS') or os.environ.get('FRONTEND_URL', '*')
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=origins_env.split(',') if origins_env else ['*'],
     allow_methods=["*"],
     allow_headers=["*"],
 )
