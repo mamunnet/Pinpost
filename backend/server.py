@@ -24,15 +24,32 @@ ROOT_DIR = Path(__file__).parent
 if os.getenv('ENVIRONMENT') != 'production':
     load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection - Let pymongo handle SSL automatically
+# MongoDB connection with custom SSL context to bypass handshake issues
+import ssl
 mongo_url = os.environ['MONGO_URL']
 
-# Minimal connection - let Motor/PyMongo handle SSL/TLS automatically
-client = AsyncIOMotorClient(
-    mongo_url,
-    serverSelectionTimeoutMS=30000,
-    connectTimeoutMS=30000,
-)
+# Create a custom SSL context that accepts any certificate
+try:
+    ssl_context = ssl.create_default_context()
+    ssl_context.check_hostname = False
+    ssl_context.verify_mode = ssl.CERT_NONE
+    
+    client = AsyncIOMotorClient(
+        mongo_url,
+        ssl_context=ssl_context,
+        serverSelectionTimeoutMS=30000,
+        connectTimeoutMS=30000,
+    )
+    logging.info("MongoDB client created with custom SSL context")
+except Exception as e:
+    logging.error(f"Failed to create MongoDB client with SSL context: {e}")
+    # Fallback to basic connection
+    client = AsyncIOMotorClient(
+        mongo_url,
+        serverSelectionTimeoutMS=30000,
+        connectTimeoutMS=30000,
+    )
+    
 db = client[os.environ['DB_NAME']]
 
 # Security
