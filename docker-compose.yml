@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # Backend API
   backend:
     build:
       context: .
@@ -10,10 +9,16 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
-    env_file:
-      - .env
+    environment:
+      - MONGO_URL=mongodb+srv://pinpostmaria:iubbDYjmSiA5uwyQ@pinpost.4ccvhj6.mongodb.net/?retryWrites=true&w=majority
+      - DB_NAME=penlink_database
+      - SECRET_KEY=4f8a2e9c7b6d5a3f1e9c8b7a6d5f4e3c2b1a9f8e7d6c5b4a3f2e1d9c8b7a6f5e
+      - FRONTEND_URL=http://bartaaddaa.com
+      - MAX_FILE_SIZE=10485760
+      - UPLOAD_DIR=/app/uploads
+      - ENVIRONMENT=production
     volumes:
-      - ./backend/uploads:/app/uploads
+      - uploads:/app/uploads
     networks:
       - pinpost-network
     healthcheck:
@@ -23,7 +28,6 @@ services:
       retries: 3
       start_period: 40s
 
-  # Frontend
   frontend:
     build:
       context: .
