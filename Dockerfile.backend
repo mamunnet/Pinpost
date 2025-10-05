@@ -1,6 +1,6 @@
 # Backend Dockerfile for Production
-# Using Python 3.9 for better MongoDB SSL/TLS compatibility
-FROM python:3.9-slim
+# Using Python 3.11 for full package compatibility
+FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
