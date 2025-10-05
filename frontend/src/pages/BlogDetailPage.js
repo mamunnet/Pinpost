@@ -21,7 +21,7 @@ const BlogDetailPage = ({ user }) => {
 
   useEffect(() => {
     console.log('BlogDetailPage mounted with blogId:', blogId);
-    console.log('useParams result:', useParams());
+    console.log('URL params:', { blogId });
     fetchBlog();
     fetchComments();
   }, [blogId]);
@@ -98,7 +98,7 @@ const BlogDetailPage = ({ user }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-20">
+      <div className="min-h-screen flex items-center justify-center pt-32">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-600 mx-auto mb-4"></div>
           <p className="text-slate-600 font-medium">Loading article...</p>
@@ -109,7 +109,7 @@ const BlogDetailPage = ({ user }) => {
 
   if (!blog) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-20">
+      <div className="min-h-screen flex items-center justify-center pt-32">
         <div className="text-center">
           <div className="w-16 h-16 bg-gradient-to-br from-slate-600 to-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <FileText className="w-8 h-8 text-white" />
@@ -124,13 +124,13 @@ const BlogDetailPage = ({ user }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-20 pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-32 pb-12">
       <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Enhanced Back Button */}
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
-          className="mb-8 hover:bg-slate-100 text-slate-600 hover:text-slate-800 transition-all duration-300 group"
+          className="mb-8 mt-2 hover:bg-slate-100 text-slate-600 hover:text-slate-800 transition-all duration-300 group"
         >
           <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
           Back to Articles
@@ -144,13 +144,13 @@ const BlogDetailPage = ({ user }) => {
               <Link to={`/profile/${blog.author_username}`}>
                 <Avatar className="w-14 h-14 ring-4 ring-slate-200 hover:ring-slate-300 transition-all">
                   <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white text-lg font-bold">
-                    {blog.author_username[0].toUpperCase()}
+                    {(blog.author_name || blog.author_username)[0].toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
               </Link>
               <div>
                 <Link to={`/profile/${blog.author_username}`} className="font-bold text-lg text-slate-800 hover:text-slate-600 hover:underline transition-colors">
-                  {blog.author_username}
+                  {blog.author_name || blog.author_username}
                 </Link>
                 <p className="text-sm text-slate-500 flex items-center">
                   <Calendar className="w-4 h-4 mr-1" />

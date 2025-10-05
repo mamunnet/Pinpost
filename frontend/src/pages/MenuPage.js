@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, User, UserPlus, Settings, HelpCircle, Shield, Mail, LogOut, Search, Star, Zap, Moon } from "lucide-react";
+import { getUserAvatarUrl } from "@/utils/imageUtils";
 
 export const MenuPage = ({ user, logout }) => {
   const navigate = useNavigate();
@@ -46,8 +47,8 @@ export const MenuPage = ({ user, logout }) => {
           <div className="relative flex items-center space-x-4">
             <div className="relative">
               <Avatar className="w-20 h-20 ring-4 ring-white/80 shadow-xl">
-                {user.avatar ? (
-                  <img src={user.avatar} alt={user.name || user.username} className="w-full h-full object-cover rounded-full" />
+                {getUserAvatarUrl(user) ? (
+                  <img src={getUserAvatarUrl(user)} alt={user.name || user.username} className="w-full h-full object-cover rounded-full" />
                 ) : (
                   <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white text-2xl font-bold">
                     {(user.name || user.username)[0].toUpperCase()}

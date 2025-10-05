@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Heart, MessageCircle, Share2, Trash2, Edit, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { EditPostModal } from "@/components/EditPostModal";
+import { getPostAuthorAvatarUrl, getImageUrl } from "@/utils/imageUtils";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -119,11 +120,11 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
         <div className="flex items-start space-x-3 px-4">
           <Link to={`/profile/${post.author_username}`} className="group flex-shrink-0">
             <Avatar className="w-10 h-10 sm:w-12 sm:h-12 ring-2 ring-slate-200 group-hover:ring-slate-300 transition-all">
-              {post.author_avatar ? (
-                <img src={post.author_avatar} alt={post.author_name || post.author_username} className="w-full h-full object-cover rounded-full" />
+              {getPostAuthorAvatarUrl(currentPost) ? (
+                <img src={getPostAuthorAvatarUrl(currentPost)} alt={currentPost.author_name || currentPost.author_username} className="w-full h-full object-cover rounded-full" />
               ) : (
                 <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white text-sm sm:text-base">
-                  {(post.author_name || post.author_username)[0].toUpperCase()}
+                  {(currentPost.author_name || currentPost.author_username)[0].toUpperCase()}
                 </AvatarFallback>
               )}
             </Avatar>
@@ -168,7 +169,7 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
           {/* Image */}
           {postImage && (
             <div className="mt-3 -mx-4 sm:mx-0 sm:rounded-lg overflow-hidden">
-              <img src={postImage} alt="Post" className="w-full max-h-96 object-cover" />
+              <img src={getImageUrl(postImage)} alt="Post" className="w-full max-h-96 object-cover" />
             </div>
           )}
         </div>

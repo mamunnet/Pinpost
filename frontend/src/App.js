@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Heart, MessageCircle, Share2, Bookmark, Edit, Trash2, Plus, Home, FileText, User, LogOut, Search, Users, TrendingUp, Camera, MapPin, Calendar, Flame, Sparkles, Clock, ArrowLeft, ChevronRight } from "lucide-react";
+import { getUserAvatarUrl, getImageUrl } from "@/utils/imageUtils";
 import { EnhancedPostModal } from "@/components/EnhancedPostModal";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -149,8 +150,8 @@ const WhoToFollow = ({ user }) => {
             onClick={() => navigate(`/profile/${suggestedUser.username}`)}
           >
             <Avatar className="w-10 h-10">
-              {suggestedUser.avatar ? (
-                <img src={suggestedUser.avatar} alt={suggestedUser.username} className="w-full h-full object-cover" />
+              {getUserAvatarUrl(suggestedUser) ? (
+                <img src={getUserAvatarUrl(suggestedUser)} alt={suggestedUser.username} className="w-full h-full object-cover" />
               ) : (
                 <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm">
                   {suggestedUser.username[0].toUpperCase()}
@@ -325,8 +326,8 @@ const TrendingSidebar = ({ user }) => {
                           
                           {/* Enhanced Profile Photo */}
                           <Avatar className="w-7 h-7 ring-2 ring-slate-200 group-hover:ring-slate-300 transition-all flex-shrink-0">
-                            {post.author_avatar ? (
-                              <img src={post.author_avatar} alt={post.author_name || post.author_username} className="w-full h-full object-cover" />
+                            {getImageUrl(post.author_avatar) ? (
+                              <img src={getImageUrl(post.author_avatar)} alt={post.author_name || post.author_username} className="w-full h-full object-cover" />
                             ) : (
                               <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white text-xs font-semibold">
                                 {(post.author_name || post.author_username)[0].toUpperCase()}
@@ -456,8 +457,8 @@ const TrendingSidebar = ({ user }) => {
                       <div key={trendingUser.id} className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition-all group border border-transparent hover:border-slate-200">
                         <Link to={`/profile/${trendingUser.username}`} className="flex items-center space-x-3 flex-1 min-w-0">
                           <Avatar className="w-10 h-10 ring-2 ring-slate-100 group-hover:ring-slate-200 transition-all">
-                            {trendingUser.avatar ? (
-                              <img src={trendingUser.avatar} alt={trendingUser.username} className="w-full h-full object-cover" />
+                            {getUserAvatarUrl(trendingUser) ? (
+                              <img src={getUserAvatarUrl(trendingUser)} alt={trendingUser.username} className="w-full h-full object-cover" />
                             ) : (
                               <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white font-semibold">
                                 {trendingUser.username[0].toUpperCase()}

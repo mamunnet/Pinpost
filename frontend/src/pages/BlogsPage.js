@@ -52,7 +52,7 @@ export const BlogsPage = ({ user }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-20">
+      <div className="min-h-screen flex items-center justify-center pt-24">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-600 mx-auto mb-4"></div>
           <p className="text-slate-600 font-medium">Loading articles...</p>
@@ -62,7 +62,7 @@ export const BlogsPage = ({ user }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-20 pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-24 pb-12">
       <div className="max-w-7xl mx-auto px-4">
         {/* Futuristic Header */}
         <div className="relative mb-8 overflow-hidden">

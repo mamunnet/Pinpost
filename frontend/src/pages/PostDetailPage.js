@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Heart, MessageCircle, Share2, Bookmark, ArrowLeft, Trash2, Edit, MoreHorizontal, Send } from "lucide-react";
 import { toast } from "sonner";
+import { getUserAvatarUrl, getImageUrl } from "@/utils/imageUtils";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
@@ -108,7 +109,7 @@ export const PostDetailPage = ({ user, logout }) => {
     return (
       <>
         <Header user={user} logout={logout} />
-        <div className="min-h-screen flex items-center justify-center pt-24">
+        <div className="min-h-screen flex items-center justify-center pt-32">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading post...</p>
@@ -122,7 +123,7 @@ export const PostDetailPage = ({ user, logout }) => {
     return (
       <>
         <Header user={user} logout={logout} />
-        <div className="min-h-screen flex items-center justify-center pt-24">
+        <div className="min-h-screen flex items-center justify-center pt-32">
           <div className="text-center">
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Post Not Found</h2>
             <p className="text-gray-600 mb-4">The post you're looking for doesn't exist.</p>
@@ -159,15 +160,15 @@ export const PostDetailPage = ({ user, logout }) => {
   return (
     <>
       <Header user={user} logout={logout} />
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 pt-24 pb-12">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 pt-32 pb-12">
         <div className="max-w-4xl mx-auto px-4">
           {/* Back Button */}
           <Button
             variant="ghost"
             onClick={() => navigate(-1)}
-            className="mb-4 hover:bg-gray-100"
+            className="mb-6 mt-2 hover:bg-gray-100 text-slate-600 hover:text-slate-800 transition-all duration-300 group"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
             Back
           </Button>
 
@@ -310,8 +311,8 @@ export const PostDetailPage = ({ user, logout }) => {
                   <div className="px-6 py-3 bg-white border-b">
                     <div className="flex items-center space-x-2">
                       <Avatar className="w-8 h-8 flex-shrink-0">
-                        {user.avatar ? (
-                          <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
+                        {getUserAvatarUrl(user) ? (
+                          <img src={getUserAvatarUrl(user)} alt={user.username} className="w-full h-full object-cover" />
                         ) : (
                           <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white text-xs">
                             {user.username[0].toUpperCase()}

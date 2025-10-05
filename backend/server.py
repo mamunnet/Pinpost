@@ -629,7 +629,14 @@ async def get_user_blogs(username: str, current_user_id: Optional[str] = Depends
     blogs = await db.blog_posts.find({"author_id": user["id"]}).sort("created_at", -1).to_list(100)
     result = []
     for blog in blogs:
+        # Get author info (consistent with other endpoints)
+        author = await db.users.find_one({"id": blog["author_id"]})
+        
         blog_data = BlogPost(**blog).dict()
+        if author:
+            blog_data["author_name"] = author.get("name", "")
+            blog_data["author_avatar"] = author.get("avatar", "")
+        
         if current_user_id:
             liked = await db.likes.find_one({"user_id": current_user_id, "post_id": blog["id"], "post_type": "blog"})
             blog_data["liked_by_user"] = bool(liked)
@@ -746,7 +753,14 @@ async def get_user_posts(username: str, current_user_id: Optional[str] = Depends
     posts = await db.short_posts.find({"author_id": user["id"]}).sort("created_at", -1).to_list(100)
     result = []
     for post in posts:
+        # Get author info (consistent with other endpoints)
+        author = await db.users.find_one({"id": post["author_id"]})
+        
         post_data = ShortPost(**post).dict()
+        if author:
+            post_data["author_name"] = author.get("name", "")
+            post_data["author_avatar"] = author.get("avatar", "")
+        
         if current_user_id:
             liked = await db.likes.find_one({"user_id": current_user_id, "post_id": post["id"], "post_type": "post"})
             post_data["liked_by_user"] = bool(liked)

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heart, MessageCircle, Edit } from "lucide-react";
 import { EditBlogModal } from "@/components/EditBlogModal";
+import { getPostAuthorAvatarUrl, getImageUrl } from "@/utils/imageUtils";
 
 export const BlogCard = ({ blog, user, onLike, compact = false, onBlogUpdate }) => {
   const navigate = useNavigate();
@@ -36,8 +37,8 @@ export const BlogCard = ({ blog, user, onLike, compact = false, onBlogUpdate }) 
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-2">
                 <Avatar className="w-10 h-10">
-                  {currentBlog.author_avatar ? (
-                    <img src={currentBlog.author_avatar} alt={currentBlog.author_name || currentBlog.author_username} className="w-full h-full object-cover rounded-full" />
+                  {getPostAuthorAvatarUrl(currentBlog) ? (
+                    <img src={getPostAuthorAvatarUrl(currentBlog)} alt={currentBlog.author_name || currentBlog.author_username} className="w-full h-full object-cover rounded-full" />
                   ) : (
                     <AvatarFallback className="bg-gradient-to-br from-amber-500 to-rose-500 text-white text-sm">
                       {(currentBlog.author_name || currentBlog.author_username)[0].toUpperCase()}
@@ -101,7 +102,7 @@ export const BlogCard = ({ blog, user, onLike, compact = false, onBlogUpdate }) 
       <Card className="hover:shadow-xl transition-all cursor-pointer" onClick={() => navigate(`/blog/${currentBlog.id}`)} data-testid="blog-card-full">
         {currentBlog.cover_image && (
           <div className="w-full h-48 overflow-hidden">
-            <img src={currentBlog.cover_image} alt={currentBlog.title} className="w-full h-full object-cover" />
+            <img src={getImageUrl(currentBlog.cover_image)} alt={currentBlog.title} className="w-full h-full object-cover" />
           </div>
         )}
         <CardHeader>
@@ -109,8 +110,8 @@ export const BlogCard = ({ blog, user, onLike, compact = false, onBlogUpdate }) 
             <div className="flex items-center space-x-2">
               <Link to={`/profile/${currentBlog.author_username}`} onClick={(e) => e.stopPropagation()}>
                 <Avatar className="w-12 h-12">
-                  {currentBlog.author_avatar ? (
-                    <img src={currentBlog.author_avatar} alt={currentBlog.author_name || currentBlog.author_username} className="w-full h-full object-cover rounded-full" />
+                  {getPostAuthorAvatarUrl(currentBlog) ? (
+                    <img src={getPostAuthorAvatarUrl(currentBlog)} alt={currentBlog.author_name || currentBlog.author_username} className="w-full h-full object-cover rounded-full" />
                   ) : (
                     <AvatarFallback className="bg-gradient-to-br from-amber-500 to-rose-500 text-white">
                       {(currentBlog.author_name || currentBlog.author_username)[0].toUpperCase()}
