@@ -297,11 +297,16 @@ async def create_notification(user_id: str, notif_type: str, actor_id: str, acto
 @api_router.post("/auth/register")
 async def register(user_data: UserCreate):
     try:
+        logging.info(f"Registration attempt for user: {user_data.username}, email: {user_data.email}")
+        
         # Check if user exists (pre-check to return friendly error)
+        logging.info("Checking if user already exists...")
         existing_user = await db.users.find_one({"$or": [{"email": user_data.email}, {"username": user_data.username}]})
         if existing_user:
+            logging.info(f"User already exists: {existing_user.get('username', 'unknown')}")
             raise HTTPException(status_code=400, detail="User already exists")
         
+        logging.info("Creating new user...")
         user_id = str(uuid.uuid4())
         user = {
             "id": user_id,
@@ -319,14 +324,20 @@ async def register(user_data: UserCreate):
             "following_count": 0,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
+        
+        logging.info("Inserting user into database...")
         await db.users.insert_one(user)
         
+        logging.info("Creating access token...")
         token = create_access_token({"sub": user_id})
+        
         # Remove sensitive fields before returning
         user.pop("password_hash", None)
+        logging.info(f"Registration successful for user: {user_data.username}")
         return {"token": token, "user": User(**user)}
     except DuplicateKeyError:
         # Handle race condition with unique index
+        logging.warning(f"Duplicate key error for user: {user_data.username}")
         raise HTTPException(status_code=400, detail="User already exists")
     except PyMongoError as e:
         logging.error(f"MongoDB error during registration: {str(e)}", exc_info=True)
