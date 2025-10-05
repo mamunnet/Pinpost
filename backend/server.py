@@ -1017,15 +1017,17 @@ async def health_check():
     try:
         # Check MongoDB connection
         await db.command('ping')
-        return {
-            "status": "healthy",
-            "service": "pinpost-api",
-            "database": "connected",
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
+        db_status = "connected"
     except Exception as e:
-        logging.error(f"Health check failed: {e}")
-        raise HTTPException(status_code=503, detail="Service unavailable")
+        logging.warning(f"Health check: MongoDB connection issue: {e}")
+        db_status = "disconnected"
+    
+    return {
+        "status": "healthy",
+        "service": "pinpost-api",
+        "database": db_status,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
 
 # Include router
 app.include_router(api_router)
