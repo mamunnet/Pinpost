@@ -1051,6 +1051,43 @@ async def websocket_notifications(websocket: WebSocket, user_id: str):
         manager.disconnect(user_id)
 
 # Health check endpoint
+@api_router.get("/debug/env")
+async def debug_environment():
+    """Debug endpoint to check environment variables and MongoDB connection"""
+    try:
+        # Check environment variables
+        env_check = {
+            "MONGO_URL": os.environ.get('MONGO_URL', 'NOT SET')[:50] + "..." if os.environ.get('MONGO_URL') else 'NOT SET',
+            "DB_NAME": os.environ.get('DB_NAME', 'NOT SET'),
+            "SECRET_KEY": 'SET' if os.environ.get('SECRET_KEY') else 'NOT SET',
+            "FRONTEND_URL": os.environ.get('FRONTEND_URL', 'NOT SET'),
+            "ENVIRONMENT": os.environ.get('ENVIRONMENT', 'NOT SET')
+        }
+        
+        # Test MongoDB connection
+        try:
+            await db.command('ping')
+            db_status = "Connected successfully"
+            
+            # Test user collection access
+            user_count = await db.users.count_documents({})
+            db_details = f"Users collection accessible, count: {user_count}"
+        except Exception as db_error:
+            db_status = f"Connection failed: {str(db_error)}"
+            db_details = "Cannot access collections"
+        
+        return {
+            "environment_variables": env_check,
+            "database_status": db_status,
+            "database_details": db_details,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        return {
+            "error": f"Debug endpoint failed: {str(e)}",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
 @api_router.get("/health")
 async def health_check():
     """Health check endpoint for monitoring and load balancers"""
