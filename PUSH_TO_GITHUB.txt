@@ -1,0 +1,161 @@
+🚀 HOW TO PUSH CHANGES TO GITHUB
+
+===================================
+METHOD 1: GitHub Desktop (EASIEST)
+===================================
+
+1. Download GitHub Desktop: https://desktop.github.com/
+
+2. Install and open it
+
+3. Click "Add" → "Add Existing Repository"
+
+4. Select folder: C:\Users\mamun\Desktop\Pinpost
+
+5. You'll see all changed files listed
+
+6. Write commit message: "Fix backend API connection with nginx proxy"
+
+7. Click "Commit to main"
+
+8. Click "Push origin" (top right)
+
+✅ DONE! Changes pushed to GitHub!
+
+
+===================================
+METHOD 2: VS Code (If you have it)
+===================================
+
+1. Open folder in VS Code
+
+2. Click "Source Control" icon (left sidebar)
+
+3. Click "+" next to all changed files
+
+4. Type message: "Fix backend API connection"
+
+5. Click "✓ Commit"
+
+6. Click "..." → "Push"
+
+✅ DONE!
+
+
+===================================
+METHOD 3: Install Git Command Line
+===================================
+
+1. Download: https://git-scm.com/download/win
+
+2. Install with default options
+
+3. Open PowerShell in Pinpost folder
+
+4. Run these commands:
+
+   git add .
+   git commit -m "Fix backend API connection with nginx proxy"
+   git push origin main
+
+✅ DONE!
+
+
+===================================
+WHAT I FIXED (Technical Details)
+===================================
+
+Problem: Frontend was trying to connect to "/undefined/api/auth/login"
+Reason: REACT_APP_BACKEND_URL was undefined during Docker build
+
+Solution: Use Nginx as reverse proxy
+- All /api requests are forwarded to backend container
+- No hardcoded URLs in React app
+- Works on any domain automatically
+
+Changes Made:
+✅ nginx.conf - Added proxy rules for /api, /ws, /uploads
+✅ Dockerfile.frontend - Set REACT_APP_BACKEND_URL to empty string
+✅ docker-compose.yml - Removed build args
+
+How it works now:
+- User visits: http://bartaaddaa.com
+- Clicks login: Request goes to http://bartaaddaa.com/api/auth/login
+- Nginx proxies to: http://backend:8000/api/auth/login
+- Backend responds ✅
+
+
+===================================
+AFTER PUSHING TO GITHUB
+===================================
+
+Update Hostinger YAML with this:
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: https://github.com/mamunnet/Pinpost.git
+      dockerfile: Dockerfile.backend
+    container_name: pinpost-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URL=mongodb+srv://pinpostmaria:iubbDYjmSiA5uwyQ@pinpost.4ccvhj6.mongodb.net/?retryWrites=true&w=majority
+      - DB_NAME=penlink_database
+      - SECRET_KEY=4f8a2e9c7b6d5a3f1e9c8b7a6d5f4e3c2b1a9f8e7d6c5b4a3f2e1d9c8b7a6f5e
+      - FRONTEND_URL=http://bartaaddaa.com
+      - MAX_FILE_SIZE=10485760
+      - UPLOAD_DIR=/app/uploads
+      - ENVIRONMENT=production
+    volumes:
+      - uploads:/app/uploads
+    networks:
+      - pinpost-network
+
+  frontend:
+    build:
+      context: https://github.com/mamunnet/Pinpost.git
+      dockerfile: Dockerfile.frontend
+    container_name: pinpost-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    networks:
+      - pinpost-network
+
+networks:
+  pinpost-network:
+    driver: bridge
+
+volumes:
+  uploads:
+    driver: local
+
+Then click DEPLOY!
+
+
+===================================
+TESTING AFTER DEPLOYMENT
+===================================
+
+1. Wait 10 minutes for build to complete
+
+2. Visit: http://bartaaddaa.com or http://72.60.203.48
+
+3. Try to register a new account
+
+4. Try to login
+
+✅ Should work now!
+
+
+If you still see errors:
+- Check Hostinger "Logs" tab
+- Look for backend container logs
+- Share the errors with me
