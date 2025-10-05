@@ -45,10 +45,23 @@ h1, h2, h3, h4, h5, h6 {
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Smooth drag scrolling */
+.cursor-grab {
+  cursor: grab;
+  user-select: none;
+}
+
+.cursor-grabbing {
+  cursor: grabbing;
+  user-select: none;
 }
 
 /* Enhanced navigation scrolling */

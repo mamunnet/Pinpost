@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,85 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Home, FileText, Users, Bell, Search, Plus, LogOut, User, Settings, TrendingUp, UserPlus, HelpCircle, Shield, Mail, Menu, Wifi, WifiOff } from "lucide-react";
+import { Home, FileText, Users, Bell, Search, LogOut, User, Settings, TrendingUp, UserPlus, HelpCircle, Shield, Mail, Menu, Wifi, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
-
-const CreateContentModal = ({ onClose }) => {
-  const [contentType, setContentType] = useState('post');
-  const [postContent, setPostContent] = useState('');
-  const [blogTitle, setBlogTitle] = useState('');
-  const [blogContent, setBlogContent] = useState('');
-  const [blogExcerpt, setBlogExcerpt] = useState('');
-  const [blogTags, setBlogTags] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleCreatePost = async () => {
-    if (!postContent.trim()) {
-      toast.error('Please write something');
-      return;
-    }
-    setLoading(true);
-    try {
-      await axios.post(`${API}/posts`, { content: postContent });
-      toast.success('Post created!');
-      setTimeout(() => window.location.reload(), 500);
-    } catch (error) {
-      toast.error('Failed to create post');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCreateBlog = async () => {
-    if (!blogTitle.trim() || !blogContent.trim()) {
-      toast.error('Title and content are required');
-      return;
-    }
-    setLoading(true);
-    try {
-      await axios.post(`${API}/blogs`, {
-        title: blogTitle,
-        content: blogContent,
-        excerpt: blogExcerpt,
-        tags: blogTags.split(',').map(t => t.trim()).filter(Boolean)
-      });
-      toast.success('Blog published!');
-      setTimeout(() => window.location.reload(), 500);
-    } catch (error) {
-      toast.error('Failed to create blog');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex border-b">
-        <button onClick={() => setContentType('post')} className={`px-4 py-2 font-medium ${contentType === 'post' ? 'border-b-2 border-rose-600 text-rose-600' : 'text-gray-600'}`}>Quick Post</button>
-        <button onClick={() => setContentType('blog')} className={`px-4 py-2 font-medium ${contentType === 'blog' ? 'border-b-2 border-rose-600 text-rose-600' : 'text-gray-600'}`}>Blog Article</button>
-      </div>
-      {contentType === 'post' ? (
-        <div className="space-y-4">
-          <Textarea placeholder="What's on your mind?" value={postContent} onChange={(e) => setPostContent(e.target.value)} rows={4} />
-          <Button onClick={handleCreatePost} disabled={loading} className="w-full">Post</Button>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <Input placeholder="Blog title" value={blogTitle} onChange={(e) => setBlogTitle(e.target.value)} />
-          <Input placeholder="Brief description" value={blogExcerpt} onChange={(e) => setBlogExcerpt(e.target.value)} />
-          <Textarea placeholder="Write your blog content..." value={blogContent} onChange={(e) => setBlogContent(e.target.value)} rows={10} />
-          <Input placeholder="Tags (comma separated)" value={blogTags} onChange={(e) => setBlogTags(e.target.value)} />
-          <Button onClick={handleCreateBlog} disabled={loading} className="w-full">Publish Blog</Button>
-        </div>
-      )}
-    </div>
-  );
-};
 
 const NotificationsDropdown = ({ user }) => {
   const [notifications, setNotifications] = useState([]);
@@ -114,83 +41,194 @@ const NotificationsDropdown = ({ user }) => {
 
     fetchNotifications();
 
-    // WebSocket connection
-    const wsUrl = `${BACKEND_URL.replace('http', 'ws')}/ws/notifications/${user.id}`;
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      console.log('✅ WebSocket connected for real-time notifications');
-      setWsConnected(true);
-      
-      // Send periodic ping to keep connection alive
-      const pingInterval = setInterval(() => {
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send('ping');
-        }
-      }, 30000);
-      
-      ws.pingInterval = pingInterval;
-    };
-
-    ws.onmessage = (event) => {
+    // Create WebSocket connection with proper error handling
+    const connectWebSocket = () => {
       try {
-        const data = JSON.parse(event.data);
+        const wsUrl = getWebSocketUrl(user.id);
+        console.log('🔗 Connecting to WebSocket:', wsUrl);
         
-        if (data.type === 'new_notification') {
-          // Add new notification to the top of the list
-          setNotifications(prev => [data.notification, ...prev]);
-          setUnreadCount(prev => prev + 1);
+        const ws = new WebSocket(wsUrl);
+        wsRef.current = ws;
+
+        ws.onopen = () => {
+          console.log('✅ WebSocket connected for real-time notifications');
+          setWsConnected(true);
           
-          // Show browser notification if permission granted
-          if (Notification.permission === 'granted') {
-            new Notification('New Notification', {
-              body: data.notification.message,
-              icon: '/logo.png',
-              badge: '/logo.png'
-            });
+          // Send periodic ping to keep connection alive
+          const pingInterval = setInterval(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send('ping');
+            }
+          }, 30000);
+          
+          ws.pingInterval = pingInterval;
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            if (event.data === 'pong') return; // Ignore pong responses
+            
+            const data = JSON.parse(event.data);
+            console.log('📨 WebSocket message received:', data);
+            
+            if (data.type === 'new_notification') {
+              const notification = data.notification;
+              
+              // Add new notification to the top of the list
+              setNotifications(prev => [notification, ...prev]);
+              setUnreadCount(prev => prev + 1);
+              
+              // Show instant toast notification
+              showInstantNotification(notification);
+              
+              console.log('📬 New notification processed:', notification);
+            }
+          } catch (error) {
+            console.error('Error parsing WebSocket message:', error);
+          }
+        };
+
+        ws.onerror = (error) => {
+          console.error('❌ WebSocket error:', error);
+          setWsConnected(false);
+        };
+
+        ws.onclose = (event) => {
+          console.log('🔌 WebSocket disconnected. Code:', event.code, 'Reason:', event.reason);
+          setWsConnected(false);
+          if (ws.pingInterval) {
+            clearInterval(ws.pingInterval);
           }
           
-          // Play notification sound (optional)
-          const audio = new Audio('/notification.mp3');
-          audio.volume = 0.3;
-          audio.play().catch(() => {}); // Ignore errors if audio file doesn't exist
-          
-          console.log('📬 New notification received:', data.notification);
-        }
+          // Attempt to reconnect after 3 seconds if connection was lost
+          if (event.code !== 1000) { // 1000 = normal closure
+            setTimeout(() => {
+              console.log('🔄 Attempting to reconnect WebSocket...');
+              connectWebSocket();
+            }, 3000);
+          }
+        };
       } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
+        console.error('Failed to create WebSocket connection:', error);
+        setWsConnected(false);
       }
     };
 
-    ws.onerror = (error) => {
-      console.error('❌ WebSocket error:', error);
-      setWsConnected(false);
-    };
-
-    ws.onclose = () => {
-      console.log('🔌 WebSocket disconnected');
-      setWsConnected(false);
-      if (ws.pingInterval) {
-        clearInterval(ws.pingInterval);
-      }
-    };
+    // Initial connection
+    connectWebSocket();
 
     // Request notification permission
-    if (Notification.permission === 'default') {
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
       Notification.requestPermission();
     }
 
     // Cleanup on unmount
     return () => {
-      if (ws.pingInterval) {
-        clearInterval(ws.pingInterval);
+      if (wsRef.current) {
+        if (wsRef.current.pingInterval) {
+          clearInterval(wsRef.current.pingInterval);
+        }
+        wsRef.current.close(1000, 'Component unmounting');
       }
-      ws.close();
     };
   }, [user]);
 
-  const handleMarkAllRead = async () => {
+  const showInstantNotification = (notification) => {
+    // Determine notification type and customize toast
+    const notificationConfig = {
+      follow: { 
+        icon: '👤', 
+        type: 'success',
+        description: 'started following you'
+      },
+      like: { 
+        icon: '❤️', 
+        type: 'default',
+        description: 'liked your post'
+      },
+      comment: { 
+        icon: '💬', 
+        type: 'info',
+        description: 'commented on your post'
+      },
+      reply: { 
+        icon: '↩️', 
+        type: 'info',
+        description: 'replied to your comment'
+      }
+    };
+
+    const config = notificationConfig[notification.type] || { 
+      icon: '🔔', 
+      type: 'default',
+      description: 'sent you a notification'
+    };
+
+    // Show instant toast notification
+    const toastFunction = toast[config.type] || toast;
+    toastFunction(
+      `${config.icon} ${notification.actor_username} ${config.description}`, {
+        description: notification.message,
+        duration: 5000,
+        action: {
+          label: "View",
+          onClick: () => {
+            // Navigate to relevant content if available
+            if (notification.post_id) {
+              if (notification.post_type === 'blog') {
+                navigate(`/blog/${notification.post_id}`);
+              } else {
+                navigate(`/post/${notification.post_id}`);
+              }
+            } else if (notification.type === 'follow') {
+              navigate(`/profile/${notification.actor_username}`);
+            }
+          }
+        }
+      }
+    );
+
+    // Show browser notification if permission granted
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      const browserNotification = new Notification(`${config.icon} PenLink`, {
+        body: `${notification.actor_username} ${config.description}`,
+        icon: notification.actor_avatar || '/logo192.png',
+        badge: '/logo192.png',
+        tag: notification.id,
+        requireInteraction: false,
+        silent: false
+      });
+
+      // Auto close browser notification after 5 seconds
+      setTimeout(() => {
+        browserNotification.close();
+      }, 5000);
+
+      // Handle notification click
+      browserNotification.onclick = () => {
+        window.focus();
+        if (notification.post_id) {
+          if (notification.post_type === 'blog') {
+            navigate(`/blog/${notification.post_id}`);
+          } else {
+            navigate(`/post/${notification.post_id}`);
+          }
+        } else if (notification.type === 'follow') {
+          navigate(`/profile/${notification.actor_username}`);
+        }
+        browserNotification.close();
+      };
+    }
+
+    // Play subtle notification sound
+    try {
+      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMcBjiE0fHNeSsFJG++7t6QQAoUVKzn6rRLFws=' );
+      audio.volume = 0.3;
+      audio.play().catch(() => {}); // Ignore errors if audio doesn't work
+    } catch (error) {
+      // Ignore audio errors
+    }
+  };
     try {
       await axios.put(`${API}/notifications/read-all`);
       fetchNotifications();
@@ -275,47 +313,157 @@ const NotificationsDropdown = ({ user }) => {
 
 export const Header = ({ user, logout }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const navScrollRef = useRef(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Enable smooth scrolling with mouse drag
+  useEffect(() => {
+    const navScroll = navScrollRef.current;
+    if (!navScroll) return;
+
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    const handleMouseDown = (e) => {
+      isDown = true;
+      navScroll.classList.add('cursor-grabbing');
+      startX = e.pageX - navScroll.offsetLeft;
+      scrollLeft = navScroll.scrollLeft;
+    };
+
+    const handleMouseLeave = () => {
+      isDown = false;
+      navScroll.classList.remove('cursor-grabbing');
+    };
+
+    const handleMouseUp = () => {
+      isDown = false;
+      navScroll.classList.remove('cursor-grabbing');
+    };
+
+    const handleMouseMove = (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - navScroll.offsetLeft;
+      const walk = (x - startX) * 2; // Scroll speed
+      navScroll.scrollLeft = scrollLeft - walk;
+    };
+
+    navScroll.addEventListener('mousedown', handleMouseDown);
+    navScroll.addEventListener('mouseleave', handleMouseLeave);
+    navScroll.addEventListener('mouseup', handleMouseUp);
+    navScroll.addEventListener('mousemove', handleMouseMove);
+
+    return () => {
+      navScroll.removeEventListener('mousedown', handleMouseDown);
+      navScroll.removeEventListener('mouseleave', handleMouseLeave);
+      navScroll.removeEventListener('mouseup', handleMouseUp);
+      navScroll.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
+
+  // Check if current path matches the nav item
+  const isActive = (path) => {
+    if (path === '/' && location.pathname === '/') return true;
+    if (path !== '/' && location.pathname.startsWith(path)) return true;
+    return false;
+  };
+
   return (
     <header className="fixed top-0 w-full bg-white border-b border-gray-200 z-50 shadow-sm">
       {/* Top Bar with Logo */}
-      <div className="bg-gray-50 border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4">
-          <div className="flex items-center justify-end h-10">
-            <Link to="/" className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 transition-colors">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">P</span>
+      <div className="bg-slate-100 border-b border-slate-300">
+        <div className="w-full px-3 sm:px-6">
+          <div className="flex items-center justify-between h-12">
+            <Link to="/" className="flex items-center space-x-2 text-slate-700 hover:text-slate-900 transition-colors">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-r from-slate-600 to-slate-700 flex items-center justify-center shadow-md">
+                <span className="text-white font-bold text-base">P</span>
               </div>
-              <span className="font-bold text-lg bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">PenLink</span>
+              <span className="font-bold text-xl bg-gradient-to-r from-slate-600 to-slate-700 bg-clip-text text-transparent">PenLink</span>
             </Link>
+            
+            {/* Mobile Search Icon */}
+            <button className="lg:hidden p-2 rounded-full hover:bg-white/50 transition-colors">
+              <Search className="w-5 h-5 text-gray-600" />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Main Navigation */}
-      <div className="max-w-7xl mx-auto px-2 sm:px-4">
-        <div className="flex items-center justify-between h-14 sm:h-16">
-          {/* Left Navigation */}
-          <nav className="nav-scroll flex items-center gap-2 sm:gap-3 scrollbar-hide" style={{maxWidth: '400px', minWidth: '250px'}}>
-            <Link to="/" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-home">
-              <Home className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span className="hidden md:inline font-semibold text-base">Home</span>
+      {/* Main Navigation - Full Width Scrollable */}
+      <div className="w-full">
+        <div className="flex items-center h-14 sm:h-16 px-3 sm:px-6 gap-3 sm:gap-6">
+          {/* Left Navigation - Horizontal Scroll */}
+          <nav 
+            ref={navScrollRef}
+            className="flex items-center gap-2 overflow-x-auto scrollbar-hide cursor-grab select-none flex-1 lg:flex-initial"
+            style={{
+              scrollSnapType: 'x mandatory',
+              WebkitOverflowScrolling: 'touch',
+              scrollBehavior: 'smooth'
+            }}
+          >
+            <Link 
+              to="/" 
+              className={`flex items-center space-x-2 px-4 sm:px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-200 flex-shrink-0 border shadow-sm hover:shadow ${
+                isActive('/') 
+                  ? 'bg-slate-200 text-slate-900 border-slate-300' 
+                  : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
+              }`}
+              style={{ scrollSnapAlign: 'start' }}
+              data-testid="nav-home"
+            >
+              <Home className="w-5 h-5 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline font-medium text-sm sm:text-base">Home</span>
             </Link>
-            <Link to="/social" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-social">
-              <Users className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span className="hidden md:inline font-semibold text-base">Social</span>
+            
+            <Link 
+              to="/social" 
+              className={`flex items-center space-x-2 px-4 sm:px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-200 flex-shrink-0 border shadow-sm hover:shadow ${
+                isActive('/social') 
+                  ? 'bg-slate-200 text-slate-900 border-slate-300' 
+                  : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
+              }`}
+              style={{ scrollSnapAlign: 'start' }}
+              data-testid="nav-social"
+            >
+              <Users className="w-5 h-5 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline font-medium text-sm sm:text-base">Social</span>
             </Link>
-            <Link to="/blogs" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-blogs">
-              <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span className="hidden md:inline font-semibold text-base">Blogs</span>
+            
+            <Link 
+              to="/blogs" 
+              className={`flex items-center space-x-2 px-4 sm:px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-200 flex-shrink-0 border shadow-sm hover:shadow ${
+                isActive('/blogs') || isActive('/blog')
+                  ? 'bg-slate-200 text-slate-900 border-slate-300' 
+                  : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
+              }`}
+              style={{ scrollSnapAlign: 'start' }}
+              data-testid="nav-blogs"
+            >
+              <FileText className="w-5 h-5 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline font-medium text-sm sm:text-base">Blogs</span>
             </Link>
-            <Link to="/trending" className="flex items-center space-x-2 px-4 sm:px-5 py-3 rounded-xl hover:bg-gray-100 text-gray-700 whitespace-nowrap transition-all duration-200 flex-shrink-0" data-testid="nav-trending">
-              <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span className="hidden md:inline font-semibold text-base">Trending</span>
+            
+            <Link 
+              to="/trending" 
+              className={`flex items-center space-x-2 px-4 sm:px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-200 flex-shrink-0 border shadow-sm hover:shadow ${
+                isActive('/trending') 
+                  ? 'bg-slate-200 text-slate-900 border-slate-300' 
+                  : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
+              }`}
+              style={{ scrollSnapAlign: 'start' }}
+              data-testid="nav-trending"
+            >
+              <TrendingUp className="w-5 h-5 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline font-medium text-sm sm:text-base">Trending</span>
             </Link>
           </nav>
 
-          {/* Center Search */}
-          <div className="hidden lg:block flex-1 max-w-md mx-4">
+          {/* Center Search - Desktop Only */}
+          <div className="hidden lg:block flex-1 max-w-md">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input 
@@ -323,108 +471,24 @@ export const Header = ({ user, logout }) => {
                 placeholder="Search PenLink..." 
                 value={searchQuery} 
                 onChange={(e) => setSearchQuery(e.target.value)} 
-                className="pl-10 bg-gray-100 border-none" 
+                className="pl-10 bg-slate-100 border-slate-300 focus:border-slate-400 focus:ring-slate-300" 
               />
             </div>
           </div>
 
           {/* Right Menu */}
           {user && (
-            <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="flex items-center gap-2">
               <NotificationsDropdown user={user} />
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button className="p-3 rounded-full hover:bg-gray-100 transition-all" data-testid="user-menu-btn">
-                    <Menu className="w-6 h-6 text-gray-700" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-72 p-0" align="end">
-                  <div className="bg-white rounded-lg shadow-lg border">
-                    {/* User Info Section */}
-                    <div className="p-4 border-b border-gray-100">
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="w-12 h-12">
-                          {user.avatar ? (
-                            <img src={user.avatar} alt={user.name || user.username} className="w-full h-full object-cover rounded-full" />
-                          ) : (
-                            <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white text-lg font-bold">
-                              {(user.name || user.username)[0].toUpperCase()}
-                            </AvatarFallback>
-                          )}
-                        </Avatar>
-                        <div>
-                          <p className="font-semibold text-gray-900">{user.name || user.username}</p>
-                          <p className="text-sm text-gray-500">@{user.username}</p>
-                          <p className="text-xs text-gray-400">{user.email}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Menu Options */}
-                    <div className="py-2">
-                      <Link to={`/profile/${user.username}`}>
-                        <button className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 text-left transition-colors">
-                          <User className="w-5 h-5 text-gray-600" />
-                          <div>
-                            <p className="font-medium text-gray-900">My Profile</p>
-                            <p className="text-xs text-gray-500">View and edit your profile</p>
-                          </div>
-                        </button>
-                      </Link>
-
-                      <button className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 text-left transition-colors">
-                        <UserPlus className="w-5 h-5 text-gray-600" />
-                        <div>
-                          <p className="font-medium text-gray-900">Create Group</p>
-                          <p className="text-xs text-gray-500">Start a new community</p>
-                        </div>
-                      </button>
-
-                      <button className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 text-left transition-colors">
-                        <Settings className="w-5 h-5 text-gray-600" />
-                        <div>
-                          <p className="font-medium text-gray-900">Settings</p>
-                          <p className="text-xs text-gray-500">Privacy and account settings</p>
-                        </div>
-                      </button>
-
-                      <button className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 text-left transition-colors">
-                        <HelpCircle className="w-5 h-5 text-gray-600" />
-                        <div>
-                          <p className="font-medium text-gray-900">Help & Support</p>
-                          <p className="text-xs text-gray-500">Get help and contact us</p>
-                        </div>
-                      </button>
-
-                      <button className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 text-left transition-colors">
-                        <Shield className="w-5 h-5 text-gray-600" />
-                        <div>
-                          <p className="font-medium text-gray-900">Privacy Policy</p>
-                          <p className="text-xs text-gray-500">Review our terms and policies</p>
-                        </div>
-                      </button>
-
-                      <button className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 text-left transition-colors">
-                        <Mail className="w-5 h-5 text-gray-600" />
-                        <div>
-                          <p className="font-medium text-gray-900">Feedback</p>
-                          <p className="text-xs text-gray-500">Share your thoughts with us</p>
-                        </div>
-                      </button>
-
-                      <div className="border-t border-gray-100 mt-2">
-                        <button onClick={logout} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-50 text-left transition-colors text-red-600" data-testid="logout-btn">
-                          <LogOut className="w-5 h-5" />
-                          <div>
-                            <p className="font-medium">Sign Out</p>
-                            <p className="text-xs text-red-500">Sign out of your account</p>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
+              
+              {/* Hamburger Menu Button */}
+              <button 
+                onClick={() => navigate('/menu')}
+                className="p-2.5 rounded-full hover:bg-slate-200 transition-all flex-shrink-0" 
+                data-testid="user-menu-btn"
+              >
+                <Menu className="w-5 h-5 text-slate-700" />
+              </button>
             </div>
           )}
         </div>

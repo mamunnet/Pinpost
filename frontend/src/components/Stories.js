@@ -245,16 +245,16 @@ export const Stories = ({ user }) => {
           data-testid="create-story-btn"
         >
           <div className="relative transform transition-all duration-200 group-hover:scale-105">
-            <Avatar className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-gray-200 shadow-md">
-              <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white text-lg">
+            <Avatar className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-slate-200 shadow-md">
+              <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white text-lg">
                 {user.username[0].toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div className="absolute bottom-0 right-0 bg-rose-600 rounded-full p-1.5 border-2 border-white shadow-sm">
+            <div className="absolute bottom-0 right-0 bg-slate-600 rounded-full p-1.5 border-2 border-white shadow-sm">
               <Plus className="w-3 h-3 text-white" />
             </div>
           </div>
-          <span className="text-xs font-medium text-gray-700 group-hover:text-rose-600 transition-colors">Create Story</span>
+          <span className="text-xs font-medium text-slate-700 group-hover:text-slate-800 transition-colors">Create Story</span>
         </button>
 
         {/* User Stories */}
@@ -266,20 +266,20 @@ export const Stories = ({ user }) => {
             data-testid="story-avatar"
           >
             <div className="relative transform transition-all duration-200 group-hover:scale-105">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-yellow-400 via-rose-500 to-purple-600 p-1 shadow-md">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-slate-400 via-slate-500 to-slate-600 p-1 shadow-md">
                 <Avatar className="w-full h-full border-4 border-white">
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-teal-500 text-white text-lg">
+                  <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white text-lg">
                     {userStory.username[0].toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
               </div>
               {userStory.story_count > 1 && (
-                <div className="absolute -top-1 -right-1 bg-rose-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white shadow-sm">
+                <div className="absolute -top-1 -right-1 bg-slate-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white shadow-sm">
                   {userStory.story_count}
                 </div>
               )}
             </div>
-            <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 max-w-[80px] truncate transition-colors">
+            <span className="text-xs font-medium text-slate-700 group-hover:text-slate-900 max-w-[80px] truncate transition-colors">
               {userStory.username}
             </span>
           </button>

@@ -66,7 +66,7 @@ Since you already pushed the code to GitHub, just run these commands on Hostinge
 ssh root@72.60.203.48
 
 # Go to project directory
-cd /docker/pinpost  # <-- Your actual project path
+cd /root/Pinpost  # <-- UPDATE THIS IF YOUR PATH IS DIFFERENT
 
 # Pull latest code
 git pull origin main

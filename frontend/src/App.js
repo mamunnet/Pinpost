@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Heart, MessageCircle, Share2, Bookmark, Edit, Trash2, Plus, Home, FileText, User, LogOut, Search, Users, TrendingUp, Camera, MapPin, Calendar, Flame, Sparkles, Clock, ArrowLeft } from "lucide-react";
+import { Heart, MessageCircle, Share2, Bookmark, Edit, Trash2, Plus, Home, FileText, User, LogOut, Search, Users, TrendingUp, Camera, MapPin, Calendar, Flame, Sparkles, Clock, ArrowLeft, ChevronRight } from "lucide-react";
 import { EnhancedPostModal } from "@/components/EnhancedPostModal";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -22,6 +22,7 @@ import { EditProfileModal } from "@/components/EditProfileModal";
 import { EditCoverPhotoModal } from "@/components/EditCoverPhotoModal";
 import { EditAvatarModal } from "@/components/EditAvatarModal";
 import { PostDetailPage } from "@/pages/PostDetailPage";
+import { MenuPage } from "@/pages/MenuPage";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -167,129 +168,172 @@ const SocialPage = ({ user }) => {
     return (
       <div className="min-h-screen flex items-center justify-center pt-20">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading social feed...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-600 mx-auto mb-4"></div>
+          <p className="text-slate-600 font-medium">Loading social feed...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 pt-24 pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-20 pb-12">
       <div className="max-w-6xl mx-auto px-4">
-        <div className="flex gap-6">
-          {/* Main Feed */}
-          <div className="flex-1 max-w-2xl mx-auto space-y-6">
-            {/* Header with Filters */}
-            <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-20 z-10 border-0">
+        {/* Futuristic Header */}
+        <div className="relative mb-8 overflow-hidden">
+          <div className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-600 rounded-2xl p-6 sm:p-8">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-y-1"></div>
+            <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent">
-                  Social Feed
-                </h1>
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-white/20 to-white/5 rounded-xl flex items-center justify-center mr-4">
+                    <Users className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Social Hub</h1>
+                    <p className="text-slate-200 text-sm sm:text-base">Connect, share, and discover</p>
+                  </div>
+                </div>
                 <Button 
                   onClick={() => setShowCreateModal(true)}
-                  className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
+                  className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm transition-all duration-300 hover:scale-105"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Create Post
+                  Create
                 </Button>
               </div>
+              <div className="flex items-center space-x-4 text-slate-200 text-sm">
+                <span className="flex items-center">
+                  <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                  Live Feed
+                </span>
+                <span>•</span>
+                <span>{filteredPosts.length} posts loaded</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
+        <div className="flex gap-8">
+          {/* Main Feed */}
+          <div className="flex-1 max-w-2xl mx-auto space-y-6">
+            {/* Enhanced Filter Controls */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/50 p-6 sticky top-24 z-10">
               {/* Search Bar */}
-              <div className="mb-4">
+              <div className="mb-6">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <Input
-                    placeholder="Search posts, people..."
+                    placeholder="Search posts, people, topics..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 bg-gray-50 border-0 focus:ring-2 focus:ring-blue-200"
+                    className="pl-12 h-12 bg-slate-50 border-slate-200 focus:border-slate-400 focus:ring-slate-400/20 rounded-xl text-slate-700 placeholder:text-slate-500"
                   />
                 </div>
               </div>
 
-              {/* Filter Tabs */}
-              <div className="flex gap-2">
-                <Button
-                  variant={filter === 'all' ? 'default' : 'outline'}
+              {/* Modern Filter Tabs */}
+              <div className="grid grid-cols-3 gap-2 p-1 bg-slate-100 rounded-xl">
+                <button
                   onClick={() => setFilter('all')}
-                  className={`flex-1 ${filter === 'all' ? 'bg-gradient-to-r from-blue-600 to-teal-600' : ''}`}
+                  className={`flex items-center justify-center py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                    filter === 'all' 
+                      ? 'bg-white shadow-md text-slate-700 transform scale-105' 
+                      : 'text-slate-600 hover:text-slate-800'
+                  }`}
                 >
                   <Home className="w-4 h-4 mr-2" />
                   All Posts
-                </Button>
-                <Button
-                  variant={filter === 'following' ? 'default' : 'outline'}
+                </button>
+                <button
                   onClick={() => setFilter('following')}
-                  className={`flex-1 ${filter === 'following' ? 'bg-gradient-to-r from-blue-600 to-teal-600' : ''}`}
+                  className={`flex items-center justify-center py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                    filter === 'following' 
+                      ? 'bg-white shadow-md text-slate-700 transform scale-105' 
+                      : 'text-slate-600 hover:text-slate-800'
+                  }`}
                 >
                   <Users className="w-4 h-4 mr-2" />
                   Following
-                </Button>
-                <Button
-                  variant={filter === 'trending' ? 'default' : 'outline'}
+                </button>
+                <button
                   onClick={() => setFilter('trending')}
-                  className={`flex-1 ${filter === 'trending' ? 'bg-gradient-to-r from-blue-600 to-teal-600' : ''}`}
+                  className={`flex items-center justify-center py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                    filter === 'trending' 
+                      ? 'bg-white shadow-md text-slate-700 transform scale-105' 
+                      : 'text-slate-600 hover:text-slate-800'
+                  }`}
                 >
                   <TrendingUp className="w-4 h-4 mr-2" />
                   Trending
-                </Button>
+                </button>
               </div>
             </div>
 
-            {/* Posts List */}
+            {/* Enhanced Posts Display */}
             {filteredPosts.length === 0 ? (
-              <Card className="text-center py-12">
-                <CardContent>
-                  <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                    {searchQuery ? 'No posts found' : 'No posts yet'}
-                  </h3>
-                  <p className="text-gray-500 mb-4">
-                    {searchQuery 
-                      ? 'Try a different search query'
-                      : filter === 'following' 
-                        ? 'Follow some people to see their posts here'
-                        : 'Be the first to create a post!'}
-                  </p>
-                  {!searchQuery && (
-                    <Button onClick={() => setShowCreateModal(true)} className="bg-gradient-to-r from-blue-600 to-teal-600">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create Post
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
+              <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/50 text-center py-16 px-8">
+                <div className="w-20 h-20 bg-gradient-to-br from-slate-600 to-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <MessageCircle className="w-10 h-10 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-800 mb-3">
+                  {searchQuery ? 'No posts found' : 'No posts yet'}
+                </h3>
+                <p className="text-slate-600 mb-6 max-w-md mx-auto leading-relaxed">
+                  {searchQuery 
+                    ? 'Try a different search query or explore trending topics'
+                    : filter === 'following' 
+                      ? 'Follow some people to see their posts in your feed'
+                      : 'Be the first to share something amazing with the community!'}
+                </p>
+                {!searchQuery && (
+                  <Button 
+                    onClick={() => setShowCreateModal(true)} 
+                    className="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Create Your First Post
+                  </Button>
+                )}
+              </div>
             ) : (
               <>
-                {filteredPosts.map((post, index) => (
-                  <div key={post.id}>
-                    <PostCard post={post} user={user} onLike={() => handleLike(post)} onComment={() => fetchPosts(true)} />
-                    {/* Insert ad every 4 posts */}
-                    {(index + 1) % 4 === 0 && index < filteredPosts.length - 1 && (
-                      <AdCard adIndex={Math.floor(index / 4)} />
-                    )}
-                  </div>
-                ))}
+                <div className="space-y-6">
+                  {filteredPosts.map((post, index) => (
+                    <div key={post.id} className="group">
+                      {/* Enhanced Post Card Container */}
+                      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/50 hover:border-slate-300/50 transition-all duration-300 hover:shadow-lg hover:shadow-slate-200/50 overflow-hidden">
+                        <PostCard post={post} user={user} onLike={() => handleLike(post)} onComment={() => fetchPosts(true)} />
+                      </div>
+                      
+                      {/* Enhanced Ad Placement */}
+                      {(index + 1) % 4 === 0 && index < filteredPosts.length - 1 && (
+                        <div className="mt-6">
+                          <div className="bg-gradient-to-r from-slate-100 to-slate-50 rounded-2xl border-2 border-dashed border-slate-300 p-6">
+                            <AdCard adIndex={Math.floor(index / 4)} />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
 
-                {/* Load More Button */}
+                {/* Enhanced Load More Button */}
                 {hasMore && !searchQuery && (
-                  <div className="text-center py-6">
+                  <div className="text-center py-8">
                     <Button
                       onClick={handleLoadMore}
                       disabled={loadingMore}
-                      variant="outline"
-                      className="px-8"
+                      className="bg-white/80 backdrop-blur-sm border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-800 px-8 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg"
                     >
                       {loadingMore ? (
                         <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                          Loading...
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-600 mr-3"></div>
+                          Loading more posts...
                         </>
                       ) : (
                         <>
-                          Load More Posts
-                          <span className="ml-2">↓</span>
+                          <span>Load More Posts</span>
+                          <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                         </>
                       )}
                     </Button>
@@ -501,68 +545,74 @@ const PostCard = ({ post, onLike, onComment }) => {
   }
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-300 border-0 shadow-sm" data-testid="post-card">
-      <CardContent className="pt-6 space-y-4">
+    <div className="bg-white hover:bg-slate-50/50 transition-all duration-300 py-4 sm:py-6" data-testid="post-card">
+      <div className="space-y-3 sm:space-y-4">
         {/* Header */}
-        <div className="flex items-center space-x-3">
-          <Link to={`/profile/${post.author_username}`} className="group">
-            <Avatar className="w-12 h-12 ring-2 ring-gray-100 group-hover:ring-rose-200 transition-all">
+        <div className="flex items-start space-x-3 px-4">
+          <Link to={`/profile/${post.author_username}`} className="group flex-shrink-0">
+            <Avatar className="w-10 h-10 sm:w-12 sm:h-12 ring-2 ring-slate-200 group-hover:ring-slate-300 transition-all">
               {post.author_avatar ? (
                 <img src={post.author_avatar} alt={post.author_name || post.author_username} className="w-full h-full object-cover rounded-full" />
               ) : (
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-teal-500 text-white">
+                <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white text-sm sm:text-base">
                   {(post.author_name || post.author_username)[0].toUpperCase()}
                 </AvatarFallback>
               )}
             </Avatar>
           </Link>
           <div className="flex-1 min-w-0">
-            <Link to={`/profile/${post.author_username}`} className="block hover:underline">
-              <p className="font-semibold text-gray-900 text-base truncate">
-                {post.author_name || post.author_username}
-              </p>
-              <p className="text-sm text-gray-500 truncate">@{post.author_username}</p>
-            </Link>
-            <p className="text-xs text-gray-400 mt-0.5">{formatDate(post.created_at)}</p>
+            <div className="flex items-center space-x-2">
+              <Link to={`/profile/${post.author_username}`} className="hover:underline">
+                <p className="font-semibold text-slate-900 text-sm sm:text-base truncate">
+                  {post.author_name || post.author_username}
+                </p>
+              </Link>
+              <span className="text-slate-400 text-xs sm:text-sm">•</span>
+              <p className="text-xs sm:text-sm text-slate-500">{formatDate(post.created_at)}</p>
+            </div>
           </div>
         </div>
 
         {/* Content - Clickable to navigate to post detail */}
         <div 
           onClick={() => navigate(`/post/${post.id}`)}
-          className="cursor-pointer hover:bg-gray-50 -mx-4 px-4 py-2 rounded-lg transition-colors"
+          className="cursor-pointer hover:bg-slate-50 px-4 py-2 transition-colors"
         >
           {displayContent.trim() && (
-            <p className="text-gray-800 whitespace-pre-wrap leading-relaxed text-[15px]">{displayContent}</p>
+            <p className="text-slate-800 whitespace-pre-wrap leading-relaxed text-sm sm:text-[15px]">{displayContent}</p>
           )}
 
           {/* Image */}
           {postImage && (
-            <div className="rounded-lg overflow-hidden mt-3">
+            <div className="mt-3 -mx-4 sm:mx-0 sm:rounded-lg overflow-hidden">
               <img src={postImage} alt="Post" className="w-full max-h-96 object-cover" />
             </div>
           )}
         </div>
 
         {/* Actions */}
-        <div className="pt-2 border-t border-gray-100">
+        <div className="pt-2 sm:pt-3 border-t border-slate-200 mx-4">
           <div className="flex items-center space-x-1">
             <div className="relative">
               <button
                 onClick={onLike}
                 onMouseEnter={() => setShowReactions(true)}
                 onMouseLeave={() => setShowReactions(false)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${post.liked_by_user ? 'text-rose-600 bg-rose-50' : 'text-gray-600 hover:bg-gray-50'} transition-all group`}
+                className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 rounded-lg ${
+                  post.liked_by_user 
+                    ? 'text-red-600 bg-red-50' 
+                    : 'text-slate-600 hover:bg-slate-100'
+                } transition-all group`}
                 data-testid="like-post-btn"
               >
-                <Heart className={`w-5 h-5 ${post.liked_by_user ? 'fill-current' : ''} group-hover:scale-110 transition-transform`} />
-                <span className="text-sm font-semibold">{post.likes_count > 0 && post.likes_count}</span>
+                <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${post.liked_by_user ? 'fill-current' : ''} group-hover:scale-110 transition-transform`} />
+                <span className="text-xs sm:text-sm font-semibold">{post.likes_count > 0 && post.likes_count}</span>
               </button>
               
               {/* Reaction Picker */}
               {showReactions && (
                 <div 
-                  className="absolute bottom-full left-0 mb-2 bg-white rounded-full shadow-xl border border-gray-200 px-3 py-2 flex space-x-1 z-10"
+                  className="absolute bottom-full left-0 mb-2 bg-white rounded-xl shadow-xl border border-slate-200 px-2 sm:px-3 py-1 sm:py-2 flex space-x-1 z-10"
                   onMouseEnter={() => setShowReactions(true)}
                   onMouseLeave={() => setShowReactions(false)}
                 >
@@ -573,7 +623,7 @@ const PostCard = ({ post, onLike, onComment }) => {
                         onLike();
                         setShowReactions(false);
                       }}
-                      className="text-xl hover:scale-125 transition-transform p-1.5 hover:bg-gray-50 rounded-full"
+                      className="text-lg sm:text-xl hover:scale-125 transition-transform p-1 sm:p-1.5 hover:bg-slate-50 rounded-full"
                     >
                       {emoji}
                     </button>
@@ -584,49 +634,56 @@ const PostCard = ({ post, onLike, onComment }) => {
             
             <button
               onClick={fetchComments}
-              className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-all group"
+              className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all group"
               data-testid="comment-post-btn"
             >
-              <MessageCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span className="text-sm font-semibold">{post.comments_count > 0 && post.comments_count}</span>
+              <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+              <span className="text-xs sm:text-sm font-semibold">{post.comments_count > 0 && post.comments_count}</span>
             </button>
-            <button className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-all group">
-              <Share2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            <button className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all group">
+              <Share2 className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
             </button>
           </div>
         </div>
 
         {/* Comments Section */}
         {showComments && (
-          <div className="mt-4 space-y-3 border-t border-gray-100 pt-4">
+          <div className="mt-3 sm:mt-4 space-y-2 sm:space-y-3 border-t border-slate-200 pt-3 sm:pt-4 mx-4">
             <div className="flex space-x-2">
               <Input
                 placeholder="Add a comment..."
                 value={commentContent}
                 onChange={(e) => setCommentContent(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleComment()}
-                className="flex-1"
+                className="flex-1 border-slate-200 focus:border-slate-400 focus:ring-slate-300 text-sm"
                 data-testid="comment-input"
               />
-              <Button onClick={handleComment} size="sm" className="hover:scale-105 transition-transform" data-testid="submit-comment-btn">Post</Button>
+              <Button 
+                onClick={handleComment} 
+                size="sm" 
+                className="hover:scale-105 transition-transform bg-slate-600 hover:bg-slate-700 text-white px-3 py-2 text-xs" 
+                data-testid="submit-comment-btn"
+              >
+                Post
+              </Button>
             </div>
             {comments.map((comment) => (
-              <div key={comment.id} className="flex items-start space-x-2 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                <Avatar className="w-8 h-8 ring-2 ring-white">
-                  <AvatarFallback className="text-xs bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+              <div key={comment.id} className="flex items-start space-x-2 p-2 sm:p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                <Avatar className="w-6 h-6 sm:w-8 sm:h-8 ring-1 ring-white">
+                  <AvatarFallback className="text-xs bg-gradient-to-br from-slate-600 to-slate-700 text-white">
                     {comment.username[0].toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1 bg-gray-50 rounded-lg p-2">
-                  <p className="text-sm font-semibold">{comment.username}</p>
-                  <p className="text-sm text-gray-700">{comment.content}</p>
+                <div className="flex-1 bg-white rounded-lg p-2 border border-slate-200">
+                  <p className="text-xs sm:text-sm font-semibold text-slate-900">{comment.username}</p>
+                  <p className="text-xs sm:text-sm text-slate-700">{comment.content}</p>
                 </div>
               </div>
             ))}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 
@@ -801,15 +858,15 @@ const TrendingSidebar = ({ user }) => {
   return (
     <div className="space-y-4">
       {/* Trending Navigation Card */}
-      <Card className="sticky top-24 shadow-xl border-0 bg-gradient-to-br from-white to-gray-50 overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-rose-100 to-amber-100 rounded-full blur-3xl opacity-50"></div>
+      <Card className="sticky top-24 shadow-lg border border-slate-200 bg-gradient-to-br from-white to-slate-50 overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full blur-3xl opacity-50"></div>
         
         <CardHeader className="pb-3 relative">
           <CardTitle className="text-xl font-bold flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-rose-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl flex items-center justify-center shadow-lg">
               <Flame className="w-5 h-5 text-white" />
             </div>
-            <span className="bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-slate-600 to-slate-700 bg-clip-text text-transparent">
               Trending Now
             </span>
           </CardTitle>
@@ -817,13 +874,13 @@ const TrendingSidebar = ({ user }) => {
         
         <CardContent className="space-y-4 relative">
           {/* Tab Selector */}
-          <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
+          <div className="flex gap-2 p-1 bg-slate-100 rounded-lg">
             <button
               onClick={() => setActiveTab('posts')}
               className={`flex-1 py-2 px-3 rounded-md text-xs font-semibold transition-all ${
                 activeTab === 'posts' 
-                  ? 'bg-white shadow-md text-rose-600' 
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-white shadow-md text-slate-700' 
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <MessageCircle className="w-3.5 h-3.5 inline mr-1" />
@@ -833,8 +890,8 @@ const TrendingSidebar = ({ user }) => {
               onClick={() => setActiveTab('blogs')}
               className={`flex-1 py-2 px-3 rounded-md text-xs font-semibold transition-all ${
                 activeTab === 'blogs' 
-                  ? 'bg-white shadow-md text-amber-600' 
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-white shadow-md text-slate-700' 
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <FileText className="w-3.5 h-3.5 inline mr-1" />
@@ -844,8 +901,8 @@ const TrendingSidebar = ({ user }) => {
               onClick={() => setActiveTab('users')}
               className={`flex-1 py-2 px-3 rounded-md text-xs font-semibold transition-all ${
                 activeTab === 'users' 
-                  ? 'bg-white shadow-md text-blue-600' 
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-white shadow-md text-slate-700' 
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Users className="w-3.5 h-3.5 inline mr-1" />
@@ -855,7 +912,7 @@ const TrendingSidebar = ({ user }) => {
 
           {loading ? (
             <div className="py-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600 mx-auto"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-600 mx-auto"></div>
             </div>
           ) : (
             <>
@@ -864,47 +921,76 @@ const TrendingSidebar = ({ user }) => {
                 <div className="space-y-3">
                   {trendingPosts.length === 0 ? (
                     <div className="text-center py-8">
-                      <Sparkles className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">No trending posts yet</p>
+                      <Sparkles className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                      <p className="text-sm text-slate-500">No trending posts yet</p>
                     </div>
                   ) : (
                     trendingPosts.map((post, index) => (
                       <div
                         key={post.id}
-                        className="group p-3 rounded-xl hover:bg-gradient-to-r hover:from-rose-50 hover:to-pink-50 transition-all border border-transparent hover:border-rose-200"
+                        className="group relative p-3 rounded-xl hover:bg-slate-50 transition-all duration-300 border border-transparent hover:border-slate-200 cursor-pointer"
+                        onClick={() => navigate(`/post/${post.id}`)}
                       >
-                        <div className="flex items-start gap-2 mb-2">
-                          <div className="w-6 h-6 bg-gradient-to-br from-rose-500 to-pink-500 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                            {index + 1}
+                        <div className="flex items-start gap-3">
+                          {/* Enhanced Rank Badge with Trending Icon */}
+                          <div className="relative flex-shrink-0">
+                            <div className="w-6 h-6 bg-gradient-to-br from-slate-600 to-slate-700 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-md group-hover:scale-105 transition-transform">
+                              {index + 1}
+                            </div>
+                            {/* Small Trending Fire Icon */}
+                            <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center">
+                              <Flame className="w-1.5 h-1.5 text-white" />
+                            </div>
                           </div>
+                          
+                          {/* Enhanced Profile Photo */}
+                          <Avatar className="w-7 h-7 ring-2 ring-slate-200 group-hover:ring-slate-300 transition-all flex-shrink-0">
+                            {post.author_avatar ? (
+                              <img src={post.author_avatar} alt={post.author_name || post.author_username} className="w-full h-full object-cover" />
+                            ) : (
+                              <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white text-xs font-semibold">
+                                {(post.author_name || post.author_username)[0].toUpperCase()}
+                              </AvatarFallback>
+                            )}
+                          </Avatar>
+                          
                           <div className="flex-1 min-w-0">
-                            <p 
-                              onClick={() => navigate(`/post/${post.id}`)}
-                              className="text-xs font-medium text-gray-900 line-clamp-2 group-hover:text-rose-600 transition-colors leading-relaxed cursor-pointer"
-                            >
-                              {post.content}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1.5">
-                              <span 
-                                onClick={() => navigate(`/profile/${post.author_username}`)}
-                                className="text-xs text-gray-500 hover:text-rose-600 hover:underline cursor-pointer"
-                              >
-                                @{post.author_username}
+                            {/* Enhanced Author Info */}
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs font-semibold text-slate-800 group-hover:text-slate-600 transition-colors">
+                                {post.author_name || post.author_username}
                               </span>
-                              <span className="text-gray-300">•</span>
-                              <div className="flex items-center gap-1 text-xs text-gray-500">
-                                <Clock className="w-3 h-3" />
-                                {formatTimeAgo(post.created_at)}
+                              {post.author_name && (
+                                <>
+                                  <div className="w-0.5 h-0.5 bg-slate-400 rounded-full"></div>
+                                  <span className="text-xs text-slate-500">@{post.author_username}</span>
+                                </>
+                              )}
+                              <div className="flex items-center gap-1 ml-auto">
+                                <TrendingUp className="w-2.5 h-2.5 text-orange-500" />
                               </div>
                             </div>
-                            <div className="flex items-center gap-3 mt-2">
-                              <div className="flex items-center gap-1">
-                                <Heart className="w-3.5 h-3.5 text-rose-500" />
-                                <span className="text-xs font-semibold text-gray-700">{post.likes_count || 0}</span>
+                            
+                            {/* Enhanced Content Preview */}
+                            <p className="text-xs font-medium text-slate-900 line-clamp-2 group-hover:text-slate-700 transition-colors leading-relaxed mb-2">
+                              {post.content.length > 65 ? post.content.substring(0, 65) + '...' : post.content}
+                            </p>
+                            
+                            {/* Enhanced Stats */}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <span className="flex items-center gap-1 text-xs text-slate-500 hover:text-red-500 transition-colors">
+                                  <Heart className="w-3 h-3" />
+                                  <span className="font-medium">{post.likes_count || 0}</span>
+                                </span>
+                                <span className="flex items-center gap-1 text-xs text-slate-500 hover:text-blue-500 transition-colors">
+                                  <MessageCircle className="w-3 h-3" />
+                                  <span className="font-medium">{post.comments_count || 0}</span>
+                                </span>
                               </div>
-                              <div className="flex items-center gap-1">
-                                <MessageCircle className="w-3.5 h-3.5 text-blue-500" />
-                                <span className="text-xs font-semibold text-gray-700">{post.comments_count || 0}</span>
+                              <div className="flex items-center gap-1 text-xs text-slate-400">
+                                <Clock className="w-3 h-3" />
+                                <span>{formatTimeAgo(post.created_at)}</span>
                               </div>
                             </div>
                           </div>
@@ -920,29 +1006,29 @@ const TrendingSidebar = ({ user }) => {
                 <div className="space-y-3">
                   {trendingBlogs.length === 0 ? (
                     <div className="text-center py-8">
-                      <FileText className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">No trending blogs yet</p>
+                      <FileText className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                      <p className="text-sm text-slate-500">No trending blogs yet</p>
                     </div>
                   ) : (
                     trendingBlogs.map((blog, index) => (
                       <div
                         key={blog.id}
-                        className="group p-3 rounded-xl hover:bg-gradient-to-r hover:from-amber-50 hover:to-orange-50 transition-all border border-transparent hover:border-amber-200"
+                        className="group p-3 rounded-xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-200"
                       >
                         <div className="flex items-start gap-2">
-                          <div className="w-6 h-6 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                          <div className="w-6 h-6 bg-gradient-to-br from-slate-600 to-slate-700 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                             {index + 1}
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 
                               onClick={() => navigate(`/blog/${blog.id}`)}
-                              className="text-sm font-bold text-gray-900 line-clamp-2 group-hover:text-amber-600 transition-colors leading-snug mb-1 cursor-pointer"
+                              className="text-sm font-bold text-slate-900 line-clamp-2 group-hover:text-slate-700 transition-colors leading-snug mb-1 cursor-pointer"
                             >
                               {blog.title}
                             </h4>
                             <p 
                               onClick={() => navigate(`/blog/${blog.id}`)}
-                              className="text-xs text-gray-600 line-clamp-1 mb-2 cursor-pointer"
+                              className="text-xs text-slate-600 line-clamp-1 mb-2 cursor-pointer"
                             >
                               {blog.excerpt}
                             </p>
@@ -952,19 +1038,19 @@ const TrendingSidebar = ({ user }) => {
                                   e.stopPropagation();
                                   navigate(`/profile/${blog.author_username}`);
                                 }}
-                                className="text-xs text-gray-500 hover:text-amber-600 hover:underline cursor-pointer"
+                                className="text-xs text-slate-500 hover:text-slate-700 hover:underline cursor-pointer"
                               >
                                 @{blog.author_username}
                               </span>
-                              <span className="text-gray-300">•</span>
-                              <div className="flex items-center gap-1 text-xs text-gray-500">
+                              <span className="text-slate-300">•</span>
+                              <div className="flex items-center gap-1 text-xs text-slate-500">
                                 <Clock className="w-3 h-3" />
                                 {formatTimeAgo(blog.created_at)}
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
                               {blog.tags && blog.tags.slice(0, 2).map((tag) => (
-                                <Badge key={tag} variant="secondary" className="text-xs py-0 px-2 bg-amber-100 text-amber-700 border-0">
+                                <Badge key={tag} variant="secondary" className="text-xs py-0 px-2 bg-slate-100 text-slate-700 border-0">
                                   {tag}
                                 </Badge>
                               ))}
@@ -982,26 +1068,26 @@ const TrendingSidebar = ({ user }) => {
                 <div className="space-y-3">
                   {trendingUsers.length === 0 ? (
                     <div className="text-center py-8">
-                      <Users className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">No trending users yet</p>
+                      <Users className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                      <p className="text-sm text-slate-500">No trending users yet</p>
                     </div>
                   ) : (
                     trendingUsers.map((trendingUser) => (
-                      <div key={trendingUser.id} className="flex items-center justify-between p-2 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all group border border-transparent hover:border-blue-200">
+                      <div key={trendingUser.id} className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition-all group border border-transparent hover:border-slate-200">
                         <Link to={`/profile/${trendingUser.username}`} className="flex items-center space-x-3 flex-1 min-w-0">
-                          <Avatar className="w-10 h-10 ring-2 ring-gray-100 group-hover:ring-blue-200 transition-all">
+                          <Avatar className="w-10 h-10 ring-2 ring-slate-100 group-hover:ring-slate-200 transition-all">
                             {trendingUser.avatar ? (
                               <img src={trendingUser.avatar} alt={trendingUser.username} className="w-full h-full object-cover" />
                             ) : (
-                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white font-semibold">
+                              <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white font-semibold">
                                 {trendingUser.username[0].toUpperCase()}
                               </AvatarFallback>
                             )}
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm truncate group-hover:text-blue-600 transition-colors">{trendingUser.name || trendingUser.username}</p>
-                            <p className="text-xs text-gray-500 truncate">@{trendingUser.username}</p>
-                            <p className="text-xs text-gray-400 flex items-center gap-1">
+                            <p className="font-semibold text-sm truncate group-hover:text-slate-700 transition-colors">{trendingUser.name || trendingUser.username}</p>
+                            <p className="text-xs text-slate-500 truncate">@{trendingUser.username}</p>
+                            <p className="text-xs text-slate-400 flex items-center gap-1">
                               <Users className="w-3 h-3" />
                               {trendingUser.followers_count || 0} followers
                             </p>
@@ -1011,7 +1097,7 @@ const TrendingSidebar = ({ user }) => {
                           <Button 
                             size="sm" 
                             onClick={() => handleFollow(trendingUser.id)}
-                            className="ml-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs h-7 px-3 shadow-md"
+                            className="ml-2 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white text-xs h-7 px-3 shadow-md"
                           >
                             Follow
                           </Button>
@@ -1032,21 +1118,61 @@ const TrendingSidebar = ({ user }) => {
 const HomePage = ({ user }) => {
   const [feed, setFeed] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [initialTab, setInitialTab] = useState('post');
 
   useEffect(() => {
-    fetchFeed();
+    fetchFeed(true);
   }, []);
 
-  const fetchFeed = async () => {
+  // Infinite scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight || loadingMore || !hasMore) {
+        return;
+      }
+      
+      // Load more when user is near bottom (within 100px)
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+        fetchFeed(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [loadingMore, hasMore, page]);
+
+  const fetchFeed = async (reset = false) => {
     try {
-      const response = await axios.get(`${API}/feed`);
-      setFeed(response.data);
+      if (reset) {
+        setLoading(true);
+        setPage(0);
+      } else {
+        setLoadingMore(true);
+      }
+
+      const currentPage = reset ? 0 : page;
+      const skip = currentPage * 10;
+      
+      const response = await axios.get(`${API}/feed?skip=${skip}&limit=10`);
+      const newFeed = response.data;
+      
+      if (reset) {
+        setFeed(newFeed);
+      } else {
+        setFeed(prevFeed => [...prevFeed, ...newFeed]);
+      }
+      
+      setHasMore(newFeed.length === 10);
+      setPage(currentPage + 1);
     } catch (error) {
       toast.error('Failed to load feed');
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -1057,81 +1183,101 @@ const HomePage = ({ user }) => {
       } else {
         await axios.post(`${API}/likes/${item.type}/${item.id}`);
       }
-      fetchFeed();
+      
+      // Update the item in feed without refetching entire feed
+      setFeed(prevFeed => 
+        prevFeed.map(feedItem => 
+          feedItem.id === item.id && feedItem.type === item.type
+            ? {
+                ...feedItem, 
+                liked_by_user: !feedItem.liked_by_user,
+                likes_count: feedItem.liked_by_user 
+                  ? (feedItem.likes_count || 1) - 1 
+                  : (feedItem.likes_count || 0) + 1
+              }
+            : feedItem
+        )
+      );
     } catch (error) {
       toast.error('Failed to update like');
     }
+  };
+
+  const handleComment = () => {
+    // Refresh feed to get updated comment counts
+    fetchFeed(true);
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your feed...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-600 mx-auto"></div>
+          <p className="mt-4 text-slate-600">Loading your feed...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 pt-24 pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-24 pb-12">
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Feed */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-3">
             {/* Stories Section */}
-            <Card className="overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+            <Card className="overflow-hidden shadow-sm hover:shadow-md transition-shadow border-slate-200 bg-white">
               <CardContent className="p-6">
                 <Stories user={user} />
               </CardContent>
             </Card>
 
+            {/* Separator */}
+            <div className="border-b border-slate-300"></div>
+
             {/* Create Post Box - Facebook Style */}
-            <Card className="shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <Avatar className="w-10 h-10 ring-2 ring-gray-100">
-                    <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white">
-                      {user.username[0].toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <button
-                    onClick={() => {
-                      setInitialTab('post');
-                      setShowCreateModal(true);
-                    }}
-                    className="flex-1 text-left px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-500 transition-all duration-200 hover:shadow-sm"
-                    data-testid="whats-on-mind-btn"
-                  >
-                    What's on your mind, {user.username}?
-                  </button>
-                </div>
-                <div className="flex items-center justify-around mt-4 pt-4 border-t border-gray-100">
-                  <button
-                    onClick={() => {
-                      setInitialTab('blog');
-                      setShowCreateModal(true);
-                    }}
-                    className="flex items-center space-x-2 px-4 py-2 hover:bg-rose-50 rounded-lg transition-all group flex-1 justify-center"
-                  >
-                    <FileText className="w-5 h-5 text-rose-600 group-hover:scale-110 transition-transform" />
-                    <span className="font-medium text-gray-700 group-hover:text-rose-600 hidden sm:inline transition-colors">Blog Article</span>
-                  </button>
-                  <div className="w-px h-8 bg-gray-200"></div>
-                  <button
-                    onClick={() => {
-                      setInitialTab('post');
-                      setShowCreateModal(true);
-                    }}
-                    className="flex items-center space-x-2 px-4 py-2 hover:bg-blue-50 rounded-lg transition-all group flex-1 justify-center"
-                  >
-                    <MessageCircle className="w-5 h-5 text-blue-600 group-hover:scale-110 transition-transform" />
-                    <span className="font-medium text-gray-700 group-hover:text-blue-600 hidden sm:inline transition-colors">Quick Post</span>
-                  </button>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="bg-white shadow-sm hover:shadow-md transition-shadow rounded-lg p-4 border border-slate-200">
+              <div className="flex items-center space-x-3">
+                <Avatar className="w-10 h-10 ring-2 ring-slate-200">
+                  <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white">
+                    {user.username[0].toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <button
+                  onClick={() => {
+                    setInitialTab('post');
+                    setShowCreateModal(true);
+                  }}
+                  className="flex-1 text-left px-4 py-3 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-600 transition-all duration-200 hover:shadow-sm border border-slate-200"
+                  data-testid="whats-on-mind-btn"
+                >
+                  What's on your mind, {user.username}?
+                </button>
+              </div>
+              <div className="flex items-center justify-around mt-4 pt-4 border-t border-slate-200">
+                <button
+                  onClick={() => {
+                    setInitialTab('blog');
+                    setShowCreateModal(true);
+                  }}
+                  className="flex items-center space-x-2 px-4 py-2 hover:bg-slate-100 rounded-lg transition-all group flex-1 justify-center border border-transparent hover:border-slate-200"
+                >
+                  <FileText className="w-5 h-5 text-slate-600 group-hover:scale-110 transition-transform" />
+                  <span className="font-medium text-slate-700 group-hover:text-slate-800 hidden sm:inline transition-colors">Blog Article</span>
+                </button>
+                <div className="w-px h-8 bg-slate-300"></div>
+                <button
+                  onClick={() => {
+                    setInitialTab('post');
+                    setShowCreateModal(true);
+                  }}
+                  className="flex items-center space-x-2 px-4 py-2 hover:bg-slate-100 rounded-lg transition-all group flex-1 justify-center border border-transparent hover:border-slate-200"
+                >
+                  <MessageCircle className="w-5 h-5 text-slate-600 group-hover:scale-110 transition-transform" />
+                  <span className="font-medium text-slate-700 group-hover:text-slate-800 hidden sm:inline transition-colors">Quick Post</span>
+                </button>
+              </div>
+            </div>
 
             {/* Create Modal */}
             <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
@@ -1140,32 +1286,73 @@ const HomePage = ({ user }) => {
               </DialogContent>
             </Dialog>
 
+            {/* Separator */}
+            <div className="border-b border-slate-300"></div>
+
             {/* Feed Content */}
-            {feed.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <p className="text-gray-600">No posts yet. Share something with your network!</p>
-                </CardContent>
-              </Card>
+            {feed.length === 0 && !loading ? (
+              <div className="bg-white shadow-sm rounded-lg text-center py-12 px-4 border border-slate-200">
+                <MessageCircle className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-slate-700 mb-2">Your feed is empty</h3>
+                <p className="text-slate-600 mb-4">Follow some people or create your first post to get started!</p>
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105"
+                >
+                  Create Your First Post
+                </button>
+              </div>
             ) : (
-              feed.map((item, index) => (
-                <div key={`${item.type}-${item.id}`}>
-                  {item.type === 'blog' ? (
-                    <BlogCard blog={item} onLike={() => handleLike(item)} />
-                  ) : (
-                    <PostCard post={item} onLike={() => handleLike(item)} onComment={fetchFeed} />
-                  )}
-                  {/* Insert ad every 3 posts */}
-                  {(index + 1) % 3 === 0 && index < feed.length - 1 && (
-                    <AdCard key={`ad-${index}`} adIndex={Math.floor(index / 3)} />
-                  )}
-                </div>
-              ))
+              <>
+                {feed.map((item, index) => (
+                  <div key={`${item.type}-${item.id}-${index}`} className="space-y-3">
+                    {item.type === 'blog' ? (
+                      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/50 hover:border-slate-300/50 transition-all duration-300 hover:shadow-lg overflow-hidden">
+                        <BlogCard blog={item} onLike={() => handleLike(item)} />
+                      </div>
+                    ) : (
+                      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/50 hover:border-slate-300/50 transition-all duration-300 hover:shadow-lg overflow-hidden">
+                        <PostCard post={item} onLike={() => handleLike(item)} onComment={handleComment} />
+                      </div>
+                    )}
+                    
+                    {/* Enhanced Ad Placement */}
+                    {(index + 1) % 5 === 0 && index < feed.length - 1 && (
+                      <div className="my-6">
+                        <div className="bg-gradient-to-r from-slate-100 to-slate-50 rounded-2xl border-2 border-dashed border-slate-300 p-6">
+                          <AdCard key={`ad-${Math.floor(index / 5)}`} adIndex={Math.floor(index / 5)} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                
+                {/* Infinite Scroll Loading Indicator */}
+                {loadingMore && (
+                  <div className="text-center py-8">
+                    <div className="inline-flex items-center px-6 py-3 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-full shadow-lg">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-600 mr-3"></div>
+                      <span className="text-slate-600 font-medium">Loading more posts...</span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* End of Feed Indicator */}
+                {!hasMore && feed.length > 0 && (
+                  <div className="text-center py-12">
+                    <div className="inline-flex items-center px-6 py-3 bg-slate-100 rounded-full">
+                      <Heart className="w-5 h-5 text-slate-500 mr-2" />
+                      <span className="text-slate-600 font-medium">You're all caught up!</span>
+                    </div>
+                    <p className="text-slate-500 text-sm mt-2">You've seen all the latest posts from your network</p>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
           {/* Sidebar */}
-          <div className="hidden lg:block space-y-6">
+          <div className="hidden lg:block space-y-3">
             <TrendingSidebar user={user} />
           </div>
         </div>
@@ -1207,32 +1394,77 @@ const BlogsPage = ({ user }) => {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center pt-20">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-600 mx-auto mb-4"></div>
+          <p className="text-slate-600 font-medium">Loading articles...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 pt-24 pb-12">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Blog Articles</h1>
-          <p className="text-gray-600">Discover thoughtful long-form content</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-20 pb-12">
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Futuristic Header */}
+        <div className="relative mb-8 overflow-hidden">
+          <div className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-600 rounded-2xl p-6 sm:p-8">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-y-1"></div>
+            <div className="relative z-10">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-white/20 to-white/5 rounded-xl flex items-center justify-center mr-4">
+                  <FileText className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Blog Articles</h1>
+                  <p className="text-slate-200 text-sm sm:text-base">Discover thoughtful long-form content</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-4 text-slate-200 text-sm">
+                <span className="flex items-center">
+                  <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                  Fresh Articles
+                </span>
+                <span>•</span>
+                <span>{blogs.length} articles available</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Enhanced Blog Grid */}
+        {blogs.length === 0 ? (
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/50 text-center py-16 px-8">
+            <div className="w-20 h-20 bg-gradient-to-br from-slate-600 to-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <FileText className="w-10 h-10 text-white" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-800 mb-3">No articles yet</h3>
+            <p className="text-slate-600 mb-6 max-w-md mx-auto leading-relaxed">
+              Be the first to share your thoughts and expertise with the community through a detailed blog article.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {blogs.map((blog, index) => (
-              <div key={blog.id}>
-                <BlogCard blog={blog} onLike={() => handleLike(blog)} compact />
-                {/* Insert ad every 6 blogs */}
+              <div key={blog.id} className="group">
+                {/* Enhanced Blog Card Container */}
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/50 hover:border-slate-300/50 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/50 overflow-hidden group-hover:transform group-hover:scale-105">
+                  <BlogCard blog={blog} onLike={() => handleLike(blog)} compact />
+                </div>
+                
+                {/* Enhanced Ad Placement */}
                 {(index + 1) % 6 === 0 && index < blogs.length - 1 && (
-                  <div className="md:col-span-2 mt-6">
-                    <AdCard adIndex={Math.floor(index / 6)} />
+                  <div className="md:col-span-2 lg:col-span-3 mt-8">
+                    <div className="bg-gradient-to-r from-slate-100 to-slate-50 rounded-2xl border-2 border-dashed border-slate-300 p-8">
+                      <AdCard adIndex={Math.floor(index / 6)} />
+                    </div>
                   </div>
                 )}
               </div>
             ))}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -1298,139 +1530,203 @@ const BlogDetailPage = ({ user }) => {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center pt-20">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-600 mx-auto mb-4"></div>
+          <p className="text-slate-600 font-medium">Loading article...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!blog) {
-    return <div className="min-h-screen flex items-center justify-center">Blog not found</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center pt-20">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-slate-600 to-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <FileText className="w-8 h-8 text-white" />
+          </div>
+          <h3 className="text-xl font-bold text-slate-800 mb-2">Article not found</h3>
+          <p className="text-slate-600">This article may have been removed or doesn't exist.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-amber-50 pt-24 pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-20 pb-12">
       <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back Button */}
+        {/* Enhanced Back Button */}
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
-          className="mb-6 hover:bg-gray-100"
+          className="mb-8 hover:bg-slate-100 text-slate-600 hover:text-slate-800 transition-all duration-300 group"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
+          <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+          Back to Articles
         </Button>
 
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-6">
-            <Link to={`/profile/${blog.author_username}`}>
-              <Avatar className="w-12 h-12 sm:w-14 sm:h-14">
-                <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-white">
-                  {blog.author_username[0].toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-            </Link>
-            <div>
-              <Link to={`/profile/${blog.author_username}`} className="font-semibold text-base sm:text-lg hover:underline">
-                {blog.author_username}
-              </Link>
-              <p className="text-xs sm:text-sm text-gray-500">
-                {new Date(blog.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-              </p>
-            </div>
-          </div>
-
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight text-gray-900" style={{fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"}}>
-            {blog.title}
-          </h1>
-          
-          <div className="flex flex-wrap gap-2 mb-6">
-            {blog.tags.map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-xs sm:text-sm">{tag}</Badge>
-            ))}
-          </div>
-
-          {blog.cover_image && (
-            <img src={blog.cover_image} alt={blog.title} className="w-full h-48 sm:h-64 md:h-80 lg:h-96 object-cover rounded-xl shadow-lg mb-6" />
-          )}
-        </div>
-
-        <div className="mb-12">
-          <div 
-            className="text-gray-800 text-base sm:text-lg leading-relaxed sm:leading-loose whitespace-pre-wrap break-words" 
-            style={{
-              fontFamily: "'Georgia', 'Charter', 'Iowan Old Style', 'Times New Roman', serif",
-              fontSize: 'clamp(1rem, 2.5vw, 1.125rem)',
-              lineHeight: '1.75',
-              letterSpacing: '0.01em'
-            }}
-            data-testid="blog-content"
-          >
-            {blog.content}
-          </div>
-        </div>
-
-        <div className="border-t border-b py-4 sm:py-6 mb-8 bg-white/50 backdrop-blur-sm rounded-lg px-4">
-          <div className="flex items-center justify-around sm:justify-start sm:space-x-12">
-            <button
-              onClick={handleLike}
-              className={`flex items-center space-x-2 ${blog.liked_by_user ? 'text-rose-600' : 'text-gray-600 hover:text-rose-600'} transition-colors`}
-              data-testid="like-blog-detail-btn"
-            >
-              <Heart className={`w-5 h-5 sm:w-6 sm:h-6 ${blog.liked_by_user ? 'fill-current' : ''}`} />
-              <span className="font-semibold text-sm sm:text-base">{blog.likes_count}</span>
-            </button>
-            <div className="flex items-center space-x-2 text-gray-600">
-              <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span className="font-semibold text-sm sm:text-base">{blog.comments_count}</span>
-            </div>
-            <button className="flex items-center space-x-2 text-gray-600 hover:text-green-600 transition-colors">
-              <Share2 className="w-5 h-5 sm:w-6 sm:h-6" />
-            </button>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900" style={{fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"}}>
-            Comments
-          </h2>
-          
-          {user && (
-            <div className="flex space-x-3">
-              <Avatar>
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-teal-500 text-white">
-                  {user.username[0].toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <Textarea
-                  placeholder="Add a comment..."
-                  value={commentContent}
-                  onChange={(e) => setCommentContent(e.target.value)}
-                  rows={3}
-                  data-testid="blog-comment-input"
-                />
-                <Button onClick={handleComment} className="mt-2" data-testid="blog-comment-submit-btn">
-                  Post Comment
-                </Button>
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-4">
-            {comments.map((comment) => (
-              <div key={comment.id} className="flex space-x-3 bg-gray-50 p-4 rounded-lg">
-                <Avatar>
-                  <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
-                    {comment.username[0].toUpperCase()}
+        {/* Enhanced Article Container */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl border border-slate-200/50 shadow-xl overflow-hidden">
+          {/* Article Header */}
+          <div className="p-8 sm:p-12">
+            <div className="flex items-center space-x-4 mb-8">
+              <Link to={`/profile/${blog.author_username}`}>
+                <Avatar className="w-14 h-14 ring-4 ring-slate-200 hover:ring-slate-300 transition-all">
+                  <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white text-lg font-bold">
+                    {blog.author_username[0].toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1">
-                  <p className="font-semibold">{comment.username}</p>
-                  <p className="text-sm text-gray-500 mb-1">
-                    {new Date(comment.created_at).toLocaleDateString()}
-                  </p>
-                  <p className="text-gray-700">{comment.content}</p>
+              </Link>
+              <div>
+                <Link to={`/profile/${blog.author_username}`} className="font-bold text-lg text-slate-800 hover:text-slate-600 hover:underline transition-colors">
+                  {blog.author_username}
+                </Link>
+                <p className="text-sm text-slate-500 flex items-center">
+                  <Calendar className="w-4 h-4 mr-1" />
+                  {new Date(blog.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                </p>
+              </div>
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight text-slate-900" style={{fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"}}>
+              {blog.title}
+            </h1>
+            
+            <div className="flex flex-wrap gap-2 mb-8">
+              {blog.tags.map((tag) => (
+                <Badge key={tag} className="bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors border-0 px-3 py-1">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+
+            {blog.cover_image && (
+              <div className="relative mb-8 rounded-2xl overflow-hidden group">
+                <img 
+                  src={blog.cover_image} 
+                  alt={blog.title} 
+                  className="w-full h-64 sm:h-80 md:h-96 object-cover group-hover:scale-105 transition-transform duration-700" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </div>
+            )}
+          </div>
+
+          {/* Enhanced Article Content */}
+          <div className="px-8 sm:px-12 pb-8">
+            <div 
+              className="text-slate-800 text-base sm:text-lg leading-relaxed sm:leading-loose whitespace-pre-wrap break-words" 
+              style={{
+                fontFamily: "'Georgia', 'Charter', 'Iowan Old Style', 'Times New Roman', serif",
+                fontSize: 'clamp(1rem, 2.5vw, 1.125rem)',
+                lineHeight: '1.8',
+                letterSpacing: '0.01em'
+              }}
+              data-testid="blog-content"
+            >
+              {blog.content}
+            </div>
+          </div>
+
+          {/* Enhanced Interaction Bar */}
+          <div className="border-t border-slate-200 bg-slate-50/50 px-8 sm:px-12 py-6">
+            <div className="flex items-center justify-center sm:justify-start gap-8">
+              <button
+                onClick={handleLike}
+                className={`flex items-center space-x-3 px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105 ${
+                  blog.liked_by_user 
+                    ? 'text-red-600 bg-red-50 hover:bg-red-100' 
+                    : 'text-slate-600 hover:text-red-600 hover:bg-red-50'
+                }`}
+                data-testid="like-blog-detail-btn"
+              >
+                <Heart className={`w-6 h-6 ${blog.liked_by_user ? 'fill-current' : ''}`} />
+                <span className="font-semibold">{blog.likes_count}</span>
+              </button>
+              
+              <div className="flex items-center space-x-3 px-4 py-2 text-slate-600">
+                <MessageCircle className="w-6 h-6" />
+                <span className="font-semibold">{blog.comments_count}</span>
+              </div>
+              
+              <button className="flex items-center space-x-3 px-4 py-2 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300 hover:scale-105">
+                <Share2 className="w-6 h-6" />
+                <span className="font-semibold hidden sm:inline">Share</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced Comments Section */}
+        <div className="mt-12 space-y-8">
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/50 p-8">
+            <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+              <MessageCircle className="w-6 h-6 mr-3 text-slate-600" />
+              Comments
+            </h2>
+            
+            {user && (
+              <div className="mb-8 p-6 bg-slate-50 rounded-xl border border-slate-200">
+                <div className="flex space-x-4">
+                  <Avatar className="ring-2 ring-slate-200">
+                    <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white font-semibold">
+                      {user.username[0].toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <Textarea
+                      placeholder="Share your thoughts on this article..."
+                      value={commentContent}
+                      onChange={(e) => setCommentContent(e.target.value)}
+                      rows={4}
+                      className="border-slate-300 focus:border-slate-500 focus:ring-slate-500/20 bg-white"
+                      data-testid="blog-comment-input"
+                    />
+                    <Button 
+                      onClick={handleComment} 
+                      className="mt-4 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 transition-all duration-300" 
+                      data-testid="blog-comment-submit-btn"
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Post Comment
+                    </Button>
+                  </div>
                 </div>
               </div>
-            ))}
+            )}
+
+            {/* Enhanced Comments List */}
+            <div className="space-y-6">
+              {comments.length === 0 ? (
+                <div className="text-center py-12">
+                  <MessageCircle className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-slate-600 mb-2">No comments yet</h3>
+                  <p className="text-slate-500">Be the first to share your thoughts on this article!</p>
+                </div>
+              ) : (
+                comments.map((comment) => (
+                  <div key={comment.id} className="flex space-x-4 bg-white rounded-xl p-6 border border-slate-200 hover:border-slate-300 transition-colors">
+                    <Avatar className="ring-2 ring-slate-200">
+                      <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white font-semibold">
+                        {comment.username[0].toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <p className="font-bold text-slate-800">{comment.username}</p>
+                        <div className="w-1 h-1 bg-slate-400 rounded-full"></div>
+                        <p className="text-sm text-slate-500">
+                          {new Date(comment.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <p className="text-slate-700 leading-relaxed">{comment.content}</p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </article>
@@ -1961,48 +2257,149 @@ const TrendingPage = ({ user }) => {
     return (
       <div className="min-h-screen flex items-center justify-center pt-20">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading trending content...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-600 mx-auto"></div>
+          <p className="mt-4 text-slate-600">Loading trending content...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 pt-24 pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-20 pb-12">
       <div className="max-w-6xl mx-auto px-4">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Trending</h1>
-          <p className="text-gray-600">Discover the most popular content on PenLink</p>
+        {/* Futuristic Header */}
+        <div className="relative mb-8 overflow-hidden">
+          <div className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-600 rounded-2xl p-6 sm:p-8">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-y-1"></div>
+            <div className="relative z-10">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-white/20 to-white/5 rounded-xl flex items-center justify-center mr-4">
+                  <TrendingUp className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Trending Now</h1>
+                  <p className="text-slate-200 text-sm sm:text-base">What's happening right now</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-4 text-slate-200 text-sm">
+                <span className="flex items-center">
+                  <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                  Live Updates
+                </span>
+                <span>•</span>
+                <span>{trendingPosts.length + trendingBlogs.length} trending items</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Trending Posts */}
-          <div className="lg:col-span-2 space-y-6">
-            <div>
-              <h2 className="text-2xl font-semibold mb-4 flex items-center">
-                <MessageCircle className="w-6 h-6 mr-2 text-purple-600" />
-                Trending Posts
-              </h2>
-              <div className="space-y-4">
+          <div className="lg:col-span-2">
+            <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/50 overflow-hidden">
+              {/* Modern Tab Header */}
+              <div className="bg-gradient-to-r from-slate-600 to-slate-700 px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                      <MessageCircle className="w-4 h-4 text-white" />
+                    </div>
+                    <h2 className="text-lg font-semibold text-white">Hot Posts</h2>
+                  </div>
+                  <Badge className="bg-white/20 text-white border-white/30">
+                    {trendingPosts.length}
+                  </Badge>
+                </div>
+              </div>
+              
+              {/* Posts Content */}
+              <div className="p-4 space-y-3">
                 {trendingPosts.map((post, index) => (
-                  <Card key={post.id} className="relative">
-                    <div className="absolute top-4 left-4">
-                      <Badge className="bg-gradient-to-r from-purple-500 to-pink-500">
-                        #{index + 1}
-                      </Badge>
+                  <div 
+                    key={post.id} 
+                    className="group relative p-4 rounded-xl hover:bg-gradient-to-r hover:from-slate-50 hover:to-white transition-all duration-300 border border-transparent hover:border-slate-200 cursor-pointer hover:shadow-md"
+                    onClick={() => window.location.href = `/post/${post.id}`}
+                  >
+                    {/* Trending Glow Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-slate-600/5 to-slate-700/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    
+                    <div className="relative flex items-start gap-3">
+                      {/* Enhanced Rank Badge with Trending Icon */}
+                      <div className="relative flex-shrink-0">
+                        <div className="w-7 h-7 bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                          <span className="text-white text-xs font-bold">{index + 1}</span>
+                        </div>
+                        {/* Trending Fire Icon */}
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center">
+                          <Flame className="w-2.5 h-2.5 text-white" />
+                        </div>
+                      </div>
+                      
+                      {/* Enhanced Profile Photo */}
+                      <Avatar className="w-9 h-9 ring-2 ring-slate-200 group-hover:ring-slate-300 transition-all duration-300 flex-shrink-0">
+                        {post.author_avatar ? (
+                          <img src={post.author_avatar} alt={post.author_name || post.author_username} className="w-full h-full object-cover" />
+                        ) : (
+                          <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white text-sm font-semibold">
+                            {(post.author_name || post.author_username)[0].toUpperCase()}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      
+                      {/* Enhanced Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-sm font-semibold text-slate-800 group-hover:text-slate-700 transition-colors">
+                            {post.author_name || post.author_username}
+                          </span>
+                          {post.author_name && (
+                            <>
+                              <div className="w-1 h-1 bg-slate-400 rounded-full"></div>
+                              <span className="text-xs text-slate-500">@{post.author_username}</span>
+                            </>
+                          )}
+                          <div className="w-1 h-1 bg-slate-400 rounded-full"></div>
+                          <div className="flex items-center gap-1">
+                            <TrendingUp className="w-3 h-3 text-orange-500" />
+                            <span className="text-xs text-slate-500 font-medium">trending</span>
+                          </div>
+                        </div>
+                        
+                        {/* Enhanced Content Preview */}
+                        <p className="text-sm text-slate-700 line-clamp-2 group-hover:text-slate-600 transition-colors leading-relaxed mb-3 font-medium">
+                          {post.content.length > 85 ? post.content.substring(0, 85) + '...' : post.content}
+                        </p>
+                        
+                        {/* Enhanced Stats */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <span className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-red-500 transition-colors">
+                              <Heart className="w-3.5 h-3.5" />
+                              <span className="font-medium">{post.likes_count || 0}</span>
+                            </span>
+                            <span className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-blue-500 transition-colors">
+                              <MessageCircle className="w-3.5 h-3.5" />
+                              <span className="font-medium">{post.comments_count || 0}</span>
+                            </span>
+                            {post.created_at && (
+                              <span className="flex items-center gap-1 text-xs text-slate-400">
+                                <Clock className="w-3 h-3" />
+                                <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                              </span>
+                            )}
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all duration-300" />
+                        </div>
+                      </div>
                     </div>
-                    <div className="pt-12">
-                      <PostCard post={post} onLike={() => handleLike({ ...post, type: 'post' })} onComment={fetchTrendingContent} />
-                    </div>
-                  </Card>
+                  </div>
                 ))}
                 {trendingPosts.length === 0 && (
-                  <Card>
-                    <CardContent className="text-center py-12 text-gray-600">
-                      No trending posts yet
-                    </CardContent>
-                  </Card>
+                  <div className="bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-dashed border-slate-300 rounded-xl p-8 sm:p-12 text-center">
+                    <MessageCircle className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                    <p className="text-slate-600 font-medium">No trending posts yet</p>
+                    <p className="text-slate-500 text-sm mt-1">Be the first to create viral content!</p>
+                  </div>
                 )}
               </div>
             </div>
@@ -2010,47 +2407,79 @@ const TrendingPage = ({ user }) => {
 
           {/* Trending Blogs Sidebar */}
           <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-semibold mb-4 flex items-center">
-                <FileText className="w-5 h-5 mr-2 text-pink-600" />
-                Trending Blogs
-              </h2>
-              <div className="space-y-4">
+            {/* Blog Section */}
+            <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/50 overflow-hidden">
+              {/* Modern Header */}
+              <div className="bg-gradient-to-r from-slate-600 to-slate-700 px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
+                      <FileText className="w-4 h-4 text-white" />
+                    </div>
+                    <h2 className="text-base font-semibold text-white">Hot Reads</h2>
+                  </div>
+                  <Badge className="bg-white/20 text-white border-white/30 text-xs">
+                    {trendingBlogs.length}
+                  </Badge>
+                </div>
+              </div>
+              
+              {/* Blogs Content */}
+              <div className="p-4 space-y-3">
                 {trendingBlogs.map((blog, index) => (
-                  <Card key={blog.id} className="hover:shadow-lg transition-all cursor-pointer" onClick={() => window.location.href = `/blog/${blog.id}`}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <Badge variant="outline" className="text-xs">
-                          #{index + 1}
-                        </Badge>
-                        <Avatar className="w-6 h-6">
-                          <AvatarFallback className="text-xs bg-gradient-to-br from-pink-500 to-purple-500 text-white">
+                  <div key={blog.id} className="group relative">
+                    {/* Floating Rank Badge */}
+                    <div className="absolute -top-1 -left-1 z-10">
+                      <div className="w-6 h-6 bg-gradient-to-br from-slate-600 to-slate-700 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                        <span className="text-white text-xs font-bold">{index + 1}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Blog Card */}
+                    <div 
+                      className="bg-gradient-to-br from-white to-slate-50 border border-slate-200 rounded-xl p-4 hover:shadow-lg hover:border-slate-300 transition-all duration-300 cursor-pointer group-hover:transform group-hover:scale-105 group-hover:bg-gradient-to-br group-hover:from-slate-50 group-hover:to-white" 
+                      onClick={() => window.location.href = `/blog/${blog.id}`}
+                    >
+                      {/* Author Info */}
+                      <div className="flex items-center space-x-2 mb-3">
+                        <Avatar className="w-6 h-6 ring-2 ring-slate-200">
+                          <AvatarFallback className="text-xs bg-gradient-to-br from-slate-600 to-slate-700 text-white">
                             {blog.author_username[0].toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="text-sm font-medium text-gray-600">{blog.author_username}</span>
+                        <span className="text-sm font-medium text-slate-700">{blog.author_username}</span>
+                        <div className="w-1 h-1 bg-slate-400 rounded-full"></div>
+                        <span className="text-xs text-slate-500">trending</span>
                       </div>
-                      <h3 className="font-semibold text-sm line-clamp-2 mb-2">{blog.title}</h3>
-                      <div className="flex items-center space-x-3 text-xs text-gray-500">
-                        <span className="flex items-center">
-                          <Heart className="w-3 h-3 mr-1" />
-                          {blog.likes_count || 0}
-                        </span>
-                        <span className="flex items-center">
-                          <MessageCircle className="w-3 h-3 mr-1" />
-                          {blog.comments_count || 0}
-                        </span>
+                      
+                      {/* Title */}
+                      <h3 className="font-semibold text-sm line-clamp-2 mb-3 text-slate-800 group-hover:text-slate-900">{blog.title}</h3>
+                      
+                      {/* Stats with Modern Design */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3 text-xs">
+                          <span className="flex items-center bg-red-50 text-red-600 px-2 py-1 rounded-full">
+                            <Heart className="w-3 h-3 mr-1" />
+                            {blog.likes_count || 0}
+                          </span>
+                          <span className="flex items-center bg-blue-50 text-blue-600 px-2 py-1 rounded-full">
+                            <MessageCircle className="w-3 h-3 mr-1" />
+                            {blog.comments_count || 0}
+                          </span>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 ))}
                 {trendingBlogs.length === 0 && (
-                  <Card>
-                    <CardContent className="text-center py-8 text-gray-600">
-                      <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                      <p className="text-sm">No trending blogs yet</p>
-                    </CardContent>
-                  </Card>
+                  <div className="bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-dashed border-slate-300 rounded-xl p-6 text-center">
+                    <div className="w-12 h-12 bg-gradient-to-br from-slate-600 to-slate-700 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <FileText className="w-6 h-6 text-white" />
+                    </div>
+                    <p className="text-sm font-medium text-slate-600 mb-1">No trending blogs yet</p>
+                    <p className="text-xs text-slate-500">Write something amazing!</p>
+                  </div>
                 )}
               </div>
             </div>
@@ -2089,255 +2518,328 @@ const AuthPage = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Header with Logo */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-slate-200/30 to-slate-300/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float"></div>
+        <div className="absolute top-40 right-10 w-96 h-96 bg-gradient-to-br from-slate-300/20 to-slate-400/30 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float-delayed"></div>
+        <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-br from-slate-200/40 to-slate-300/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float-slow"></div>
+      </div>
+
+      {/* Futuristic Header */}
+      <header className="relative z-10 bg-white/80 backdrop-blur-lg border-b border-slate-200/50 shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-xl">P</span>
+            <div className="flex items-center space-x-4">
+              {/* Animated Logo */}
+              <div className="relative">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-600 via-slate-700 to-slate-600 flex items-center justify-center shadow-2xl transform hover:scale-110 transition-all duration-300">
+                  <span className="text-white font-bold text-2xl animate-pulse">P</span>
+                </div>
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-700 opacity-20 blur-lg animate-pulse"></div>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">
-                PenLink
-              </h1>
+              <div>
+                <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-600 via-slate-700 to-slate-600 bg-clip-text text-transparent">
+                  PenLink
+                </h1>
+                <p className="text-sm text-slate-500 font-medium">Where thoughts meet community</p>
+              </div>
+            </div>
+            
+            {/* Live Status Indicator */}
+            <div className="hidden sm:flex items-center space-x-2 bg-slate-100 px-4 py-2 rounded-full">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-xs font-medium text-slate-600">Live Platform</span>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="relative min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-8 sm:py-12">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-white/20 backdrop-blur-sm"></div>
-        <div className="absolute top-0 left-0 w-96 h-96 bg-rose-300/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-amber-300/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse delay-1000"></div>
-        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-teal-300/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse delay-2000"></div>
-
-        <div className="relative w-full max-w-6xl">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            {/* Left Side - Branding & Information */}
+      <div className="relative z-10 min-h-[calc(100vh-100px)] flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-7xl">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Side - Enhanced Branding */}
             <div className="hidden lg:block">
-              <div className="max-w-lg">
-                <h2 className="text-4xl font-bold text-gray-800 mb-4">
-                  Where thoughts meet community
-                </h2>
-                
-                <p className="text-xl text-gray-600 mb-6 leading-relaxed">
-                  PenLink bridges the gap between professional blogging and social connection. Share your expertise through in-depth articles, engage in quick conversations, and build meaningful relationships with creators worldwide.
-                </p>
-
-                <div className="bg-white/60 rounded-2xl p-6 mb-8 border border-gray-100 shadow-lg">
-                  <h3 className="font-bold text-gray-800 text-lg mb-3">🚀 What makes PenLink special?</h3>
-                  <ul className="space-y-2 text-gray-700">
-                    <li className="flex items-start space-x-2">
-                      <span className="text-rose-500 font-bold">•</span>
-                      <span><strong>Hybrid Platform:</strong> Long-form blogs + quick social posts in one place</span>
-                    </li>
-                    <li className="flex items-start space-x-2">
-                      <span className="text-amber-500 font-bold">•</span>
-                      <span><strong>Smart Discovery:</strong> AI-powered trending algorithm finds the best content</span>
-                    </li>
-                    <li className="flex items-start space-x-2">
-                      <span className="text-teal-500 font-bold">•</span>
-                      <span><strong>Creator Focus:</strong> Tools designed for writers, bloggers, and thought leaders</span>
-                    </li>
-                  </ul>
+              <div className="max-w-lg space-y-8">
+                {/* Main Heading */}
+                <div className="space-y-4">
+                  <h2 className="text-5xl font-bold text-slate-800 leading-tight">
+                    Where thoughts meet 
+                    <span className="bg-gradient-to-r from-slate-600 to-slate-700 bg-clip-text text-transparent">
+                      community
+                    </span>
+                  </h2>
+                  
+                  <p className="text-xl text-slate-600 leading-relaxed">
+                    PenLink bridges professional blogging with social connection. Share expertise, engage in conversations, and build meaningful relationships.
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 gap-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-teal-500 flex items-center justify-center flex-shrink-0">
+                {/* Feature Highlights Card */}
+                <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-slate-200/50 shadow-xl">
+                  <h3 className="font-bold text-slate-800 text-xl mb-6 flex items-center">
+                    <div className="w-8 h-8 bg-gradient-to-br from-slate-600 to-slate-700 rounded-lg flex items-center justify-center mr-3">
+                      <Sparkles className="w-4 h-4 text-white" />
+                    </div>
+                    What makes us special?
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-gradient-to-br from-slate-600 to-slate-700 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-white text-xs font-bold">1</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-slate-800">Hybrid Platform:</span>
+                        <span className="text-slate-600 ml-1">Long-form blogs + quick social posts unified</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-gradient-to-br from-slate-600 to-slate-700 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-white text-xs font-bold">2</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-slate-800">Smart Discovery:</span>
+                        <span className="text-slate-600 ml-1">AI-powered trending finds the best content</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-gradient-to-br from-slate-600 to-slate-700 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-white text-xs font-bold">3</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-slate-800">Creator Focus:</span>
+                        <span className="text-slate-600 ml-1">Purpose-built for writers and thought leaders</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Feature Cards */}
+                <div className="grid gap-6">
+                  <div className="flex items-center space-x-4 p-4 bg-white/40 backdrop-blur-sm rounded-xl border border-slate-200/30 hover:bg-white/60 transition-all duration-300 group">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                       <FileText className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800 text-lg">Rich Blogging</h3>
-                      <p className="text-gray-600">Create beautiful blog posts with rich formatting and engage your audience</p>
+                      <h3 className="font-semibold text-slate-800 text-lg">Rich Blogging</h3>
+                      <p className="text-slate-600">Create beautiful posts with advanced formatting</p>
                     </div>
                   </div>
 
-                  <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                  <div className="flex items-center space-x-4 p-4 bg-white/40 backdrop-blur-sm rounded-xl border border-slate-200/30 hover:bg-white/60 transition-all duration-300 group">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                       <Users className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800 text-lg">Social Connection</h3>
-                      <p className="text-gray-600">Follow writers, share quick thoughts, and build meaningful connections</p>
+                      <h3 className="font-semibold text-slate-800 text-lg">Social Connection</h3>
+                      <p className="text-slate-600">Build meaningful relationships with creators</p>
                     </div>
                   </div>
 
-                  <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center flex-shrink-0">
+                  <div className="flex items-center space-x-4 p-4 bg-white/40 backdrop-blur-sm rounded-xl border border-slate-200/30 hover:bg-white/60 transition-all duration-300 group">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                       <TrendingUp className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800 text-lg">Trending Content</h3>
-                      <p className="text-gray-600">Discover what's popular and stay updated with the latest conversations</p>
+                      <h3 className="font-semibold text-slate-800 text-lg">Trending Discovery</h3>
+                      <p className="text-slate-600">Stay updated with popular conversations</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Right Side - Auth Form */}
+            {/* Right Side - Enhanced Auth Form */}
             <div className="w-full flex flex-col items-center justify-center">
-              {/* Mobile Hero Section */}
+              {/* Enhanced Mobile Hero Section */}
               <div className="lg:hidden w-full max-w-md mb-8">
-                <div className="text-center mb-6">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-3">
-                    Where thoughts meet community
-                  </h2>
-                  <p className="text-base text-gray-600 leading-relaxed">
-                    Share your expertise through blogs, engage in conversations, and connect with creators worldwide.
-                  </p>
+                <div className="text-center mb-8">
+                  <div className="mb-6">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center shadow-2xl mx-auto mb-4">
+                      <span className="text-white font-bold text-2xl">P</span>
+                    </div>
+                    <h2 className="text-3xl font-bold text-slate-800 mb-3">
+                      Where thoughts meet 
+                      <span className="bg-gradient-to-r from-slate-600 to-slate-700 bg-clip-text text-transparent">community</span>
+                    </h2>
+                    <p className="text-base text-slate-600 leading-relaxed">
+                      Share expertise through blogs, engage in conversations, and connect with creators worldwide.
+                    </p>
+                  </div>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                  <div className="bg-white/60 rounded-xl p-4 border border-gray-100 shadow-md">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-teal-500 flex items-center justify-center flex-shrink-0">
+                <div className="grid grid-cols-1 gap-4 mb-8">
+                  <div className="bg-white/60 backdrop-blur-sm rounded-xl p-5 border border-slate-200/50 shadow-lg">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center shadow-lg">
                         <FileText className="w-5 h-5 text-white" />
                       </div>
-                      <h3 className="font-semibold text-gray-800">Rich Blogging</h3>
+                      <h3 className="font-semibold text-slate-800">Rich Blogging</h3>
                     </div>
-                    <p className="text-sm text-gray-600">Create beautiful posts with rich formatting</p>
+                    <p className="text-sm text-slate-600">Create beautiful posts with advanced formatting</p>
                   </div>
 
-                  <div className="bg-white/60 rounded-xl p-4 border border-gray-100 shadow-md">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                  <div className="bg-white/60 backdrop-blur-sm rounded-xl p-5 border border-slate-200/50 shadow-lg">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center shadow-lg">
                         <Users className="w-5 h-5 text-white" />
                       </div>
-                      <h3 className="font-semibold text-gray-800">Social Connect</h3>
+                      <h3 className="font-semibold text-slate-800">Social Connect</h3>
                     </div>
-                    <p className="text-sm text-gray-600">Follow writers and build connections</p>
+                    <p className="text-sm text-slate-600">Build meaningful relationships with creators</p>
                   </div>
                 </div>
               </div>
 
-              <Card className="w-full max-w-md shadow-2xl border-0 bg-white backdrop-blur-sm">
-                <CardHeader className="text-center pb-6">
-                  <CardTitle className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
-                    {isLogin ? 'Welcome back!' : 'Join PenLink'}
-                  </CardTitle>
-                  <CardDescription className="text-base sm:text-lg text-gray-600">
-                    {isLogin 
-                      ? 'Sign in to continue your journey' 
-                      : 'Create your account and start sharing your thoughts'
-                    }
-                  </CardDescription>
-                </CardHeader>
-
-            <CardContent className="space-y-6">
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {!isLogin && (
-                  <div className="space-y-2">
-                    <Label htmlFor="username" className="text-sm font-medium text-gray-700">Username</Label>
-                    <Input
-                      id="username"
-                      placeholder="Enter your username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      required
-                      className="h-12 text-base"
-                      data-testid="username-input"
-                    />
-                  </div>
-                )}
-                
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email Address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="h-12 text-base"
-                    data-testid="email-input"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="h-12 text-base"
-                    data-testid="password-input"
-                  />
-                </div>
-
-                <Button 
-                  type="submit" 
-                  className="w-full h-12 text-base font-semibold bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-700 hover:to-amber-700 transition-all duration-200 transform hover:scale-105" 
-                  disabled={loading} 
-                  data-testid="auth-submit-btn"
-                >
-                  {loading ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>Please wait...</span>
+              {/* Enhanced Auth Card */}
+              <div className="w-full max-w-md">
+                <div className="bg-white/80 backdrop-blur-lg shadow-2xl border border-slate-200/50 rounded-3xl overflow-hidden">
+                  {/* Card Header with Gradient */}
+                  <div className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-600 px-8 py-8 text-center relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-y-1"></div>
+                    <div className="relative z-10">
+                      <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <User className="w-8 h-8 text-white" />
+                      </div>
+                      <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+                        {isLogin ? 'Welcome back!' : 'Join PenLink'}
+                      </h3>
+                      <p className="text-slate-200 text-base">
+                        {isLogin 
+                          ? 'Sign in to continue your journey' 
+                          : 'Create your account and start sharing'
+                        }
+                      </p>
                     </div>
-                  ) : (
-                    isLogin ? 'Sign In' : 'Create Account'
-                  )}
-                </Button>
-              </form>
+                  </div>
 
-              <div className="text-center">
-                <button
-                  onClick={() => setIsLogin(!isLogin)}
-                  className="text-base text-rose-600 hover:text-rose-700 font-medium hover:underline transition-colors"
-                  data-testid="toggle-auth-btn"
-                >
-                  {isLogin 
-                    ? "Don't have an account? Sign up" 
-                    : 'Already have an account? Sign in'
-                  }
-                </button>
+                  {/* Enhanced Form Content */}
+                  <div className="px-8 py-8 space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      {!isLogin && (
+                        <div className="space-y-2">
+                          <Label htmlFor="username" className="text-sm font-semibold text-slate-700 flex items-center">
+                            <User className="w-4 h-4 mr-2 text-slate-600" />
+                            Username
+                          </Label>
+                          <Input
+                            id="username"
+                            placeholder="Choose your username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            required
+                            className="h-12 text-base border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white/80 backdrop-blur-sm"
+                            data-testid="username-input"
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="email" className="text-sm font-semibold text-slate-700 flex items-center">
+                          <MessageCircle className="w-4 h-4 mr-2 text-slate-600" />
+                          Email Address
+                        </Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="Enter your email address"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                          className="h-12 text-base border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white/80 backdrop-blur-sm"
+                          data-testid="email-input"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="password" className="text-sm font-semibold text-slate-700 flex items-center">
+                          <div className="w-4 h-4 mr-2 text-slate-600 flex items-center justify-center">
+                            <div className="w-3 h-3 border-2 border-slate-600 rounded-sm"></div>
+                          </div>
+                          Password
+                        </Label>
+                        <Input
+                          id="password"
+                          type="password"
+                          placeholder="Create a secure password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                          className="h-12 text-base border-slate-300 focus:border-slate-500 focus:ring-slate-500 bg-white/80 backdrop-blur-sm"
+                          data-testid="password-input"
+                        />
+                      </div>
+
+                      <Button 
+                        type="submit" 
+                        className="w-full h-12 text-base font-semibold bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 transition-all duration-300 transform hover:scale-105 shadow-lg" 
+                        disabled={loading} 
+                        data-testid="auth-submit-btn"
+                      >
+                        {loading ? (
+                          <div className="flex items-center space-x-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>Please wait...</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center space-x-2">
+                            <span>{isLogin ? 'Sign In' : 'Create Account'}</span>
+                            <ChevronRight className="w-4 h-4" />
+                          </div>
+                        )}
+                      </Button>
+                    </form>
+
+                    <div className="text-center pt-4 border-t border-slate-200">
+                      <button
+                        onClick={() => setIsLogin(!isLogin)}
+                        className="text-base text-slate-600 hover:text-slate-800 font-medium hover:underline transition-colors flex items-center justify-center space-x-2 mx-auto"
+                        data-testid="toggle-auth-btn"
+                      >
+                        <span>
+                          {isLogin 
+                            ? "Don't have an account? Sign up" 
+                            : 'Already have an account? Sign in'
+                          }
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
-
-              {!isLogin && (
-                <p className="text-xs text-gray-500 text-center leading-relaxed">
-                  By creating an account, you agree to our Terms of Service and Privacy Policy. 
-                  Join thousands of writers sharing their stories on PenLink.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Mobile Features Section */}
-          <div className="lg:hidden w-full max-w-md mt-8">
-            <div className="bg-white/60 rounded-2xl p-6 border border-gray-100 shadow-lg">
-              <h3 className="font-bold text-gray-800 text-lg mb-4 text-center">
-                🚀 Why creators love PenLink
-              </h3>
-              <ul className="space-y-3 text-gray-700">
-                <li className="flex items-start space-x-3">
-                  <span className="text-rose-500 font-bold text-xl flex-shrink-0">•</span>
-                  <span className="text-sm"><strong>Hybrid Platform:</strong> Long-form blogs + quick social posts</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <span className="text-amber-500 font-bold text-xl flex-shrink-0">•</span>
-                  <span className="text-sm"><strong>Smart Discovery:</strong> AI-powered trending algorithm</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <span className="text-teal-500 font-bold text-xl flex-shrink-0">•</span>
-                  <span className="text-sm"><strong>Creator Focus:</strong> Tools for writers & thought leaders</span>
-                </li>
-              </ul>
-            </div>
-          </div>
             </div>
           </div>
         </div>
       </div>
+      
+      {/* Add custom animations to the global styles */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        @keyframes float-delayed {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-30px) rotate(-5deg); }
+        }
+        @keyframes float-slow {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-15px) rotate(3deg); }
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        .animate-float-delayed {
+          animation: float-delayed 8s ease-in-out infinite;
+        }
+        .animate-float-slow {
+          animation: float-slow 10s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 };
@@ -2377,6 +2879,7 @@ function App() {
                     <Route path="/blog/:blogId" element={<BlogDetailPage user={user} />} />
                     <Route path="/post/:postId" element={<PostDetailPage user={user} />} />
                     <Route path="/profile/:username" element={<ProfilePage currentUser={user} />} />
+                    <Route path="/menu" element={<MenuPage user={user} logout={logout} />} />
                   </Routes>
                 </div>
                 <Footer />
