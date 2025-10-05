@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: pinpost-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URL=mongodb+srv://mamun:mamun123@cluster0.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+      - DB_NAME=pinpost
+      - SECRET_KEY=your-super-secret-jwt-key-change-this-in-production-make-it-long-and-random
+      - FRONTEND_URL=https://bartaaddaa.com
+      - MAX_FILE_SIZE=10485760
+      - UPLOAD_DIR=/app/uploads
+      - ENVIRONMENT=production
+    volumes:
+      - uploads:/app/uploads
+    networks:
+      - pinpost-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: pinpost-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    networks:
+      - pinpost-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+networks:
+  pinpost-network:
+    driver: bridge
+
+volumes:
+  uploads:
+    driver: local

@@ -18,8 +18,11 @@ import json
 import asyncio
 from pymongo.errors import DuplicateKeyError, PyMongoError
 
+# Load environment variables (only for local development)
+# In production (Docker), environment variables are set via docker-compose.yml
 ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
+if os.getenv('ENVIRONMENT') != 'production':
+    load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection with SSL/TLS configuration
 mongo_url = os.environ['MONGO_URL']
