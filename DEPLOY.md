@@ -16,7 +16,7 @@ ssh root@72.60.203.48
 
 ### 3️⃣ Navigate to the project directory
 ```bash
-cd /path/to/Pinpost
+cd /docker/pinpost  # <-- Your actual project path
 ```
 
 ### 4️⃣ Pull the latest code from GitHub
@@ -66,7 +66,7 @@ Since you already pushed the code to GitHub, just run these commands on Hostinge
 ssh root@72.60.203.48
 
 # Go to project directory
-cd /path/to/Pinpost
+cd /docker/pinpost  # <-- Your actual project path
 
 # Pull latest code
 git pull origin main
