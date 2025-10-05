@@ -20,9 +20,16 @@ import asyncio
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
+# MongoDB connection with SSL/TLS configuration
 mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
+client = AsyncIOMotorClient(
+    mongo_url,
+    tls=True,
+    tlsAllowInvalidCertificates=True,
+    serverSelectionTimeoutMS=5000,
+    connectTimeoutMS=10000,
+    retryWrites=True
+)
 db = client[os.environ['DB_NAME']]
 
 # Security
@@ -274,32 +281,38 @@ async def create_notification(user_id: str, notif_type: str, actor_id: str, acto
 # Auth routes
 @api_router.post("/auth/register")
 async def register(user_data: UserCreate):
-    # Check if user exists
-    existing_user = await db.users.find_one({"$or": [{"email": user_data.email}, {"username": user_data.username}]})
-    if existing_user:
-        raise HTTPException(status_code=400, detail="User already exists")
-    
-    user_id = str(uuid.uuid4())
-    user = {
-        "id": user_id,
-        "username": user_data.username,
-        "email": user_data.email,
-        "password_hash": hash_password(user_data.password),
-        "name": "",
-        "bio": user_data.bio,
-        "avatar": "",
-        "cover_photo": "",
-        "date_of_birth": "",
-        "location": "",
-        "profile_completed": False,
-        "followers_count": 0,
-        "following_count": 0,
-        "created_at": datetime.now(timezone.utc).isoformat()
-    }
-    await db.users.insert_one(user)
-    
-    token = create_access_token({"sub": user_id})
-    return {"token": token, "user": User(**user)}
+    try:
+        # Check if user exists
+        existing_user = await db.users.find_one({"$or": [{"email": user_data.email}, {"username": user_data.username}]})
+        if existing_user:
+            raise HTTPException(status_code=400, detail="User already exists")
+        
+        user_id = str(uuid.uuid4())
+        user = {
+            "id": user_id,
+            "username": user_data.username,
+            "email": user_data.email,
+            "password_hash": hash_password(user_data.password),
+            "name": "",
+            "bio": user_data.bio,
+            "avatar": "",
+            "cover_photo": "",
+            "date_of_birth": "",
+            "location": "",
+            "profile_completed": False,
+            "followers_count": 0,
+            "following_count": 0,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.users.insert_one(user)
+        
+        token = create_access_token({"sub": user_id})
+        return {"token": token, "user": User(**user)}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Registration error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
 
 @api_router.post("/auth/login")
 async def login(credentials: UserLogin):
