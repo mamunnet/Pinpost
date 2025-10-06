@@ -50,7 +50,8 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
 
     try {
       const response = await axios.post(`${API}/upload/image`, formData);
-      setStoryImage(`${BACKEND_URL}${response.data.url}`);
+      // Store relative URL - getImageUrl() will handle conversion to absolute URL
+      setStoryImage(response.data.url);
       toast.success('✨ Photo uploaded!');
     } catch (error) {
       toast.error('Failed to upload image');
@@ -368,7 +369,7 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
               </label>
             ) : (
               <div className="relative w-full aspect-[9/16] max-h-[500px] mx-auto rounded-2xl overflow-hidden shadow-2xl border-2 border-slate-200">
-                <img src={storyImage} alt="Story" className="w-full h-full object-cover" />
+                <img src={getImageUrl(storyImage)} alt="Story" className="w-full h-full object-cover" />
                 
                 <button
                   onClick={() => setStoryImage('')}
