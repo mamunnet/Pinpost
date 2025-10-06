@@ -171,16 +171,18 @@ export const HomePage = ({ user }) => {
                   What's on your mind, {user.username}?
                 </button>
               </div>
-              <div className="flex items-center justify-around mt-4 pt-4 border-t border-slate-200">
+              <div className="flex items-center justify-around mt-4 pt-4 border-t border-slate-200 gap-2">
                 <button
                   onClick={() => {
                     setInitialTab('blog');
                     setShowCreateModal(true);
                   }}
-                  className="flex items-center space-x-2 px-4 py-2 hover:bg-slate-100 rounded-lg transition-all group flex-1 justify-center border border-transparent hover:border-slate-200"
+                  className="flex items-center gap-2 px-4 py-2.5 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 rounded-lg transition-all group flex-1 justify-center border border-transparent hover:border-blue-200 hover:shadow-sm"
                 >
-                  <FileText className="w-5 h-5 text-slate-600 group-hover:scale-110 transition-transform" />
-                  <span className="font-medium text-slate-700 group-hover:text-slate-800 hidden sm:inline transition-colors">Blog Article</span>
+                  <div className="p-1.5 rounded-full bg-blue-100 group-hover:bg-blue-200 transition-colors">
+                    <FileText className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform" />
+                  </div>
+                  <span className="font-semibold text-slate-700 group-hover:text-blue-700 text-sm sm:text-base transition-colors">Write Blog</span>
                 </button>
                 <div className="w-px h-8 bg-slate-300"></div>
                 <button
@@ -188,10 +190,12 @@ export const HomePage = ({ user }) => {
                     setInitialTab('post');
                     setShowCreateModal(true);
                   }}
-                  className="flex items-center space-x-2 px-4 py-2 hover:bg-slate-100 rounded-lg transition-all group flex-1 justify-center border border-transparent hover:border-slate-200"
+                  className="flex items-center gap-2 px-4 py-2.5 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 rounded-lg transition-all group flex-1 justify-center border border-transparent hover:border-slate-200 hover:shadow-sm"
                 >
-                  <MessageCircle className="w-5 h-5 text-slate-600 group-hover:scale-110 transition-transform" />
-                  <span className="font-medium text-slate-700 group-hover:text-slate-800 hidden sm:inline transition-colors">Quick Post</span>
+                  <div className="p-1.5 rounded-full bg-slate-100 group-hover:bg-slate-200 transition-colors">
+                    <MessageCircle className="w-4 h-4 text-slate-600 group-hover:scale-110 transition-transform" />
+                  </div>
+                  <span className="font-semibold text-slate-700 group-hover:text-slate-800 text-sm sm:text-base transition-colors">Quick Post</span>
                 </button>
               </div>
             </div>

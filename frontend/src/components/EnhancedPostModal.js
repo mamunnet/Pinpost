@@ -3,7 +3,7 @@ import axios from "axios";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { MapPin, Palette, Upload, Bold, Italic, List, Heading, Image as ImageIcon, AtSign, Loader2, X } from "lucide-react";
+import { MapPin, Palette, Upload, Bold, Italic, List, Heading, Image as ImageIcon, AtSign, Loader2, X, FileText, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -355,22 +355,51 @@ export const EnhancedPostModal = ({ onClose, currentUser, initialTab = 'post' })
     <div className="relative">
       {/* Header */}
       <div className="pb-4 border-b">
-        <h2 className="text-xl font-semibold text-center">Create {contentType === 'post' ? 'Post' : 'Blog'}</h2>
+        <div className="flex items-center justify-center gap-2">
+          <h2 className="text-xl font-semibold">Create Content</h2>
+          <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full shadow-sm text-[10px] font-semibold uppercase tracking-wide ${
+            contentType === 'post'
+              ? 'bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 text-slate-700'
+              : 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 text-blue-700'
+          }`}>
+            {contentType === 'post' ? (
+              <>
+                <MessageCircle className="w-3 h-3" />
+                <span>Quick Post</span>
+              </>
+            ) : (
+              <>
+                <FileText className="w-3 h-3" />
+                <span>Blog Article</span>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Type Selector */}
-      <div className="flex border-b mt-4">
+      <div className="flex border-b mt-4 gap-2 px-2">
         <button
           onClick={() => setContentType('post')}
-          className={`flex-1 py-3 font-medium ${contentType === 'post' ? 'border-b-2 border-rose-600 text-rose-600' : 'text-gray-600'}`}
+          className={`flex-1 py-3 px-4 font-medium rounded-t-lg transition-all duration-200 flex items-center justify-center gap-2 ${
+            contentType === 'post' 
+              ? 'bg-gradient-to-r from-slate-50 to-slate-100 border-b-2 border-slate-600 text-slate-700' 
+              : 'text-gray-600 hover:bg-slate-50'
+          }`}
         >
-          Quick Post
+          <MessageCircle className="w-4 h-4" />
+          <span>Quick Post</span>
         </button>
         <button
           onClick={() => setContentType('blog')}
-          className={`flex-1 py-3 font-medium ${contentType === 'blog' ? 'border-b-2 border-rose-600 text-rose-600' : 'text-gray-600'}`}
+          className={`flex-1 py-3 px-4 font-medium rounded-t-lg transition-all duration-200 flex items-center justify-center gap-2 ${
+            contentType === 'blog' 
+              ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-600 text-blue-700' 
+              : 'text-gray-600 hover:bg-blue-50'
+          }`}
         >
-          Blog Article
+          <FileText className="w-4 h-4" />
+          <span>Blog Article</span>
         </button>
       </div>
 
