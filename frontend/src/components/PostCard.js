@@ -13,7 +13,7 @@ import {
 import { Heart, MessageCircle, Share2, Trash2, Edit, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { EditPostModal } from "@/components/EditPostModal";
-import { getPostAuthorAvatarUrl, getImageUrl } from "@/utils/imageUtils";
+import { getPostAuthorAvatarUrl, getImageUrl, getUserAvatarUrl } from "@/utils/imageUtils";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -62,19 +62,12 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
       const response = await axios.post(`${API}/comments/post/${post.id}`, { content: commentContent });
       setComments([response.data, ...comments]);
       setCommentContent('');
+      setShowMentions(false);
       
-      // Show instant success notification
-      toast.success('💬 Comment added successfully!', {
-        description: 'Your comment has been posted and others will be notified.',
-        duration: 3000
-      });
-      
-      if (onComment) onComment();
+      // Update comment count locally
+      setCurrentPost({ ...currentPost, comments_count: (currentPost.comments_count || 0) + 1 });
     } catch (error) {
-      toast.error('❌ Failed to add comment', {
-        description: 'Please try again or check your connection.',
-        duration: 4000
-      });
+      toast.error('Failed to add comment');
     }
   };
 
@@ -82,17 +75,11 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
     try {
       await axios.delete(`${API}/comments/${commentId}`);
       setComments(comments.filter(comment => comment.id !== commentId));
-      toast.success('🗑️ Comment deleted successfully!', {
-        description: 'Your comment has been removed.',
-        duration: 3000
-      });
       
-      if (onComment) onComment();
+      // Update comment count locally
+      setCurrentPost({ ...currentPost, comments_count: Math.max((currentPost.comments_count || 1) - 1, 0) });
     } catch (error) {
-      toast.error('❌ Failed to delete comment', {
-        description: 'Please try again or check your connection.',
-        duration: 4000
-      });
+      toast.error('Failed to delete comment');
     }
   };
 
@@ -112,16 +99,8 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
       setComments(comments.map(c => c.id === commentId ? { ...c, content: editCommentContent } : c));
       setEditingCommentId(null);
       setEditCommentContent('');
-      
-      toast.success('✏️ Comment updated successfully!', {
-        description: 'Your comment has been edited.',
-        duration: 3000
-      });
     } catch (error) {
-      toast.error('❌ Failed to update comment', {
-        description: 'Please try again or check your connection.',
-        duration: 4000
-      });
+      toast.error('Failed to update comment');
     }
   };
 
@@ -142,17 +121,10 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
       setReplyingToCommentId(null);
       setReplyContent('');
       
-      toast.success('💬 Reply posted successfully!', {
-        description: 'Your reply has been added.',
-        duration: 3000
-      });
-      
-      if (onComment) onComment();
+      // Update comment count locally
+      setCurrentPost({ ...currentPost, comments_count: (currentPost.comments_count || 0) + 1 });
     } catch (error) {
-      toast.error('❌ Failed to post reply', {
-        description: 'Please try again or check your connection.',
-        duration: 4000
-      });
+      toast.error('Failed to post reply');
     }
   };
 
@@ -262,11 +234,24 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
           <Link to={`/profile/${post.author_username}`} className="group flex-shrink-0">
             <Avatar className="w-9 h-9 sm:w-12 sm:h-12 ring-2 ring-slate-100 group-hover:ring-slate-300 transition-all shadow-sm">
               {getPostAuthorAvatarUrl(currentPost) ? (
-                <img src={getPostAuthorAvatarUrl(currentPost)} alt={currentPost.author_name || currentPost.author_username} className="w-full h-full object-cover rounded-full" />
+                <img 
+                  src={getPostAuthorAvatarUrl(currentPost)} 
+                  alt={currentPost.author_name || currentPost.author_username} 
+                  className="w-full h-full object-cover rounded-full"
+                  onLoad={() => console.log('✅ PostCard - Author avatar loaded:', getPostAuthorAvatarUrl(currentPost))}
+                  onError={(e) => {
+                    console.error('❌ PostCard - Avatar failed to load:', getPostAuthorAvatarUrl(currentPost));
+                    console.error('Post object:', currentPost);
+                    console.error('author_avatar field:', currentPost.author_avatar);
+                  }}
+                />
               ) : (
-                <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white text-sm sm:text-base">
-                  {(currentPost.author_name || currentPost.author_username)[0].toUpperCase()}
-                </AvatarFallback>
+                <>
+                  {console.log('⚠️ PostCard - No avatar for post author:', currentPost)}
+                  <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white text-sm sm:text-base">
+                    {(currentPost.author_name || currentPost.author_username)[0].toUpperCase()}
+                  </AvatarFallback>
+                </>
               )}
             </Avatar>
           </Link>
@@ -478,9 +463,13 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
                       className="w-full flex items-center space-x-2 px-4 py-2 hover:bg-slate-50 transition-colors text-left"
                     >
                       <Avatar className="w-8 h-8">
-                        <AvatarFallback className="text-xs bg-gradient-to-br from-slate-600 to-slate-700 text-white">
-                          {mentionUser.username[0].toUpperCase()}
-                        </AvatarFallback>
+                        {getUserAvatarUrl(mentionUser) ? (
+                          <img src={getUserAvatarUrl(mentionUser)} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <AvatarFallback className="text-xs bg-gradient-to-br from-slate-600 to-slate-700 text-white">
+                            {mentionUser.username[0].toUpperCase()}
+                          </AvatarFallback>
+                        )}
                       </Avatar>
                       <div>
                         <p className="text-sm font-semibold text-slate-900">@{mentionUser.username}</p>

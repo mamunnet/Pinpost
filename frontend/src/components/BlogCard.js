@@ -72,7 +72,12 @@ export const BlogCard = ({ blog, user, onLike, compact = false, onBlogUpdate }) 
   if (compact) {
     return (
       <>
-        <Card className="hover:shadow-2xl transition-all duration-300 cursor-pointer group relative rounded-xl sm:rounded-2xl border-slate-200/60 overflow-hidden" onClick={() => navigate(`/blog/${currentBlog.id}`)} data-testid="blog-card">
+        <Card className="hover:shadow-2xl transition-all duration-300 cursor-pointer group relative rounded-xl sm:rounded-2xl border-slate-200/60 overflow-hidden" onClick={() => {
+          console.log('🔍 BlogCard - Clicked blog:', currentBlog);
+          console.log('📝 BlogCard - Blog ID:', currentBlog.id);
+          console.log('📍 BlogCard - Navigating to:', `/blog/${currentBlog.id}`);
+          navigate(`/blog/${currentBlog.id}`);
+        }} data-testid="blog-card">
           {/* Floating Emojis */}
           {floatingEmojis.map((emoji) => (
             <div
@@ -196,7 +201,12 @@ export const BlogCard = ({ blog, user, onLike, compact = false, onBlogUpdate }) 
 
   return (
     <>
-      <Card className="hover:shadow-2xl transition-all duration-300 cursor-pointer relative rounded-2xl border-slate-200/60 overflow-hidden group" onClick={() => navigate(`/blog/${currentBlog.id}`)} data-testid="blog-card-full">
+      <Card className="hover:shadow-2xl transition-all duration-300 cursor-pointer relative rounded-2xl border-slate-200/60 overflow-hidden group" onClick={() => {
+        console.log('🔍 BlogCard (Full) - Clicked blog:', currentBlog);
+        console.log('📝 BlogCard (Full) - Blog ID:', currentBlog.id);
+        console.log('📍 BlogCard (Full) - Navigating to:', `/blog/${currentBlog.id}`);
+        navigate(`/blog/${currentBlog.id}`);
+      }} data-testid="blog-card-full">
         {/* Badge - top right */}
         <div className="absolute top-4 right-4 z-20">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-slate-50 via-slate-100 to-slate-50 border border-slate-200 rounded-full shadow-md backdrop-blur-sm">

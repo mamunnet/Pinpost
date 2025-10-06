@@ -111,17 +111,24 @@ export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('💾 EditAvatarModal - Saving avatar, URL:', avatarUrl);
     setLoading(true);
 
     try {
+      console.log('📡 EditAvatarModal - Sending PUT request to:', `${API}/users/avatar`);
+      console.log('📦 EditAvatarModal - Payload:', { avatar: avatarUrl });
+      
       const response = await axios.put(`${API}/users/avatar`, {
         avatar: avatarUrl
       });
+      
+      console.log('✅ EditAvatarModal - Save successful, response:', response.data);
       toast.success('Profile picture updated successfully!');
       onUpdate(response.data);
     } catch (error) {
+      console.error('❌ EditAvatarModal - Save failed:', error);
+      console.error('Error response:', error.response);
       toast.error('Failed to update profile picture');
-      console.error('Avatar update error:', error);
     } finally {
       setLoading(false);
     }

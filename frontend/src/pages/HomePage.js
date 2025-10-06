@@ -161,12 +161,21 @@ export const HomePage = ({ user }) => {
                     <img 
                       src={getUserAvatarUrl(user)} 
                       alt={user.username} 
-                      className="w-full h-full object-cover" 
+                      className="w-full h-full object-cover"
+                      onLoad={() => console.log('✅ HomePage - Avatar loaded successfully:', getUserAvatarUrl(user))}
+                      onError={(e) => {
+                        console.error('❌ HomePage - Avatar failed to load:', getUserAvatarUrl(user));
+                        console.error('User object:', user);
+                        console.error('Avatar field:', user.avatar);
+                      }}
                     />
                   ) : (
-                    <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white font-bold text-sm sm:text-base">
-                      {user.username[0].toUpperCase()}
-                    </AvatarFallback>
+                    <>
+                      {console.log('⚠️ HomePage - No avatar URL for user:', user)}
+                      <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white font-bold text-sm sm:text-base">
+                        {user.username[0].toUpperCase()}
+                      </AvatarFallback>
+                    </>
                   )}
                 </Avatar>
                 <button

@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Home, FileText, Users, Bell, Search, LogOut, User, Settings, TrendingUp, UserPlus, HelpCircle, Shield, Mail, Menu, Wifi, WifiOff } from "lucide-react";
+import { Home, FileText, Users, Bell, Search, LogOut, User, Settings, TrendingUp, UserPlus, HelpCircle, Shield, Mail, Menu, Wifi, WifiOff, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
@@ -322,9 +322,41 @@ const NotificationsDropdown = ({ user }) => {
 
 export const Header = ({ user, logout }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [unreadMessages, setUnreadMessages] = useState(0);
   const navScrollRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Fetch unread messages count
+  useEffect(() => {
+    if (!user) return;
+    
+    const fetchUnreadMessages = async () => {
+      try {
+        const res = await axios.get(`${API}/conversations/unread-count`);
+        setUnreadMessages(res.data.unread_count || 0);
+      } catch (error) {
+        console.error('Failed to fetch unread messages');
+      }
+    };
+    
+    fetchUnreadMessages();
+    
+    // Setup WebSocket to listen for new messages
+    const wsProtocol = BACKEND_URL.startsWith('https') ? 'wss' : 'ws';
+    const wsHost = BACKEND_URL.replace(/^https?:\/\//, '');
+    const ws = new WebSocket(`${wsProtocol}://${wsHost}/ws/notifications/${user.id}`);
+    
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'new_message') {
+        // Increment unread count when new message arrives
+        setUnreadMessages(prev => prev + 1);
+      }
+    };
+    
+    return () => ws.close();
+  }, [user]);
   
   // Enable smooth scrolling with mouse drag
   useEffect(() => {
@@ -488,6 +520,20 @@ export const Header = ({ user, logout }) => {
           {/* Right Menu */}
           {user && (
             <div className="flex items-center gap-2">
+              {/* Messages Icon */}
+              <Link 
+                to="/messages" 
+                className="relative p-2.5 rounded-full hover:bg-slate-200 transition-all flex-shrink-0"
+                data-testid="messages-btn"
+              >
+                <MessageCircle className="w-5 h-5 text-slate-700" />
+                {unreadMessages > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold shadow-md">
+                    {unreadMessages > 99 ? '99+' : unreadMessages}
+                  </span>
+                )}
+              </Link>
+              
               <NotificationsDropdown user={user} />
               
               {/* Hamburger Menu Button */}

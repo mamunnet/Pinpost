@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, File, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, File, UploadFile, WebSocket, WebSocketDisconnect, Body
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
@@ -237,6 +237,38 @@ class Notification(BaseModel):
     message: str
     read: bool = False
     created_at: str
+
+# Messaging Models
+class MessageCreate(BaseModel):
+    content: str
+    conversation_id: Optional[str] = None
+    recipient_id: Optional[str] = None  # For starting new conversation
+
+class Message(BaseModel):
+    id: str
+    conversation_id: str
+    sender_id: str
+    sender_username: str
+    sender_avatar: str
+    content: str
+    read_by: List[str] = []
+    delivered_to: List[str] = []
+    created_at: str
+
+class ParticipantDetail(BaseModel):
+    user_id: str
+    username: str
+    avatar: str
+
+class Conversation(BaseModel):
+    id: str
+    participants: List[str]  # List of user IDs
+    participant_details: List[ParticipantDetail]
+    last_message: Optional[str] = None
+    last_message_at: Optional[str] = None
+    unread_count: Dict[str, int] = {}
+    created_at: str
+    updated_at: str
 
 class UserUpdate(BaseModel):
     username: Optional[str] = None
@@ -1003,6 +1035,236 @@ async def remove_cover_photo(current_user_id: str = Depends(get_current_user)):
     return User(**updated_user)
 
 # Removed - moved above username route to fix route conflict
+
+# Messaging routes
+@api_router.get("/conversations", response_model=List[Conversation])
+async def get_conversations(current_user_id: str = Depends(get_current_user)):
+    """Get all conversations for the current user"""
+    conversations = await db.conversations.find({
+        "participants": current_user_id
+    }).sort("updated_at", -1).to_list(100)
+    
+    return [Conversation(**conv) for conv in conversations]
+
+@api_router.get("/conversations/{conversation_id}/messages", response_model=List[Message])
+async def get_conversation_messages(
+    conversation_id: str, 
+    skip: int = 0,
+    limit: int = 50,
+    current_user_id: str = Depends(get_current_user)
+):
+    """Get messages for a specific conversation"""
+    # Verify user is participant
+    conversation = await db.conversations.find_one({"id": conversation_id})
+    if not conversation or current_user_id not in conversation["participants"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    messages = await db.messages.find({
+        "conversation_id": conversation_id
+    }).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+    
+    return [Message(**msg) for msg in reversed(messages)]
+
+@api_router.post("/conversations", response_model=Conversation)
+async def create_or_get_conversation(
+    recipient_id: str = Body(..., embed=True),
+    current_user_id: str = Depends(get_current_user)
+):
+    """Create a new conversation or get existing one with a user"""
+    if recipient_id == current_user_id:
+        raise HTTPException(status_code=400, detail="Cannot message yourself")
+    
+    # Check if users mutually follow each other
+    user_follows_recipient = await db.follows.find_one({
+        "follower_id": current_user_id,
+        "following_id": recipient_id
+    })
+    recipient_follows_user = await db.follows.find_one({
+        "follower_id": recipient_id,
+        "following_id": current_user_id
+    })
+    
+    if not (user_follows_recipient and recipient_follows_user):
+        raise HTTPException(
+            status_code=403, 
+            detail="You can only message users who mutually follow each other"
+        )
+    
+    # Check if conversation already exists
+    participants_sorted = sorted([current_user_id, recipient_id])
+    existing = await db.conversations.find_one({"participants": participants_sorted})
+    
+    if existing:
+        return Conversation(**existing)
+    
+    # Get user details
+    current_user = await db.users.find_one({"id": current_user_id})
+    recipient = await db.users.find_one({"id": recipient_id})
+    
+    # Create new conversation
+    conversation_id = str(uuid.uuid4())
+    conversation = {
+        "id": conversation_id,
+        "participants": participants_sorted,
+        "participant_details": [
+            {
+                "user_id": current_user["id"],
+                "username": current_user["username"],
+                "avatar": current_user.get("avatar", "")
+            },
+            {
+                "user_id": recipient["id"],
+                "username": recipient["username"],
+                "avatar": recipient.get("avatar", "")
+            }
+        ],
+        "last_message": None,
+        "last_message_at": None,
+        "unread_count": {current_user_id: 0, recipient_id: 0},
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.conversations.insert_one(conversation)
+    return Conversation(**conversation)
+
+@api_router.post("/messages", response_model=Message)
+async def send_message(
+    message_data: MessageCreate,
+    current_user_id: str = Depends(get_current_user)
+):
+    """Send a message in a conversation"""
+    conversation_id = message_data.conversation_id
+    
+    # Verify conversation exists and user is participant
+    conversation = await db.conversations.find_one({"id": conversation_id})
+    if not conversation or current_user_id not in conversation["participants"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    # Get sender details
+    sender = await db.users.find_one({"id": current_user_id})
+    
+    # Create message
+    message_id = str(uuid.uuid4())
+    message = {
+        "id": message_id,
+        "conversation_id": conversation_id,
+        "sender_id": current_user_id,
+        "sender_username": sender["username"],
+        "sender_avatar": sender.get("avatar", ""),
+        "content": message_data.content,
+        "read_by": [current_user_id],  # Sender has read it
+        "delivered_to": [],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.messages.insert_one(message)
+    
+    # Update conversation
+    await db.conversations.update_one(
+        {"id": conversation_id},
+        {
+            "$set": {
+                "last_message": message_data.content,
+                "last_message_at": message["created_at"],
+                "updated_at": message["created_at"]
+            },
+            "$inc": {
+                f"unread_count.{conversation['participants'][0]}": 0 if conversation['participants'][0] == current_user_id else 1,
+                f"unread_count.{conversation['participants'][1]}": 0 if conversation['participants'][1] == current_user_id else 1
+            }
+        }
+    )
+    
+    # Send real-time message to other participant(s)
+    recipient_id = [p for p in conversation["participants"] if p != current_user_id][0]
+    await manager.send_notification(recipient_id, {
+        "type": "new_message",
+        "message": Message(**message).dict(),
+        "conversation_id": conversation_id
+    })
+    
+    return Message(**message)
+
+@api_router.put("/messages/{message_id}/read")
+async def mark_message_read(
+    message_id: str,
+    current_user_id: str = Depends(get_current_user)
+):
+    """Mark a message as read"""
+    message = await db.messages.find_one({"id": message_id})
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    if current_user_id not in message.get("read_by", []):
+        await db.messages.update_one(
+            {"id": message_id},
+            {"$addToSet": {"read_by": current_user_id}}
+        )
+    
+    return {"message": "Marked as read"}
+
+@api_router.put("/conversations/{conversation_id}/read")
+async def mark_conversation_read(
+    conversation_id: str,
+    current_user_id: str = Depends(get_current_user)
+):
+    """Mark all messages in a conversation as read"""
+    conversation = await db.conversations.find_one({"id": conversation_id})
+    if not conversation or current_user_id not in conversation["participants"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    # Mark all unread messages as read
+    await db.messages.update_many(
+        {
+            "conversation_id": conversation_id,
+            "sender_id": {"$ne": current_user_id},
+            "read_by": {"$ne": current_user_id}
+        },
+        {"$addToSet": {"read_by": current_user_id}}
+    )
+    
+    # Reset unread count
+    await db.conversations.update_one(
+        {"id": conversation_id},
+        {"$set": {f"unread_count.{current_user_id}": 0}}
+    )
+    
+    return {"message": "Conversation marked as read"}
+
+@api_router.get("/conversations/unread-count")
+async def get_unread_message_count(current_user_id: str = Depends(get_current_user)):
+    """Get total unread message count across all conversations"""
+    conversations = await db.conversations.find({
+        "participants": current_user_id
+    }).to_list(1000)
+    
+    total_unread = sum(conv.get("unread_count", {}).get(current_user_id, 0) for conv in conversations)
+    return {"unread_count": total_unread}
+
+@api_router.get("/conversations/check-eligibility/{user_id}")
+async def check_messaging_eligibility(
+    user_id: str,
+    current_user_id: str = Depends(get_current_user)
+):
+    """Check if current user can message another user (mutual follow check)"""
+    if user_id == current_user_id:
+        return {"can_message": False, "reason": "Cannot message yourself"}
+    
+    user_follows = await db.follows.find_one({
+        "follower_id": current_user_id,
+        "following_id": user_id
+    })
+    other_follows = await db.follows.find_one({
+        "follower_id": user_id,
+        "following_id": current_user_id
+    })
+    
+    can_message = bool(user_follows and other_follows)
+    return {
+        "can_message": can_message,
+        "reason": None if can_message else "You must mutually follow each other"
+    }
 
 # Stories routes
 @api_router.post("/stories", response_model=Story)

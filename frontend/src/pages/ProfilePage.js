@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { Edit, Camera, User, MessageCircle, FileText, MapPin, Calendar, Heart, Users, Sparkles } from 'lucide-react';
@@ -18,6 +18,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api
 
 const ProfilePage = ({ currentUser }) => {
   const { username } = useParams();
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [blogs, setBlogs] = useState([]);
   const [posts, setPosts] = useState([]);
@@ -26,25 +27,78 @@ const ProfilePage = ({ currentUser }) => {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showEditCover, setShowEditCover] = useState(false);
   const [showEditAvatar, setShowEditAvatar] = useState(false);
+  const [canMessage, setCanMessage] = useState(false);
 
   useEffect(() => {
     fetchProfile();
+    checkMessagingEligibility();
   }, [username]);
 
   const fetchProfile = async () => {
+    console.log('🔍 ProfilePage - Fetching profile for username:', username);
+    
+    if (!username) {
+      console.error('❌ ProfilePage - Username is undefined!');
+      toast.error('Username not found');
+      setLoading(false);
+      return;
+    }
+    
     try {
+      console.log('📡 ProfilePage - Making API calls for:', username);
       const [userRes, blogsRes, postsRes] = await Promise.all([
         axios.get(`${API}/users/${username}`),
         axios.get(`${API}/users/${username}/blogs`),
         axios.get(`${API}/users/${username}/posts`)
       ]);
+      console.log('✅ ProfilePage - Profile loaded successfully:', userRes.data);
       setUser(userRes.data);
       setBlogs(blogsRes.data);
       setPosts(postsRes.data);
     } catch (error) {
-      toast.error('Failed to load profile');
+      console.error('❌ ProfilePage - Error loading profile:', error);
+      console.error('Username attempted:', username);
+      console.error('Error response:', error.response);
+      
+      if (error.response?.status === 404) {
+        toast.error(`Profile not found for username: ${username}`);
+      } else {
+        toast.error('Failed to load profile');
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkMessagingEligibility = async () => {
+    if (!currentUser) return;
+    try {
+      const userRes = await axios.get(`${API}/users/${username}`);
+      const userId = userRes.data.id;
+      
+      // Check if can message this user
+      const eligibilityRes = await axios.get(`${API}/conversations/check-eligibility/${userId}`);
+      setCanMessage(eligibilityRes.data.can_message);
+    } catch (error) {
+      console.error('Failed to check messaging eligibility');
+    }
+  };
+
+  const handleMessage = async () => {
+    try {
+      // Create or get existing conversation
+      const res = await axios.post(`${API}/conversations`, {
+        recipient_id: user.id
+      });
+      
+      // Navigate to messages page
+      navigate('/messages');
+    } catch (error) {
+      if (error.response?.data?.detail) {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error('Failed to start conversation');
+      }
     }
   };
 
@@ -187,16 +241,29 @@ const ProfilePage = ({ currentUser }) => {
                           </Button>
                         ) : (
                           currentUser && (
-                            <Button
-                              onClick={handleFollow}
-                              className={user.is_following 
-                                ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 shadow-md hover:shadow-lg transition-all duration-300 rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm" 
-                                : "bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm"
-                              }
-                              data-testid="follow-btn"
-                            >
-                              {user.is_following ? 'Following' : 'Follow'}
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button
+                                onClick={handleFollow}
+                                className={user.is_following 
+                                  ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 shadow-md hover:shadow-lg transition-all duration-300 rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm" 
+                                  : "bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm"
+                                }
+                                data-testid="follow-btn"
+                              >
+                                {user.is_following ? 'Following' : 'Follow'}
+                              </Button>
+                              
+                              {canMessage && (
+                                <Button
+                                  onClick={handleMessage}
+                                  className="bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm"
+                                  data-testid="message-btn"
+                                >
+                                  <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                                  <span>Message</span>
+                                </Button>
+                              )}
+                            </div>
                           )
                         )}
                       </div>
