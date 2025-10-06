@@ -9,8 +9,8 @@ import { toast } from "sonner";
 import { EditPostModal } from "@/components/EditPostModal";
 import { getPostAuthorAvatarUrl, getImageUrl } from "@/utils/imageUtils";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
-const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
   const navigate = useNavigate();
@@ -154,6 +154,14 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
                 </Button>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Badge - inline on left */}
+        <div className="px-4">
+          <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-full shadow-sm">
+            <MessageCircle className="w-3 h-3 text-slate-600" />
+            <span className="text-[10px] font-semibold text-slate-700 uppercase tracking-wide">Quick Post</span>
           </div>
         </div>
 

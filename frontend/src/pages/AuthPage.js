@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { FileText, Users, TrendingUp, Sparkles, User, MessageCircle, ChevronRight } from "lucide-react";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
-const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 export const AuthPage = ({ onLogin }) => {
   const [isLogin, setIsLogin] = useState(true);

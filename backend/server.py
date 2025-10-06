@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, File, UploadFile, WebSocket, WebSocketDisconnect, Form
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, File, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
@@ -18,32 +18,46 @@ import json
 import asyncio
 from pymongo.errors import DuplicateKeyError, PyMongoError
 
-# Import Cloudinary utilities
-from cloudinary_utils import CloudinaryUploader, CloudinaryHelper
-
 # Load environment variables (only for local development)
 # In production (Docker), environment variables are set via docker-compose.yml
 ROOT_DIR = Path(__file__).parent
 if os.getenv('ENVIRONMENT') != 'production':
     load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection - simplified for better compatibility
+# MongoDB connection with custom SSL context to bypass handshake issues in production
+import ssl
 mongo_url = os.environ['MONGO_URL']
 
-# For local development, use the MongoDB connection string as-is
-# MongoDB Atlas handles SSL/TLS automatically
-try:
+# Create a custom SSL context only for production (Docker) environment
+if os.getenv('ENVIRONMENT') == 'production':
+    try:
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+        
+        client = AsyncIOMotorClient(
+            mongo_url,
+            ssl_context=ssl_context,
+            serverSelectionTimeoutMS=30000,
+            connectTimeoutMS=30000,
+        )
+        logging.info("MongoDB client created with custom SSL context for production")
+    except Exception as e:
+        logging.error(f"Failed to create MongoDB client with SSL context: {e}")
+        # Fallback to basic connection
+        client = AsyncIOMotorClient(
+            mongo_url,
+            serverSelectionTimeoutMS=30000,
+            connectTimeoutMS=30000,
+        )
+else:
+    # Local development - use basic connection without SSL context
     client = AsyncIOMotorClient(
         mongo_url,
         serverSelectionTimeoutMS=30000,
         connectTimeoutMS=30000,
-        # Let pymongo handle SSL/TLS automatically based on the connection string
-        tls=True if 'mongodb+srv://' in mongo_url else None,
     )
-    logging.info(f"MongoDB client created for {os.getenv('ENVIRONMENT', 'development')} environment")
-except Exception as e:
-    logging.error(f"Failed to create MongoDB client: {e}")
-    raise
+    logging.info("MongoDB client created for local development")
     
 db = client[os.environ['DB_NAME']]
 
@@ -414,66 +428,19 @@ async def setup_profile(profile_data: ProfileSetup, user_id: str = Depends(get_c
     return User(**updated_user)
 
 @api_router.post("/upload/image")
-async def upload_image(
-    file: UploadFile = File(...), 
-    media_type: str = Form('post'),
-    user_id: str = Depends(get_current_user)
-):
-    """
-    Upload image - supports both Cloudinary and local storage
-    Set USE_CLOUDINARY=true in .env to use Cloudinary
-    
-    Args:
-        file: The image file to upload
-        media_type: Type of media (post, blog, profile, cover, story) - determines Cloudinary preset
-        user_id: Current authenticated user ID
-    """
+async def upload_image(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
     # Validate file type
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
     
-    # Read file content
+    # Validate file size (10MB limit)
+    file_size = 0
     content = await file.read()
     file_size = len(content)
     
-    # Validate file size (10MB limit)
     if file_size > 10 * 1024 * 1024:  # 10MB
         raise HTTPException(status_code=400, detail="File size must be less than 10MB")
     
-    # Check if Cloudinary is enabled and configured
-    use_cloudinary = os.getenv('USE_CLOUDINARY', 'false').lower() == 'true'
-    
-    if use_cloudinary and CloudinaryUploader.is_configured():
-        try:
-            # Upload to Cloudinary with appropriate preset
-            logging.info(f"📤 Uploading to Cloudinary (media_type: {media_type})...")
-            
-            result = await CloudinaryUploader.upload_image(
-                file_content=content,
-                filename=file.filename or "upload.jpg",
-                media_type=media_type,
-                user_id=user_id
-            )
-            
-            logging.info(f"✅ Cloudinary upload successful: {result['url']}")
-            
-            return {
-                "url": result['url'],
-                "filename": file.filename,
-                "public_id": result['public_id'],
-                "width": result['width'],
-                "height": result['height'],
-                "format": result['format'],
-                "bytes": result['bytes'],
-                "storage": "cloudinary"
-            }
-            
-        except Exception as e:
-            logging.error(f"❌ Cloudinary upload failed: {str(e)}")
-            # Fall back to local storage if Cloudinary fails
-            logging.info("⚠️ Falling back to local storage...")
-    
-    # Local storage (fallback or when Cloudinary is disabled)
     # Create uploads directory if it doesn't exist
     upload_dir = Path("uploads")
     upload_dir.mkdir(exist_ok=True)
@@ -483,127 +450,13 @@ async def upload_image(
     unique_filename = f"{uuid.uuid4()}{file_extension}"
     file_path = upload_dir / unique_filename
     
-    # Save file locally
+    # Save file
     with open(file_path, "wb") as buffer:
         buffer.write(content)
-    
-    logging.info(f"💾 File saved locally: {file_path}")
     
     # Return file URL
     file_url = f"/uploads/{unique_filename}"
-    return {
-        "url": file_url,
-        "filename": unique_filename,
-        "storage": "local"
-    }
-
-@api_router.post("/upload/profile")
-async def upload_profile_image(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
-    """Upload profile picture with optimized settings"""
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="File must be an image")
-    
-    content = await file.read()
-    if len(content) > 10 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="File size must be less than 10MB")
-    
-    use_cloudinary = os.getenv('USE_CLOUDINARY', 'false').lower() == 'true'
-    
-    if use_cloudinary and CloudinaryUploader.is_configured():
-        try:
-            result = await CloudinaryUploader.upload_image(
-                file_content=content,
-                filename=file.filename or "profile.jpg",
-                media_type='profile',
-                user_id=user_id
-            )
-            return {"url": result['url'], "public_id": result['public_id'], "storage": "cloudinary"}
-        except Exception as e:
-            logging.error(f"Cloudinary upload failed: {str(e)}")
-    
-    # Local fallback
-    upload_dir = Path("uploads")
-    upload_dir.mkdir(exist_ok=True)
-    file_extension = Path(file.filename).suffix if file.filename else ".jpg"
-    unique_filename = f"{uuid.uuid4()}{file_extension}"
-    file_path = upload_dir / unique_filename
-    
-    with open(file_path, "wb") as buffer:
-        buffer.write(content)
-    
-    return {"url": f"/uploads/{unique_filename}", "filename": unique_filename, "storage": "local"}
-
-@api_router.post("/upload/cover")
-async def upload_cover_image(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
-    """Upload cover photo with wide aspect ratio optimization"""
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="File must be an image")
-    
-    content = await file.read()
-    if len(content) > 10 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="File size must be less than 10MB")
-    
-    use_cloudinary = os.getenv('USE_CLOUDINARY', 'false').lower() == 'true'
-    
-    if use_cloudinary and CloudinaryUploader.is_configured():
-        try:
-            result = await CloudinaryUploader.upload_image(
-                file_content=content,
-                filename=file.filename or "cover.jpg",
-                media_type='cover',
-                user_id=user_id
-            )
-            return {"url": result['url'], "public_id": result['public_id'], "storage": "cloudinary"}
-        except Exception as e:
-            logging.error(f"Cloudinary upload failed: {str(e)}")
-    
-    # Local fallback
-    upload_dir = Path("uploads")
-    upload_dir.mkdir(exist_ok=True)
-    file_extension = Path(file.filename).suffix if file.filename else ".jpg"
-    unique_filename = f"{uuid.uuid4()}{file_extension}"
-    file_path = upload_dir / unique_filename
-    
-    with open(file_path, "wb") as buffer:
-        buffer.write(content)
-    
-    return {"url": f"/uploads/{unique_filename}", "filename": unique_filename, "storage": "local"}
-
-@api_router.post("/upload/blog")
-async def upload_blog_image(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
-    """Upload blog cover image with high quality"""
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="File must be an image")
-    
-    content = await file.read()
-    if len(content) > 10 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="File size must be less than 10MB")
-    
-    use_cloudinary = os.getenv('USE_CLOUDINARY', 'false').lower() == 'true'
-    
-    if use_cloudinary and CloudinaryUploader.is_configured():
-        try:
-            result = await CloudinaryUploader.upload_image(
-                file_content=content,
-                filename=file.filename or "blog.jpg",
-                media_type='blog',
-                user_id=user_id
-            )
-            return {"url": result['url'], "public_id": result['public_id'], "storage": "cloudinary"}
-        except Exception as e:
-            logging.error(f"Cloudinary upload failed: {str(e)}")
-    
-    # Local fallback
-    upload_dir = Path("uploads")
-    upload_dir.mkdir(exist_ok=True)
-    file_extension = Path(file.filename).suffix if file.filename else ".jpg"
-    unique_filename = f"{uuid.uuid4()}{file_extension}"
-    file_path = upload_dir / unique_filename
-    
-    with open(file_path, "wb") as buffer:
-        buffer.write(content)
-    
-    return {"url": f"/uploads/{unique_filename}", "filename": unique_filename, "storage": "local"}
+    return {"url": file_url, "filename": unique_filename}
 
 # User routes
 # Trending users (must be before dynamic {username} route)
@@ -728,30 +581,16 @@ async def get_blogs(skip: int = 0, limit: int = 20, current_user_id: Optional[st
 
 @api_router.get("/blogs/{blog_id}", response_model=BlogPost)
 async def get_blog(blog_id: str, current_user_id: Optional[str] = Depends(get_optional_user)):
-    try:
-        blog = await db.blog_posts.find_one({"id": blog_id})
-        if not blog:
-            logging.error(f"Blog not found with id: {blog_id}")
-            raise HTTPException(status_code=404, detail="Blog article not found")
-        
-        # Get author info to ensure complete data
-        author = await db.users.find_one({"id": blog["author_id"]})
-        
-        blog_data = BlogPost(**blog).dict()
-        if author:
-            blog_data["author_name"] = author.get("name", "")
-            blog_data["author_avatar"] = author.get("avatar", "")
-        
-        if current_user_id:
-            liked = await db.likes.find_one({"user_id": current_user_id, "post_id": blog_id, "post_type": "blog"})
-            blog_data["liked_by_user"] = bool(liked)
-        
-        return blog_data
-    except HTTPException:
-        raise
-    except Exception as e:
-        logging.error(f"Error fetching blog {blog_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to load blog: {str(e)}")
+    blog = await db.blog_posts.find_one({"id": blog_id})
+    if not blog:
+        raise HTTPException(status_code=404, detail="Blog not found")
+    
+    blog_data = BlogPost(**blog).dict()
+    if current_user_id:
+        liked = await db.likes.find_one({"user_id": current_user_id, "post_id": blog_id, "post_type": "blog"})
+        blog_data["liked_by_user"] = bool(liked)
+    
+    return blog_data
 
 @api_router.put("/blogs/{blog_id}", response_model=BlogPost)
 async def update_blog(blog_id: str, blog_data: BlogPostUpdate, user_id: str = Depends(get_current_user)):

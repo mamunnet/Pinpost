@@ -11,8 +11,8 @@ import { Slider } from "@/components/ui/slider";
 import { Camera, MapPin, Calendar, Upload, Move3D, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
-const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 export const ProfileSetup = ({ user, onComplete }) => {
   const [formData, setFormData] = useState({
@@ -58,12 +58,9 @@ export const ProfileSetup = ({ user, onComplete }) => {
           },
         });
         
-        // Handle both Cloudinary URLs and local paths
-        let imageUrl = response.data.url;
-        if (!imageUrl.startsWith('http')) {
-          imageUrl = `${BACKEND_URL}${imageUrl}`;
-        }
-        setFormData(prev => ({ ...prev, [field]: imageUrl }));
+        // Replace preview URL with server URL
+        const serverUrl = `${BACKEND_URL}${response.data.url}`;
+        setFormData(prev => ({ ...prev, [field]: serverUrl }));
         
         toast.success('Image uploaded successfully!');
       } catch (error) {

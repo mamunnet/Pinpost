@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Camera, Upload, Trash2, Move } from "lucide-react";
 import { toast } from "sonner";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
-const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 export const EditCoverPhotoModal = ({ user, onClose, onUpdate }) => {
   const [coverPhoto, setCoverPhoto] = useState(user.cover_photo || "");
@@ -42,12 +42,9 @@ export const EditCoverPhotoModal = ({ user, onClose, onUpdate }) => {
           },
         });
         
-        // Handle both Cloudinary URLs and local paths
-        let imageUrl = response.data.url;
-        if (!imageUrl.startsWith('http')) {
-          imageUrl = `${BACKEND_URL}${imageUrl}`;
-        }
-        setCoverPhoto(imageUrl);
+        // Replace preview URL with server URL
+        const serverUrl = `${BACKEND_URL}${response.data.url}`;
+        setCoverPhoto(serverUrl);
         
         toast.success('Image uploaded successfully!');
       } catch (error) {

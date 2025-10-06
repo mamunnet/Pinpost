@@ -4,26 +4,19 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Edit } from "lucide-react";
-import { EditBlogModal } from "@/components/EditBlogModal";
+import { Heart, MessageCircle, Edit, FileText } from "lucide-react";
 import { getPostAuthorAvatarUrl, getImageUrl } from "@/utils/imageUtils";
 
 export const BlogCard = ({ blog, user, onLike, compact = false, onBlogUpdate }) => {
   const navigate = useNavigate();
-  const [showEditModal, setShowEditModal] = useState(false);
   const [currentBlog, setCurrentBlog] = useState(blog);
 
   const handleEditBlog = (e) => {
     e.stopPropagation();
-    setShowEditModal(true);
+    navigate(`/edit-blog/${currentBlog.id}`);
   };
 
-  const handleBlogUpdated = (updatedBlog) => {
-    setCurrentBlog(updatedBlog);
-    if (onBlogUpdate) {
-      onBlogUpdate(updatedBlog);
-    }
-  };
+  // ...existing code... (blog update handled via page navigation)
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -32,7 +25,15 @@ export const BlogCard = ({ blog, user, onLike, compact = false, onBlogUpdate }) 
   if (compact) {
     return (
       <>
-        <Card className="hover:shadow-xl transition-all cursor-pointer group" onClick={() => navigate(`/blog/${currentBlog.id}`)} data-testid="blog-card">
+        <Card className="hover:shadow-xl transition-all cursor-pointer group relative" onClick={() => navigate(`/blog/${currentBlog.id}`)} data-testid="blog-card">
+          {/* Badge - top right */}
+          <div className="absolute top-3 right-3 z-10">
+            <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-full shadow-sm backdrop-blur-sm">
+              <FileText className="w-3 h-3 text-blue-600" />
+              <span className="text-[10px] font-semibold text-blue-700 uppercase tracking-wide">Blog Article</span>
+            </div>
+          </div>
+          
           <CardHeader>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-2">
@@ -56,7 +57,7 @@ export const BlogCard = ({ blog, user, onLike, compact = false, onBlogUpdate }) 
                   variant="ghost"
                   size="sm"
                   onClick={handleEditBlog}
-                  className="text-slate-500 hover:text-slate-700 h-8 w-8 p-0"
+                  className="relative z-40 text-slate-500 hover:text-slate-700 h-8 w-8 p-0"
                   title="Edit blog"
                 >
                   <Edit className="w-4 h-4" />
@@ -87,19 +88,22 @@ export const BlogCard = ({ blog, user, onLike, compact = false, onBlogUpdate }) 
           </CardContent>
         </Card>
         
-        <EditBlogModal
-          isOpen={showEditModal}
-          onClose={() => setShowEditModal(false)}
-          blog={currentBlog}
-          onBlogUpdated={handleBlogUpdated}
-        />
+        {/* Blog editing moved to full page /edit-blog/:id */}
       </>
     );
   }
 
   return (
     <>
-      <Card className="hover:shadow-xl transition-all cursor-pointer" onClick={() => navigate(`/blog/${currentBlog.id}`)} data-testid="blog-card-full">
+      <Card className="hover:shadow-xl transition-all cursor-pointer relative" onClick={() => navigate(`/blog/${currentBlog.id}`)} data-testid="blog-card-full">
+        {/* Badge - top right */}
+        <div className="absolute top-3 right-3 z-20">
+          <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-full shadow-sm backdrop-blur-sm">
+            <FileText className="w-3 h-3 text-blue-600" />
+            <span className="text-[10px] font-semibold text-blue-700 uppercase tracking-wide">Blog Article</span>
+          </div>
+        </div>
+        
         {currentBlog.cover_image && (
           <div className="w-full h-48 overflow-hidden">
             <img src={getImageUrl(currentBlog.cover_image)} alt={currentBlog.title} className="w-full h-full object-cover" />
@@ -130,7 +134,7 @@ export const BlogCard = ({ blog, user, onLike, compact = false, onBlogUpdate }) 
                 variant="ghost"
                 size="sm"
                 onClick={handleEditBlog}
-                className="text-slate-500 hover:text-slate-700 h-8 w-8 p-0"
+                className="relative z-40 text-slate-500 hover:text-slate-700 h-8 w-8 p-0"
                 title="Edit blog"
               >
                 <Edit className="w-4 h-4" />
@@ -168,12 +172,7 @@ export const BlogCard = ({ blog, user, onLike, compact = false, onBlogUpdate }) 
         </CardContent>
       </Card>
       
-      <EditBlogModal
-        isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        blog={currentBlog}
-        onBlogUpdated={handleBlogUpdated}
-      />
+      {/* Blog editing moved to full page /edit-blog/:id */}
     </>
   );
 };

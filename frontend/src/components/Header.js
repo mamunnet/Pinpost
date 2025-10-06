@@ -11,22 +11,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Home, FileText, Users, Bell, Search, LogOut, User, Settings, TrendingUp, UserPlus, HelpCircle, Shield, Mail, Menu, Wifi, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
-const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+const API = `${BACKEND_URL}/api`;
 
-// Create WebSocket URL properly for both development and production
+// Create WebSocket URL properly
 const getWebSocketUrl = (userId) => {
-  // In production (empty BACKEND_URL), use current page protocol and host
-  if (!BACKEND_URL) {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host; // includes port if any
-    return `${protocol}//${host}/ws/notifications/${userId}`;
-  }
-  
-  // In development, construct from BACKEND_URL
-  const protocol = BACKEND_URL.startsWith('https') ? 'wss:' : 'ws:';
-  const host = BACKEND_URL.replace(/^https?:\/\//, '');
-  return `${protocol}//${host}/ws/notifications/${userId}`;
+  const wsProtocol = BACKEND_URL.startsWith('https') ? 'wss' : 'ws';
+  const wsHost = BACKEND_URL.replace(/^https?:\/\//, '');
+  return `${wsProtocol}://${wsHost}/ws/notifications/${userId}`;
 };
 
 const NotificationsDropdown = ({ user }) => {

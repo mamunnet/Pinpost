@@ -16,8 +16,7 @@ RUN if [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
 # Copy frontend source
 COPY frontend/ .
 
-# Set backend URL for production - nginx proxies to same origin
-# Using empty string causes images to break, use relative path instead
+# Set backend URL to empty string - nginx will proxy all API calls
 ENV REACT_APP_BACKEND_URL=""
 
 # Build the app

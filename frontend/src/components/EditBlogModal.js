@@ -8,8 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Save, X, Upload, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
-const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 export const EditBlogModal = ({ isOpen, onClose, blog, onBlogUpdated }) => {
   const [title, setTitle] = useState("");
@@ -50,7 +50,6 @@ export const EditBlogModal = ({ isOpen, onClose, blog, onBlogUpdated }) => {
     setUploadingImage(true);
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('media_type', 'blog');
 
     try {
       const token = localStorage.getItem('token');
@@ -61,13 +60,9 @@ export const EditBlogModal = ({ isOpen, onClose, blog, onBlogUpdated }) => {
         }
       });
 
-      // Handle both Cloudinary URLs and local paths
-      let imageUrl = response.data.url;
-      if (!imageUrl.startsWith('http')) {
-        imageUrl = `${BACKEND_URL}${imageUrl}`;
-      }
-      setCoverImage(imageUrl);
-      toast.success("Photo added successfully!");
+      const serverUrl = `${BACKEND_URL}${response.data.url}`;
+      setCoverImage(serverUrl);
+      toast.success("📸 Image uploaded successfully!");
     } catch (error) {
       console.error('Error uploading image:', error);
       toast.error("❌ Failed to upload image");
@@ -189,7 +184,7 @@ export const EditBlogModal = ({ isOpen, onClose, blog, onBlogUpdated }) => {
                   <img
                     src={coverImage}
                     alt="Blog cover"
-                    className="w-full h-48 object-cover rounded-lg border"
+                    className="w-full h-32 object-cover rounded-lg border"
                   />
                   <Button
                     variant="outline"

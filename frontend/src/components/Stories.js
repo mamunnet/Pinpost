@@ -8,8 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, X, ChevronLeft, ChevronRight, Heart, Smile, ThumbsUp, Eye } from "lucide-react";
 import { toast } from "sonner";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
-const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 const CreateStoryModal = ({ onClose, onCreated }) => {
   const [content, setContent] = useState('');

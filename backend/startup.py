@@ -64,6 +64,7 @@ def test_mongodb_connection():
     try:
         from motor.motor_asyncio import AsyncIOMotorClient
         import asyncio
+        import ssl
         
         mongo_url = os.getenv('MONGO_URL')
         if not mongo_url:
@@ -72,12 +73,16 @@ def test_mongodb_connection():
         
         logger.info(f"Testing connection to: {mongo_url[:50]}...")
         
-        # Use simple connection - let pymongo handle SSL/TLS automatically
+        # Create custom SSL context
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+        
         client = AsyncIOMotorClient(
             mongo_url,
+            ssl_context=ssl_context,
             serverSelectionTimeoutMS=30000,
             connectTimeoutMS=30000,
-            tls=True if 'mongodb+srv://' in mongo_url else None,
         )
         
         async def test_ping():
