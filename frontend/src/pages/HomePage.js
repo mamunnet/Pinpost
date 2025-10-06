@@ -154,9 +154,9 @@ export const HomePage = ({ user }) => {
             <div className="border-b border-slate-300"></div>
 
             {/* Create Post Box - Premium Style */}
-            <div className="bg-white shadow-md hover:shadow-xl transition-all duration-300 rounded-2xl p-5 sm:p-6 border border-slate-200/60">
-              <div className="flex items-center space-x-3 sm:space-x-4">
-                <Avatar className="w-11 h-11 sm:w-12 sm:h-12 ring-2 ring-slate-100 shadow-sm">
+            <div className="bg-white shadow-md hover:shadow-xl transition-all duration-300 rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-slate-200/60">
+              <div className="flex items-center space-x-2 sm:space-x-4">
+                <Avatar className="w-9 h-9 sm:w-12 sm:h-12 ring-2 ring-slate-100 shadow-sm">
                   {getUserAvatarUrl(user) ? (
                     <img 
                       src={getUserAvatarUrl(user)} 
@@ -164,7 +164,7 @@ export const HomePage = ({ user }) => {
                       className="w-full h-full object-cover" 
                     />
                   ) : (
-                    <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white font-bold">
+                    <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white font-bold text-sm sm:text-base">
                       {user.username[0].toUpperCase()}
                     </AvatarFallback>
                   )}
@@ -174,37 +174,44 @@ export const HomePage = ({ user }) => {
                     setInitialTab('post');
                     setShowCreateModal(true);
                   }}
-                  className="flex-1 text-left px-5 py-3.5 bg-gradient-to-r from-slate-50 to-slate-100 hover:from-slate-100 hover:to-slate-200 rounded-full text-slate-600 transition-all duration-300 hover:shadow-md border-2 border-slate-200 hover:border-slate-300 font-medium"
+                  className="flex-1 text-left px-3 py-2 sm:px-5 sm:py-3.5 bg-gradient-to-r from-slate-50 to-slate-100 hover:from-slate-100 hover:to-slate-200 rounded-full text-slate-600 transition-all duration-300 hover:shadow-md border border-slate-200 sm:border-2 hover:border-slate-300 text-sm sm:text-base font-medium"
                   data-testid="whats-on-mind-btn"
                 >
-                  What's on your mind, {user.username}?
+                  <span className="hidden sm:inline">What's on your mind, {user.username}?</span>
+                  <span className="sm:hidden">What's on your mind?</span>
                 </button>
               </div>
-              <div className="flex items-center justify-around mt-5 pt-5 border-t border-slate-100 gap-2">
+              <div className="flex items-center justify-around mt-3 sm:mt-5 pt-3 sm:pt-5 border-t border-slate-100 gap-1 sm:gap-2">
                 <button
                   onClick={() => {
                     setInitialTab('blog');
                     setShowCreateModal(true);
                   }}
-                  className="flex items-center gap-2.5 px-4 py-3 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 rounded-xl transition-all duration-300 group flex-1 justify-center border border-transparent hover:border-slate-200 hover:shadow-md"
+                  className="flex items-center gap-1.5 sm:gap-2.5 px-2 sm:px-4 py-2 sm:py-3 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 rounded-lg sm:rounded-xl transition-all duration-300 group flex-1 justify-center border border-transparent hover:border-slate-200 hover:shadow-md"
                 >
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 group-hover:from-slate-200 group-hover:to-slate-100 transition-all duration-300 shadow-sm">
+                  <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 group-hover:from-slate-200 group-hover:to-slate-100 transition-all duration-300 shadow-sm">
                     <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 group-hover:scale-110 transition-transform duration-300" />
                   </div>
-                  <span className="font-bold text-slate-700 group-hover:text-slate-900 text-sm sm:text-base transition-colors">Write Blog</span>
+                  <span className="font-bold text-slate-700 group-hover:text-slate-900 text-xs sm:text-base transition-colors">
+                    <span className="hidden sm:inline">Write Blog</span>
+                    <span className="sm:hidden">Blog</span>
+                  </span>
                 </button>
-                <div className="w-px h-10 bg-slate-200"></div>
+                <div className="w-px h-8 sm:h-10 bg-slate-200"></div>
                 <button
                   onClick={() => {
                     setInitialTab('post');
                     setShowCreateModal(true);
                   }}
-                  className="flex items-center gap-2.5 px-4 py-3 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 rounded-xl transition-all duration-300 group flex-1 justify-center border border-transparent hover:border-slate-200 hover:shadow-md"
+                  className="flex items-center gap-1.5 sm:gap-2.5 px-2 sm:px-4 py-2 sm:py-3 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 rounded-lg sm:rounded-xl transition-all duration-300 group flex-1 justify-center border border-transparent hover:border-slate-200 hover:shadow-md"
                 >
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 group-hover:from-slate-200 group-hover:to-slate-100 transition-all duration-300 shadow-sm">
+                  <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 group-hover:from-slate-200 group-hover:to-slate-100 transition-all duration-300 shadow-sm">
                     <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 group-hover:scale-110 transition-transform duration-300" />
                   </div>
-                  <span className="font-bold text-slate-700 group-hover:text-slate-900 text-sm sm:text-base transition-colors">Quick Post</span>
+                  <span className="font-bold text-slate-700 group-hover:text-slate-900 text-xs sm:text-base transition-colors">
+                    <span className="hidden sm:inline">Quick Post</span>
+                    <span className="sm:hidden">Post</span>
+                  </span>
                 </button>
               </div>
             </div>

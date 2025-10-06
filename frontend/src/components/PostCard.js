@@ -1,9 +1,15 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Heart, MessageCircle, Share2, Trash2, Edit, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { EditPostModal } from "@/components/EditPostModal";
@@ -21,6 +27,15 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
   const [showReactions, setShowReactions] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentPost, setCurrentPost] = useState(post);
+  const [floatingEmojis, setFloatingEmojis] = useState([]);
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editCommentContent, setEditCommentContent] = useState('');
+  const [replyingToCommentId, setReplyingToCommentId] = useState(null);
+  const [replyContent, setReplyContent] = useState('');
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionSearch, setMentionSearch] = useState('');
+  const [mentionUsers, setMentionUsers] = useState([]);
+  const [cursorPosition, setCursorPosition] = useState(0);
 
   const fetchComments = async () => {
     if (comments.length > 0) {
@@ -81,8 +96,134 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
     }
   };
 
+  const handleEditComment = (comment) => {
+    setEditingCommentId(comment.id);
+    setEditCommentContent(comment.content);
+  };
+
+  const handleUpdateComment = async (commentId) => {
+    if (!editCommentContent.trim()) return;
+
+    try {
+      const response = await axios.put(`${API}/comments/${commentId}`, {
+        content: editCommentContent
+      });
+      
+      setComments(comments.map(c => c.id === commentId ? { ...c, content: editCommentContent } : c));
+      setEditingCommentId(null);
+      setEditCommentContent('');
+      
+      toast.success('✏️ Comment updated successfully!', {
+        description: 'Your comment has been edited.',
+        duration: 3000
+      });
+    } catch (error) {
+      toast.error('❌ Failed to update comment', {
+        description: 'Please try again or check your connection.',
+        duration: 4000
+      });
+    }
+  };
+
+  const handleReply = (comment) => {
+    setReplyingToCommentId(comment.id);
+    setReplyContent(`@${comment.username} `);
+  };
+
+  const handleSubmitReply = async () => {
+    if (!replyContent.trim()) return;
+
+    try {
+      const response = await axios.post(`${API}/comments/post/${post.id}`, { 
+        content: replyContent,
+        reply_to: replyingToCommentId 
+      });
+      setComments([response.data, ...comments]);
+      setReplyingToCommentId(null);
+      setReplyContent('');
+      
+      toast.success('💬 Reply posted successfully!', {
+        description: 'Your reply has been added.',
+        duration: 3000
+      });
+      
+      if (onComment) onComment();
+    } catch (error) {
+      toast.error('❌ Failed to post reply', {
+        description: 'Please try again or check your connection.',
+        duration: 4000
+      });
+    }
+  };
+
+  const handleCommentInputChange = (e) => {
+    const value = e.target.value;
+    setCommentContent(value);
+    
+    // Check for @ mention
+    const cursorPos = e.target.selectionStart;
+    const textBeforeCursor = value.substring(0, cursorPos);
+    const lastAtSymbol = textBeforeCursor.lastIndexOf('@');
+    
+    if (lastAtSymbol !== -1) {
+      const searchTerm = textBeforeCursor.substring(lastAtSymbol + 1);
+      if (searchTerm.length > 0 && !searchTerm.includes(' ')) {
+        setMentionSearch(searchTerm);
+        setShowMentions(true);
+        setCursorPosition(cursorPos);
+        searchMentionUsers(searchTerm);
+      } else if (searchTerm.length === 0) {
+        setShowMentions(false);
+      }
+    } else {
+      setShowMentions(false);
+    }
+  };
+
+  const searchMentionUsers = async (search) => {
+    try {
+      const response = await axios.get(`${API}/users/search?q=${search}&limit=5`);
+      setMentionUsers(response.data);
+    } catch (error) {
+      console.error('Failed to search users:', error);
+    }
+  };
+
+  const selectMention = (username) => {
+    const textBeforeCursor = commentContent.substring(0, cursorPosition);
+    const textAfterCursor = commentContent.substring(cursorPosition);
+    const lastAtSymbol = textBeforeCursor.lastIndexOf('@');
+    const newContent = textBeforeCursor.substring(0, lastAtSymbol) + `@${username} ` + textAfterCursor;
+    setCommentContent(newContent);
+    setShowMentions(false);
+  };
+
   const handleEditPost = () => {
     setShowEditModal(true);
+  };
+
+  const handleDeletePost = async () => {
+    if (!window.confirm('Are you sure you want to delete this post?')) {
+      return;
+    }
+
+    try {
+      await axios.delete(`${API}/posts/${post.id}`);
+      toast.success('🗑️ Post deleted successfully!', {
+        description: 'Your post has been removed.',
+        duration: 3000
+      });
+      // Reload or update parent component
+      if (onPostUpdate) {
+        onPostUpdate(null); // Signal deletion
+      }
+      window.location.reload(); // Refresh the feed
+    } catch (error) {
+      toast.error('❌ Failed to delete post', {
+        description: 'Please try again or check your connection.',
+        duration: 4000
+      });
+    }
   };
 
   const handlePostUpdated = (updatedPost) => {
@@ -114,12 +255,12 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-slate-200/60 overflow-hidden" data-testid="post-card">
-      <div className="space-y-3 sm:space-y-4">
+    <div className="bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-slate-200/60 overflow-hidden relative" data-testid="post-card">
+      <div className="space-y-2 sm:space-y-4">
         {/* Header */}
-        <div className="flex items-start space-x-3 px-4 sm:px-6 pt-4 sm:pt-5">
+        <div className="flex items-start space-x-2 sm:space-x-3 px-3 sm:px-6 pt-3 sm:pt-5">
           <Link to={`/profile/${post.author_username}`} className="group flex-shrink-0">
-            <Avatar className="w-10 h-10 sm:w-12 sm:h-12 ring-2 ring-slate-100 group-hover:ring-slate-300 transition-all shadow-sm">
+            <Avatar className="w-9 h-9 sm:w-12 sm:h-12 ring-2 ring-slate-100 group-hover:ring-slate-300 transition-all shadow-sm">
               {getPostAuthorAvatarUrl(currentPost) ? (
                 <img src={getPostAuthorAvatarUrl(currentPost)} alt={currentPost.author_name || currentPost.author_username} className="w-full h-full object-cover rounded-full" />
               ) : (
@@ -141,34 +282,46 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
                 <p className="text-xs sm:text-sm text-slate-500">{formatDate(post.created_at)}</p>
               </div>
               
-              {/* Edit button - only show for post owner */}
+              {/* 3-dot Menu - only show for post owner */}
               {user && user.id === post.author_id && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleEditPost}
-                  className="text-slate-500 hover:text-slate-700 hover:bg-slate-100 h-9 w-9 p-0 rounded-xl transition-all duration-300"
-                  title="Edit post"
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-slate-500 hover:text-slate-700 hover:bg-slate-100 h-8 w-8 p-0 rounded-lg transition-all duration-300"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={handleEditPost} className="cursor-pointer">
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit Post
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleDeletePost} className="cursor-pointer text-red-600 focus:text-red-600">
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete Post
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
             </div>
           </div>
         </div>
 
         {/* Badge - inline on left */}
-        <div className="px-4 sm:px-6">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-slate-50 via-slate-100 to-slate-50 border border-slate-200 rounded-full shadow-sm">
-            <MessageCircle className="w-3 h-3 text-slate-600" />
-            <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">Quick Post</span>
+        <div className="px-3 sm:px-6">
+          <div className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 bg-gradient-to-r from-slate-50 via-slate-100 to-slate-50 border border-slate-200 rounded-full shadow-sm">
+            <MessageCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-600" />
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-700 uppercase tracking-wider">Quick Post</span>
           </div>
         </div>
 
         {/* Content - Clickable to navigate to post detail */}
         <div 
           onClick={() => navigate(`/post/${post.id}`)}
-          className="cursor-pointer hover:bg-slate-50/60 px-4 sm:px-6 py-2 transition-all duration-200 rounded-lg mx-2"
+          className="cursor-pointer hover:bg-slate-50/60 px-3 sm:px-6 py-2 sm:py-3 transition-all duration-200 mx-3 sm:mx-6 rounded-lg border border-[#E5EBF2] bg-gradient-to-br from-white to-slate-50/30"
         >
           {displayContent.trim() && (
             <p className="text-slate-800 whitespace-pre-wrap leading-relaxed text-sm sm:text-[15px]">{displayContent}</p>
@@ -182,40 +335,91 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
           )}
         </div>
 
+        {/* Floating Emojis */}
+        {floatingEmojis.map((emoji) => (
+          <div
+            key={emoji.id}
+            className="absolute pointer-events-none z-50 animate-float-up"
+            style={{
+              left: `${emoji.x}px`,
+              bottom: `${emoji.y}px`,
+              fontSize: '2.5rem',
+              animation: 'floatUp 2s ease-out forwards'
+            }}
+          >
+            {emoji.emoji}
+          </div>
+        ))}
+
+        {/* Stats Bar */}
+        <div className="px-3 sm:px-6 py-2 bg-slate-50/50 flex items-center justify-between text-xs sm:text-sm text-slate-600">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <span className="font-semibold">{post.likes_count || 0} {post.likes_count === 1 ? 'like' : 'likes'}</span>
+            <span className="font-semibold">{post.comments_count || 0} {post.comments_count === 1 ? 'comment' : 'comments'}</span>
+          </div>
+        </div>
+
         {/* Actions */}
-        <div className="pt-3 sm:pt-4 border-t border-slate-100 mx-4 sm:mx-6 pb-4">
-          <div className="flex items-center space-x-1">
-            <div className="relative">
+        <div className="pt-2 sm:pt-4 border-t border-slate-100 mx-3 sm:mx-6 pb-3 sm:pb-4">
+          <div className="flex items-center justify-around">
+            <div className="relative flex-1">
               <button
-                onClick={onLike}
+                onClick={(e) => {
+                  onLike();
+                  // Animate emoji
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const emojiId = Date.now();
+                  setFloatingEmojis(prev => [...prev, {
+                    id: emojiId,
+                    emoji: post.liked_by_user ? '💔' : '❤️',
+                    x: Math.random() * 50,
+                    y: 0
+                  }]);
+                  setTimeout(() => {
+                    setFloatingEmojis(prev => prev.filter(e => e.id !== emojiId));
+                  }, 2000);
+                }}
                 onMouseEnter={() => setShowReactions(true)}
                 onMouseLeave={() => setShowReactions(false)}
-                className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 rounded-xl font-medium text-sm ${
+                className={`w-full flex items-center justify-center space-x-1 sm:space-x-2 px-2 py-2 rounded-lg hover:bg-slate-50 font-semibold text-xs sm:text-sm ${
                   post.liked_by_user 
-                    ? 'text-red-600 bg-gradient-to-r from-red-50 to-rose-50 shadow-sm' 
-                    : 'text-slate-600 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 hover:shadow-sm'
+                    ? 'text-red-600' 
+                    : 'text-slate-600'
                 } transition-all duration-300 group`}
                 data-testid="like-post-btn"
               >
                 <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${post.liked_by_user ? 'fill-current' : ''} group-hover:scale-110 transition-transform duration-300`} />
-                <span className="text-xs sm:text-sm font-semibold">{post.likes_count > 0 && post.likes_count}</span>
+                <span>Like</span>
               </button>
               
               {/* Reaction Picker */}
               {showReactions && (
                 <div 
-                  className="absolute bottom-full left-0 mb-2 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border-2 border-slate-200/60 px-3 sm:px-4 py-2 sm:py-3 flex space-x-1.5 z-10"
+                  className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-white/95 backdrop-blur-md rounded-xl sm:rounded-2xl shadow-2xl border-2 border-slate-200/60 px-2 sm:px-4 py-1.5 sm:py-3 flex space-x-1 sm:space-x-1.5 z-10"
                   onMouseEnter={() => setShowReactions(true)}
                   onMouseLeave={() => setShowReactions(false)}
                 >
                   {['❤️', '😍', '😂', '👍', '😮', '😢'].map((emoji, idx) => (
                     <button
                       key={idx}
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         onLike();
+                        // Animate selected emoji
+                        const emojiId = Date.now();
+                        setFloatingEmojis(prev => [...prev, {
+                          id: emojiId,
+                          emoji: emoji,
+                          x: Math.random() * 50,
+                          y: 0
+                        }]);
+                        setTimeout(() => {
+                          setFloatingEmojis(prev => prev.filter(e => e.id !== emojiId));
+                        }, 2000);
                         setShowReactions(false);
                       }}
-                      className="text-lg sm:text-xl hover:scale-125 transition-all duration-300 p-1.5 sm:p-2 hover:bg-slate-50 rounded-xl"
+                      className="text-xl sm:text-2xl hover:scale-125 transition-all duration-300 p-1 sm:p-2 hover:bg-slate-50 rounded-lg animate-bounce-in"
+                      style={{ animationDelay: `${idx * 50}ms` }}
                     >
                       {emoji}
                     </button>
@@ -226,14 +430,16 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
             
             <button
               onClick={fetchComments}
-              className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 rounded-xl text-slate-600 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 hover:shadow-sm transition-all duration-300 group font-medium text-sm"
+              className="flex-1 flex items-center justify-center space-x-1 sm:space-x-2 px-2 py-2 rounded-lg text-slate-600 hover:bg-slate-50 transition-all duration-300 group font-semibold text-xs sm:text-sm"
               data-testid="comment-post-btn"
             >
               <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform duration-300" />
-              <span className="text-xs sm:text-sm font-semibold">{post.comments_count > 0 && post.comments_count}</span>
+              <span>Comment</span>
             </button>
-            <button className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 rounded-xl text-slate-600 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 hover:shadow-sm transition-all duration-300 group font-medium text-sm">
+            
+            <button className="flex-1 flex items-center justify-center space-x-1 sm:space-x-2 px-2 py-2 rounded-lg text-slate-600 hover:bg-slate-50 transition-all duration-300 group font-semibold text-xs sm:text-sm">
               <Share2 className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform duration-300" />
+              <span>Share</span>
             </button>
           </div>
         </div>
@@ -241,55 +447,168 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
         {/* Comments Section */}
         {showComments && (
           <div className="mt-3 sm:mt-4 space-y-3 sm:space-y-4 border-t border-slate-100 pt-4 sm:pt-5 px-4 sm:px-6 pb-4">
-            <div className="flex space-x-2 sm:space-x-3">
-              <Input
-                placeholder="Add a comment..."
-                value={commentContent}
-                onChange={(e) => setCommentContent(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleComment()}
-                className="flex-1 border-2 border-slate-200 focus:border-slate-400 focus:ring-slate-300 rounded-xl text-sm shadow-sm placeholder:text-slate-400"
-                data-testid="comment-input"
-              />
-              <Button 
-                onClick={handleComment} 
-                size="sm" 
-                className="hover:scale-105 transition-all duration-300 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white px-4 py-2 text-xs rounded-xl shadow-md hover:shadow-lg font-semibold" 
-                data-testid="submit-comment-btn"
-              >
-                Post
-              </Button>
-            </div>
-            {comments.map((comment) => (
-              <div key={comment.id} className="flex items-start space-x-2 sm:space-x-3 p-3 sm:p-4 bg-gradient-to-br from-slate-50/80 to-white rounded-xl hover:shadow-md transition-all duration-300 border border-slate-100">
-                <Avatar className="w-7 h-7 sm:w-9 sm:h-9 ring-2 ring-white shadow-sm">
-                  <AvatarFallback className="text-xs bg-gradient-to-br from-slate-600 to-slate-700 text-white">
-                    {comment.username[0].toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 bg-white rounded-xl p-3 border border-slate-200/60 shadow-sm">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs sm:text-sm font-bold text-slate-900">{comment.username}</p>
-                        {user && (
-                          String(user.id) === String(comment.user_id) || 
-                          user.username === comment.username
-                        ) && (
-                          <button 
-                            onClick={() => handleDeleteComment(comment.id)}
-                            className="text-xs text-red-500 hover:text-red-700 font-semibold flex items-center gap-1.5 transition-all duration-300 p-1.5 rounded-lg hover:bg-red-50 hover:shadow-sm ml-2"
-                            title="Delete comment"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Delete</span>
-                          </button>
-                        )}
+            {/* Add Comment Input */}
+            <div className="relative">
+              <div className="flex space-x-2 sm:space-x-3">
+                <Input
+                  placeholder="Add a comment... (Use @ to mention)"
+                  value={commentContent}
+                  onChange={handleCommentInputChange}
+                  onKeyPress={(e) => e.key === 'Enter' && !showMentions && handleComment()}
+                  className="flex-1 border-2 border-slate-200 focus:border-slate-400 focus:ring-slate-300 rounded-xl text-sm shadow-sm placeholder:text-slate-400"
+                  data-testid="comment-input"
+                />
+                <Button 
+                  onClick={handleComment} 
+                  size="sm" 
+                  className="hover:scale-105 transition-all duration-300 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white px-4 py-2 text-xs rounded-xl shadow-md hover:shadow-lg font-semibold" 
+                  data-testid="submit-comment-btn"
+                >
+                  Post
+                </Button>
+              </div>
+              
+              {/* Mention Dropdown */}
+              {showMentions && mentionUsers.length > 0 && (
+                <div className="absolute bottom-full left-0 mb-2 w-full bg-white rounded-xl shadow-2xl border-2 border-slate-200 max-h-48 overflow-y-auto z-20">
+                  {mentionUsers.map((mentionUser) => (
+                    <button
+                      key={mentionUser.id}
+                      onClick={() => selectMention(mentionUser.username)}
+                      className="w-full flex items-center space-x-2 px-4 py-2 hover:bg-slate-50 transition-colors text-left"
+                    >
+                      <Avatar className="w-8 h-8">
+                        <AvatarFallback className="text-xs bg-gradient-to-br from-slate-600 to-slate-700 text-white">
+                          {mentionUser.username[0].toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900">@{mentionUser.username}</p>
+                        <p className="text-xs text-slate-500">{mentionUser.name || mentionUser.username}</p>
                       </div>
-                      <p className="text-xs sm:text-sm text-slate-700 mt-1 leading-relaxed">{comment.content}</p>
-                    </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* Comments List */}
+            {comments.map((comment) => (
+              <React.Fragment key={comment.id}>
+                <div className="flex items-start space-x-2 sm:space-x-3 p-3 sm:p-4 bg-gradient-to-br from-slate-50/80 to-white rounded-xl hover:shadow-md transition-all duration-300 border border-slate-100">
+                  <Avatar className="w-7 h-7 sm:w-9 sm:h-9 ring-2 ring-white shadow-sm">
+                    <AvatarFallback className="text-xs bg-gradient-to-br from-slate-600 to-slate-700 text-white">
+                      {comment.username[0].toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    {editingCommentId === comment.id ? (
+                      // Edit Mode
+                      <div className="space-y-2">
+                        <Input
+                          value={editCommentContent}
+                          onChange={(e) => setEditCommentContent(e.target.value)}
+                          className="w-full border-2 border-slate-300 focus:border-slate-500 rounded-lg text-sm"
+                          autoFocus
+                        />
+                        <div className="flex space-x-2">
+                          <Button 
+                            onClick={() => handleUpdateComment(comment.id)}
+                            size="sm" 
+                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-xs rounded-lg"
+                          >
+                            Save
+                          </Button>
+                          <Button 
+                            onClick={() => {
+                              setEditingCommentId(null);
+                              setEditCommentContent('');
+                            }}
+                            size="sm" 
+                            variant="outline"
+                            className="px-3 py-1 text-xs rounded-lg"
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      // View Mode
+                      <div className="bg-white rounded-xl p-3 border border-slate-200/60 shadow-sm">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="text-xs sm:text-sm font-bold text-slate-900">{comment.username}</p>
+                            <p className="text-xs sm:text-sm text-slate-700 mt-1 leading-relaxed">{comment.content}</p>
+                            
+                            {/* Comment Actions */}
+                            <div className="flex items-center space-x-3 mt-2">
+                              <button
+                                onClick={() => handleReply(comment)}
+                                className="text-xs text-slate-500 hover:text-blue-600 font-semibold transition-colors"
+                              >
+                                Reply
+                              </button>
+                              {user && (
+                                String(user.id) === String(comment.user_id) || 
+                                user.username === comment.username
+                              ) && (
+                                <>
+                                  <button
+                                    onClick={() => handleEditComment(comment)}
+                                    className="text-xs text-slate-500 hover:text-green-600 font-semibold transition-colors"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button 
+                                    onClick={() => handleDeleteComment(comment.id)}
+                                    className="text-xs text-slate-500 hover:text-red-600 font-semibold transition-colors"
+                                  >
+                                    Delete
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
+                
+                {/* Reply Input - Shows below the comment being replied to */}
+                {replyingToCommentId === comment.id && (
+                  <div className="ml-9 sm:ml-12 mt-2">
+                    <div className="flex space-x-2 sm:space-x-3 bg-blue-50/50 p-3 rounded-xl border-2 border-blue-200">
+                      <Input
+                        placeholder="Write your reply..."
+                        value={replyContent}
+                        onChange={(e) => setReplyContent(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleSubmitReply()}
+                        className="flex-1 border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-400 rounded-xl text-sm shadow-sm"
+                        autoFocus
+                      />
+                      <Button 
+                        onClick={handleSubmitReply} 
+                        size="sm" 
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 text-xs rounded-xl shadow-md font-semibold"
+                      >
+                        Reply
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          setReplyingToCommentId(null);
+                          setReplyContent('');
+                        }} 
+                        size="sm" 
+                        variant="outline"
+                        className="px-2 sm:px-3 py-2 text-xs rounded-xl border-blue-300 hover:bg-blue-50"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </React.Fragment>
             ))}
           </div>
         )}

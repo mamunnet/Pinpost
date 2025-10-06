@@ -211,6 +211,7 @@ class ShortPost(BaseModel):
 
 class CommentCreate(BaseModel):
     content: str
+    reply_to: Optional[str] = None
 
 class Comment(BaseModel):
     id: str
@@ -221,6 +222,7 @@ class Comment(BaseModel):
     post_type: str
     content: str
     created_at: str
+    reply_to: Optional[str] = None
 
 class Notification(BaseModel):
     id: str
@@ -473,6 +475,21 @@ async def get_trending_users(limit: int = 5, current_user_id: Optional[str] = De
             user_data["is_following"] = bool(is_following)
         result.append(user_data)
     return result
+
+@api_router.get("/users/search")
+async def search_users(q: str, limit: int = 10):
+    if not q or len(q) < 1:
+        return []
+    
+    # Search by username or name
+    users = await db.users.find({
+        "$or": [
+            {"username": {"$regex": q, "$options": "i"}},
+            {"name": {"$regex": q, "$options": "i"}}
+        ]
+    }).limit(limit).to_list(limit)
+    
+    return [{"id": u["id"], "username": u["username"], "name": u.get("name", "")} for u in users]
 
 @api_router.get("/users/{username}")
 async def get_user_profile(username: str, current_user_id: Optional[str] = Depends(get_optional_user)):
@@ -837,13 +854,14 @@ async def create_comment(post_type: str, post_id: str, comment_data: CommentCrea
         "post_id": post_id,
         "post_type": post_type,
         "content": comment_data.content,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "reply_to": comment_data.reply_to
     }
     await db.comments.insert_one(comment)
     
     await collection.update_one({"id": post_id}, {"$inc": {"comments_count": 1}})
     
-    # Create notification
+    # Create notification for post owner
     if post:
         await create_notification(
             user_id=post["author_id"],
@@ -856,6 +874,22 @@ async def create_comment(post_type: str, post_id: str, comment_data: CommentCrea
             post_type=post_type,
             comment_id=comment_id
         )
+    
+    # Create notification for comment being replied to
+    if comment_data.reply_to:
+        parent_comment = await db.comments.find_one({"id": comment_data.reply_to})
+        if parent_comment and parent_comment["user_id"] != user_id:
+            await create_notification(
+                user_id=parent_comment["user_id"],
+                notif_type="reply",
+                actor_id=user_id,
+                actor_username=user["username"],
+                actor_avatar=user.get("avatar", ""),
+                message=f"{user['username']} replied to your comment",
+                post_id=post_id,
+                post_type=post_type,
+                comment_id=comment_id
+            )
     
     return Comment(**comment)
 
@@ -878,6 +912,22 @@ async def delete_comment(comment_id: str, user_id: str = Depends(get_current_use
     await collection.update_one({"id": comment["post_id"]}, {"$inc": {"comments_count": -1}})
     
     return {"message": "Comment deleted successfully"}
+
+@api_router.put("/comments/{comment_id}")
+async def update_comment(comment_id: str, comment_data: CommentCreate, user_id: str = Depends(get_current_user)):
+    comment = await db.comments.find_one({"id": comment_id})
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    if comment["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    await db.comments.update_one(
+        {"id": comment_id},
+        {"$set": {"content": comment_data.content}}
+    )
+    
+    updated_comment = await db.comments.find_one({"id": comment_id})
+    return Comment(**updated_comment)
 
 # Notification routes
 @api_router.get("/notifications", response_model=List[Notification])
