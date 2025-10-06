@@ -10,6 +10,7 @@ import { EnhancedPostModal } from "@/components/EnhancedPostModal";
 import { Stories } from "@/components/Stories";
 import { PostCard } from "@/components/PostCard";
 import { BlogCard } from "@/components/BlogCard";
+import { getUserAvatarUrl } from "@/utils/imageUtils";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -156,9 +157,17 @@ export const HomePage = ({ user }) => {
             <div className="bg-white shadow-md hover:shadow-xl transition-all duration-300 rounded-2xl p-5 sm:p-6 border border-slate-200/60">
               <div className="flex items-center space-x-3 sm:space-x-4">
                 <Avatar className="w-11 h-11 sm:w-12 sm:h-12 ring-2 ring-slate-100 shadow-sm">
-                  <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white font-bold">
-                    {user.username[0].toUpperCase()}
-                  </AvatarFallback>
+                  {getUserAvatarUrl(user) ? (
+                    <img 
+                      src={getUserAvatarUrl(user)} 
+                      alt={user.username} 
+                      className="w-full h-full object-cover" 
+                    />
+                  ) : (
+                    <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white font-bold">
+                      {user.username[0].toUpperCase()}
+                    </AvatarFallback>
+                  )}
                 </Avatar>
                 <button
                   onClick={() => {

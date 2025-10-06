@@ -6,7 +6,6 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Plus, X, ChevronLeft, ChevronRight, Upload, Image as ImageIcon, Type, Palette, Loader2, Smile } from "lucide-react";
 import { toast } from "sonner";
-import { getUserAvatarUrl, getImageUrl } from "@/utils/imageUtils";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -132,7 +131,7 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
     <div className="flex flex-col h-screen bg-white">
       {/* Header - Matching other modals */}
       <div className="sticky top-0 z-10 bg-gradient-to-r from-white via-white to-slate-50/80 backdrop-blur-md border-b border-slate-200/60 shadow-sm">
-        <div className="px-3 sm:px-6 py-2 sm:py-3">
+        <div className="px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 shadow-sm">
@@ -188,27 +187,27 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-2 sm:p-6 overflow-y-auto bg-gradient-to-b from-slate-50/30 to-white">
+      <div className="flex-1 p-4 sm:p-6 overflow-y-auto bg-gradient-to-b from-slate-50/30 to-white">
         {contentType === 'text' ? (
           <div className="space-y-4">
             {/* WhatsApp-style Preview with Direct Input */}
             <div 
               ref={previewRef}
-              className="relative w-full aspect-[9/16] max-h-[450px] sm:max-h-[500px] mx-auto rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden border border-slate-200/60 sm:border-2" 
+              className="relative w-full aspect-[9/16] max-h-[500px] mx-auto rounded-2xl shadow-2xl overflow-hidden border-2 border-slate-200/60" 
               style={{ background: backgroundColor }}
               onMouseMove={handleDrag}
               onMouseUp={handleDragEnd}
               onMouseLeave={handleDragEnd}
             >
               {/* Editable Text in Preview */}
-              <div className="absolute inset-0 flex items-center justify-center p-4 sm:p-8">
+              <div className="absolute inset-0 flex items-center justify-center p-8">
                 <textarea
                   ref={textareaRef}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="What's on your mind?"
                   maxLength={200}
-                  className="w-full h-full text-center text-lg sm:text-2xl font-bold bg-transparent border-none outline-none resize-none placeholder-gray-400"
+                  className="w-full h-full text-center text-2xl font-bold bg-transparent border-none outline-none resize-none placeholder-gray-400"
                   style={{
                     color: textColor,
                     textShadow: textColor === '#ffffff' ? '2px 2px 4px rgba(0,0,0,0.4)' : '2px 2px 4px rgba(255,255,255,0.4)',
@@ -243,13 +242,13 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
 
               {/* Character Counter */}
               {content && (
-                <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 text-white/70 text-[10px] sm:text-xs bg-black/30 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full backdrop-blur-sm font-semibold">
+                <div className="absolute bottom-4 right-4 text-white/70 text-xs bg-black/30 px-2.5 py-1 rounded-full backdrop-blur-sm font-semibold">
                   {content.length}/200
                 </div>
               )}
 
               {/* Floating Action Buttons */}
-              <div className="absolute top-2 sm:top-4 right-2 sm:right-4 flex flex-col gap-1.5 sm:gap-2">
+              <div className="absolute top-4 right-4 flex flex-col gap-2">
                 {/* Color Picker Button */}
                 <div className="relative">
                   <button
@@ -257,14 +256,14 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
                       setShowColorPicker(!showColorPicker);
                       setShowEmojiPicker(false);
                     }}
-                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-lg flex items-center justify-center transition-all hover:scale-110"
+                    className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-lg flex items-center justify-center transition-all hover:scale-110"
                   >
-                    <Palette className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    <Palette className="w-5 h-5 text-white" />
                   </button>
                   
                   {/* Color Picker Popup */}
                   {showColorPicker && (
-                    <div className="absolute top-0 right-10 sm:right-12 bg-white rounded-xl sm:rounded-2xl shadow-2xl p-2 sm:p-3 w-48 sm:w-64 border border-slate-200">
+                    <div className="absolute top-0 right-12 bg-white rounded-2xl shadow-2xl p-3 w-64 border border-slate-200">
                       <p className="text-xs font-bold text-slate-700 mb-2">Background</p>
                       <div className="grid grid-cols-4 gap-2 mb-3">
                         {bgGradients.map((bg, idx) => (
@@ -314,14 +313,14 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
                       setShowEmojiPicker(!showEmojiPicker);
                       setShowColorPicker(false);
                     }}
-                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 shadow-lg flex items-center justify-center transition-all hover:scale-110"
+                    className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 shadow-lg flex items-center justify-center transition-all hover:scale-110"
                   >
-                    <Smile className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    <Smile className="w-5 h-5 text-white" />
                   </button>
                   
                   {/* Emoji Picker Popup */}
                   {showEmojiPicker && (
-                    <div className="absolute top-0 right-10 sm:right-12 bg-white rounded-xl sm:rounded-2xl shadow-2xl p-2 sm:p-3 w-48 sm:w-64 border border-slate-200">
+                    <div className="absolute top-0 right-12 bg-white rounded-2xl shadow-2xl p-3 w-64 border border-slate-200">
                       <p className="text-xs font-bold text-slate-700 mb-2">Add Emoji (drag to move)</p>
                       <div className="grid grid-cols-8 gap-1 max-h-48 overflow-y-auto">
                         {emojis.map((emoji, idx) => (
@@ -391,11 +390,11 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
       </div>
 
       {/* Bottom Submit Button */}
-      <div className="sticky bottom-0 border-t border-slate-200/60 bg-gradient-to-t from-slate-50 via-white to-white/95 backdrop-blur-sm px-3 sm:px-6 py-2 sm:py-4">
+      <div className="sticky bottom-0 border-t border-slate-200/60 bg-gradient-to-t from-slate-50 via-white to-white/95 backdrop-blur-sm px-4 sm:px-6 py-3 sm:py-4">
         <Button 
           onClick={handleCreate} 
           disabled={loading || (contentType === 'text' && !content.trim()) || (contentType === 'image' && !storyImage)}
-          className="w-full bg-gradient-to-r from-slate-600 via-slate-700 to-slate-600 hover:from-slate-700 hover:via-slate-800 hover:to-slate-700 text-white px-4 sm:px-8 py-3 sm:py-5 rounded-lg sm:rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-base sm:text-lg"
+          className="w-full bg-gradient-to-r from-slate-600 via-slate-700 to-slate-600 hover:from-slate-700 hover:via-slate-800 hover:to-slate-700 text-white px-8 py-6 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
         >
           {loading ? (
             <div className="flex items-center gap-2">
@@ -580,8 +579,8 @@ const Stories = ({ user }) => {
           <div className="relative">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-slate-200 to-slate-100 p-0.5 shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105">
               <div className="w-full h-full rounded-full overflow-hidden bg-white flex items-center justify-center">
-                {getUserAvatarUrl(user) ? (
-                  <img src={getUserAvatarUrl(user)} alt={user?.username} className="w-full h-full object-cover" />
+                {user?.avatar_url ? (
+                  <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700 font-bold text-xl">
                     {user?.username?.[0]?.toUpperCase() || '?'}
@@ -607,43 +606,30 @@ const Stories = ({ user }) => {
             ))}
           </div>
         ) : (
-          storiesData.map((userStories) => {
-            const latestStory = userStories.stories[0];
-            return (
-              <button
-                key={userStories.user_id}
-                onClick={() => setViewerState({ show: true, stories: userStories.stories, index: 0 })}
-                className="flex-shrink-0 group"
-              >
-                <div className="relative">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 p-0.5 shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-                    <div className="w-full h-full rounded-full border-[3px] border-white overflow-hidden bg-slate-200">
-                      {latestStory.media_url ? (
-                        <img src={getImageUrl(latestStory.media_url)} alt={userStories.username} className="w-full h-full object-cover" />
-                      ) : latestStory.content ? (
-                        <div 
-                          className="w-full h-full flex items-center justify-center p-2 text-xs font-semibold text-center"
-                          style={{ 
-                            backgroundColor: latestStory.background_color || '#ffffff',
-                            color: latestStory.text_color || '#000000'
-                          }}
-                        >
-                          {latestStory.content.substring(0, 30)}{latestStory.content.length > 30 ? '...' : ''}
-                        </div>
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-300 to-slate-400 text-white font-bold text-xl">
-                          {userStories.username?.[0]?.toUpperCase() || '?'}
-                        </div>
-                      )}
-                    </div>
+          storiesData.map((userStories) => (
+            <button
+              key={userStories.user_id}
+              onClick={() => setViewerState({ show: true, stories: userStories.stories, index: 0 })}
+              className="flex-shrink-0 group"
+            >
+              <div className="relative">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 p-0.5 shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+                  <div className="w-full h-full rounded-full border-[3px] border-white overflow-hidden bg-slate-200">
+                    {userStories.user_avatar ? (
+                      <img src={userStories.user_avatar} alt={userStories.username} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-300 to-slate-400 text-white font-bold text-xl">
+                        {userStories.username?.[0]?.toUpperCase() || '?'}
+                      </div>
+                    )}
                   </div>
                 </div>
-                <p className="text-xs font-semibold text-slate-700 text-center mt-2 max-w-[80px] truncate">
-                  {userStories.username}
-                </p>
-              </button>
-            );
-          })
+              </div>
+              <p className="text-xs font-semibold text-slate-700 text-center mt-2 max-w-[80px] truncate">
+                {userStories.username}
+              </p>
+            </button>
+          ))
         )}
       </div>
 
