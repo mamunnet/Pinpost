@@ -17,6 +17,10 @@ services:
       - MAX_FILE_SIZE=10485760
       - UPLOAD_DIR=/app/uploads
       - ENVIRONMENT=production
+      - CLOUDINARY_CLOUD_NAME=djfz2dzes
+      - CLOUDINARY_API_KEY=149856726514542
+      - CLOUDINARY_API_SECRET=ED2ML-7gjYXguM4xTYCxf0hvGoY
+      - USE_CLOUDINARY=true
     volumes:
       - uploads:/app/uploads
     networks:
