@@ -24,40 +24,23 @@ ROOT_DIR = Path(__file__).parent
 if os.getenv('ENVIRONMENT') != 'production':
     load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection with custom SSL context to bypass handshake issues in production
-import ssl
+# MongoDB connection - simplified for better compatibility
 mongo_url = os.environ['MONGO_URL']
 
-# Create a custom SSL context only for production (Docker) environment
-if os.getenv('ENVIRONMENT') == 'production':
-    try:
-        ssl_context = ssl.create_default_context()
-        ssl_context.check_hostname = False
-        ssl_context.verify_mode = ssl.CERT_NONE
-        
-        client = AsyncIOMotorClient(
-            mongo_url,
-            ssl_context=ssl_context,
-            serverSelectionTimeoutMS=30000,
-            connectTimeoutMS=30000,
-        )
-        logging.info("MongoDB client created with custom SSL context for production")
-    except Exception as e:
-        logging.error(f"Failed to create MongoDB client with SSL context: {e}")
-        # Fallback to basic connection
-        client = AsyncIOMotorClient(
-            mongo_url,
-            serverSelectionTimeoutMS=30000,
-            connectTimeoutMS=30000,
-        )
-else:
-    # Local development - use basic connection without SSL context
+# For local development, use the MongoDB connection string as-is
+# MongoDB Atlas handles SSL/TLS automatically
+try:
     client = AsyncIOMotorClient(
         mongo_url,
         serverSelectionTimeoutMS=30000,
         connectTimeoutMS=30000,
+        # Let pymongo handle SSL/TLS automatically based on the connection string
+        tls=True if 'mongodb+srv://' in mongo_url else None,
     )
-    logging.info("MongoDB client created for local development")
+    logging.info(f"MongoDB client created for {os.getenv('ENVIRONMENT', 'development')} environment")
+except Exception as e:
+    logging.error(f"Failed to create MongoDB client: {e}")
+    raise
     
 db = client[os.environ['DB_NAME']]
 
