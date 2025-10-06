@@ -18,6 +18,9 @@ import json
 import asyncio
 from pymongo.errors import DuplicateKeyError, PyMongoError
 
+# Import Cloudinary utilities
+from cloudinary_utils import CloudinaryUploader, CloudinaryHelper
+
 # Load environment variables (only for local development)
 # In production (Docker), environment variables are set via docker-compose.yml
 ROOT_DIR = Path(__file__).parent
@@ -412,18 +415,56 @@ async def setup_profile(profile_data: ProfileSetup, user_id: str = Depends(get_c
 
 @api_router.post("/upload/image")
 async def upload_image(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
+    """
+    Upload image - supports both Cloudinary and local storage
+    Set USE_CLOUDINARY=true in .env to use Cloudinary
+    """
     # Validate file type
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
     
-    # Validate file size (10MB limit)
-    file_size = 0
+    # Read file content
     content = await file.read()
     file_size = len(content)
     
+    # Validate file size (10MB limit)
     if file_size > 10 * 1024 * 1024:  # 10MB
         raise HTTPException(status_code=400, detail="File size must be less than 10MB")
     
+    # Check if Cloudinary is enabled and configured
+    use_cloudinary = os.getenv('USE_CLOUDINARY', 'false').lower() == 'true'
+    
+    if use_cloudinary and CloudinaryUploader.is_configured():
+        try:
+            # Upload to Cloudinary
+            logging.info("📤 Uploading to Cloudinary...")
+            
+            result = await CloudinaryUploader.upload_image(
+                file_content=content,
+                filename=file.filename or "upload.jpg",
+                media_type='post',  # Default to post type
+                user_id=user_id
+            )
+            
+            logging.info(f"✅ Cloudinary upload successful: {result['url']}")
+            
+            return {
+                "url": result['url'],
+                "filename": file.filename,
+                "public_id": result['public_id'],
+                "width": result['width'],
+                "height": result['height'],
+                "format": result['format'],
+                "bytes": result['bytes'],
+                "storage": "cloudinary"
+            }
+            
+        except Exception as e:
+            logging.error(f"❌ Cloudinary upload failed: {str(e)}")
+            # Fall back to local storage if Cloudinary fails
+            logging.info("⚠️ Falling back to local storage...")
+    
+    # Local storage (fallback or when Cloudinary is disabled)
     # Create uploads directory if it doesn't exist
     upload_dir = Path("uploads")
     upload_dir.mkdir(exist_ok=True)
@@ -433,13 +474,127 @@ async def upload_image(file: UploadFile = File(...), user_id: str = Depends(get_
     unique_filename = f"{uuid.uuid4()}{file_extension}"
     file_path = upload_dir / unique_filename
     
-    # Save file
+    # Save file locally
     with open(file_path, "wb") as buffer:
         buffer.write(content)
     
+    logging.info(f"💾 File saved locally: {file_path}")
+    
     # Return file URL
     file_url = f"/uploads/{unique_filename}"
-    return {"url": file_url, "filename": unique_filename}
+    return {
+        "url": file_url,
+        "filename": unique_filename,
+        "storage": "local"
+    }
+
+@api_router.post("/upload/profile")
+async def upload_profile_image(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
+    """Upload profile picture with optimized settings"""
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    
+    content = await file.read()
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File size must be less than 10MB")
+    
+    use_cloudinary = os.getenv('USE_CLOUDINARY', 'false').lower() == 'true'
+    
+    if use_cloudinary and CloudinaryUploader.is_configured():
+        try:
+            result = await CloudinaryUploader.upload_image(
+                file_content=content,
+                filename=file.filename or "profile.jpg",
+                media_type='profile',
+                user_id=user_id
+            )
+            return {"url": result['url'], "public_id": result['public_id'], "storage": "cloudinary"}
+        except Exception as e:
+            logging.error(f"Cloudinary upload failed: {str(e)}")
+    
+    # Local fallback
+    upload_dir = Path("uploads")
+    upload_dir.mkdir(exist_ok=True)
+    file_extension = Path(file.filename).suffix if file.filename else ".jpg"
+    unique_filename = f"{uuid.uuid4()}{file_extension}"
+    file_path = upload_dir / unique_filename
+    
+    with open(file_path, "wb") as buffer:
+        buffer.write(content)
+    
+    return {"url": f"/uploads/{unique_filename}", "filename": unique_filename, "storage": "local"}
+
+@api_router.post("/upload/cover")
+async def upload_cover_image(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
+    """Upload cover photo with wide aspect ratio optimization"""
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    
+    content = await file.read()
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File size must be less than 10MB")
+    
+    use_cloudinary = os.getenv('USE_CLOUDINARY', 'false').lower() == 'true'
+    
+    if use_cloudinary and CloudinaryUploader.is_configured():
+        try:
+            result = await CloudinaryUploader.upload_image(
+                file_content=content,
+                filename=file.filename or "cover.jpg",
+                media_type='cover',
+                user_id=user_id
+            )
+            return {"url": result['url'], "public_id": result['public_id'], "storage": "cloudinary"}
+        except Exception as e:
+            logging.error(f"Cloudinary upload failed: {str(e)}")
+    
+    # Local fallback
+    upload_dir = Path("uploads")
+    upload_dir.mkdir(exist_ok=True)
+    file_extension = Path(file.filename).suffix if file.filename else ".jpg"
+    unique_filename = f"{uuid.uuid4()}{file_extension}"
+    file_path = upload_dir / unique_filename
+    
+    with open(file_path, "wb") as buffer:
+        buffer.write(content)
+    
+    return {"url": f"/uploads/{unique_filename}", "filename": unique_filename, "storage": "local"}
+
+@api_router.post("/upload/blog")
+async def upload_blog_image(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
+    """Upload blog cover image with high quality"""
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    
+    content = await file.read()
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File size must be less than 10MB")
+    
+    use_cloudinary = os.getenv('USE_CLOUDINARY', 'false').lower() == 'true'
+    
+    if use_cloudinary and CloudinaryUploader.is_configured():
+        try:
+            result = await CloudinaryUploader.upload_image(
+                file_content=content,
+                filename=file.filename or "blog.jpg",
+                media_type='blog',
+                user_id=user_id
+            )
+            return {"url": result['url'], "public_id": result['public_id'], "storage": "cloudinary"}
+        except Exception as e:
+            logging.error(f"Cloudinary upload failed: {str(e)}")
+    
+    # Local fallback
+    upload_dir = Path("uploads")
+    upload_dir.mkdir(exist_ok=True)
+    file_extension = Path(file.filename).suffix if file.filename else ".jpg"
+    unique_filename = f"{uuid.uuid4()}{file_extension}"
+    file_path = upload_dir / unique_filename
+    
+    with open(file_path, "wb") as buffer:
+        buffer.write(content)
+    
+    return {"url": f"/uploads/{unique_filename}", "filename": unique_filename, "storage": "local"}
 
 # User routes
 # Trending users (must be before dynamic {username} route)

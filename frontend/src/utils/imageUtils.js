@@ -1,9 +1,42 @@
 /**
  * Utility functions for handling image URLs consistently across the application
+ * Supports both Cloudinary CDN and local/nginx proxied uploads
  */
 
 // Get BACKEND_URL - empty in production, localhost in development
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+
+/**
+ * Check if URL is from Cloudinary CDN
+ */
+const isCloudinaryUrl = (url) => {
+  return url && (url.includes('cloudinary.com') || url.includes('res.cloudinary.com'));
+};
+
+/**
+ * Get optimized Cloudinary URL with transformations
+ * @param {string} url - Cloudinary URL
+ * @param {number} width - Desired width
+ * @param {string} quality - Quality setting (auto:good, auto:best, auto:eco)
+ */
+const getOptimizedCloudinaryUrl = (url, width = null, quality = 'auto:good') => {
+  if (!isCloudinaryUrl(url)) return url;
+  
+  const transformations = [];
+  if (width) transformations.push(`w_${width}`);
+  transformations.push(`q_${quality}`);
+  transformations.push('f_auto'); // Auto format (WebP when supported)
+  
+  const transformStr = transformations.join(',');
+  
+  // Insert transformation into URL
+  const parts = url.split('/upload/');
+  if (parts.length === 2) {
+    return `${parts[0]}/upload/${transformStr}/${parts[1]}`;
+  }
+  
+  return url;
+};
 
 /**
  * Ensures an image URL is properly formatted for display
@@ -14,6 +47,11 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
  */
 export const getImageUrl = (imageUrl) => {
   if (!imageUrl) return '';
+  
+  // If it's a Cloudinary URL, return it as-is (already optimized)
+  if (isCloudinaryUrl(imageUrl)) {
+    return imageUrl;
+  }
   
   // If the URL already includes http/https, handle it
   if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
@@ -54,6 +92,47 @@ export const getImageUrl = (imageUrl) => {
   
   // Default: prepend backend URL if exists, otherwise use relative path
   return BACKEND_URL ? `${BACKEND_URL}${imageUrl}` : imageUrl;
+};
+
+/**
+ * Get optimized image URL for different screen sizes
+ * Works with both Cloudinary and local images
+ * @param {string} imageUrl - Original image URL
+ * @param {number} width - Desired width for responsive images
+ * @returns {string} - Optimized image URL
+ */
+export const getResponsiveImageUrl = (imageUrl, width) => {
+  if (!imageUrl) return '';
+  
+  const processedUrl = getImageUrl(imageUrl);
+  
+  // If it's Cloudinary, add transformation
+  if (isCloudinaryUrl(processedUrl)) {
+    return getOptimizedCloudinaryUrl(processedUrl, width, 'auto:good');
+  }
+  
+  // For local images, return as-is (nginx handles it)
+  return processedUrl;
+};
+
+/**
+ * Get thumbnail version of image
+ * @param {string} imageUrl - Original image URL
+ * @param {number} size - Thumbnail size (default 200x200)
+ * @returns {string} - Thumbnail URL
+ */
+export const getThumbnailUrl = (imageUrl, size = 200) => {
+  if (!imageUrl) return '';
+  
+  const processedUrl = getImageUrl(imageUrl);
+  
+  // If it's Cloudinary, get optimized thumbnail
+  if (isCloudinaryUrl(processedUrl)) {
+    return getOptimizedCloudinaryUrl(processedUrl, size, 'auto:eco');
+  }
+  
+  // For local images, return as-is
+  return processedUrl;
 };
 
 /**
