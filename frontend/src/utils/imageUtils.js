@@ -2,7 +2,8 @@
  * Utility functions for handling image URLs consistently across the application
  */
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+// Get BACKEND_URL - empty in production, localhost in development
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 /**
  * Ensures an image URL is properly formatted for display
@@ -14,25 +15,35 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'
 export const getImageUrl = (imageUrl) => {
   if (!imageUrl) return '';
   
-  // If the URL already includes the backend URL, return as is
+  // If the URL already includes http/https, handle it
   if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+    // If it's pointing to localhost in production, convert to relative path
+    if (!BACKEND_URL && imageUrl.includes('localhost')) {
+      if (imageUrl.includes('/uploads/')) {
+        const fileName = imageUrl.split('/uploads/')[1];
+        return `/uploads/${fileName}`;
+      }
+    }
+    
     // Check if it's pointing to the current backend
     if (BACKEND_URL && imageUrl.startsWith(BACKEND_URL)) {
       return imageUrl;
     }
-    // If it's pointing to a different backend URL, replace it with current
+    
+    // If it's pointing to a different backend URL, extract filename
     if (imageUrl.includes('/uploads/')) {
       const fileName = imageUrl.split('/uploads/')[1];
       // In production (empty BACKEND_URL), use relative path for nginx proxy
       return BACKEND_URL ? `${BACKEND_URL}/uploads/${fileName}` : `/uploads/${fileName}`;
     }
+    
     return imageUrl;
   }
   
   // If it's a relative path starting with /uploads/, handle based on environment
   if (imageUrl.startsWith('/uploads/')) {
     // In production (empty BACKEND_URL), return as-is for nginx proxy
-    // In development, prepend BACKEND_URL
+    // In development, prepend BACKEND_URL  
     return BACKEND_URL ? `${BACKEND_URL}${imageUrl}` : imageUrl;
   }
   
