@@ -6,6 +6,25 @@ import { getUserAvatarUrl } from "@/utils/imageUtils";
 
 export const MenuPage = ({ user, logout }) => {
   const navigate = useNavigate();
+  
+  // Add safety check and debugging
+  console.log('🔍 MenuPage - User object:', user);
+  console.log('📝 MenuPage - Username:', user?.username);
+  
+  // If no user or no username, show loading or redirect
+  if (!user) {
+    console.error('❌ MenuPage - No user object provided');
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-slate-600">Loading...</p>
+      </div>
+    );
+  }
+  
+  if (!user.username) {
+    console.error('❌ MenuPage - User has no username field:', user);
+    console.error('User keys:', Object.keys(user));
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 relative overflow-hidden">

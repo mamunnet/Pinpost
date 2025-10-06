@@ -55,10 +55,20 @@ const AuthContext = ({ children }) => {
 
   const fetchUser = async () => {
     try {
+      console.log('🔍 App.js - Fetching user from:', `${API}/auth/me`);
       const response = await axios.get(`${API}/auth/me`);
+      console.log('✅ App.js - User fetched successfully:', response.data);
+      console.log('📝 App.js - Username:', response.data.username);
+      
+      if (!response.data.username) {
+        console.error('❌ App.js - User has no username!', response.data);
+        console.error('User keys:', Object.keys(response.data));
+      }
+      
       setUser(response.data);
     } catch (error) {
-      console.error('Failed to fetch user:', error);
+      console.error('❌ App.js - Failed to fetch user:', error);
+      console.error('Error response:', error.response);
       logout();
     } finally {
       setLoading(false);

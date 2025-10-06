@@ -42,15 +42,18 @@ jobs:
         with:
           node-version: '20'
       
+      - name: Enable Corepack (for Yarn)
+        run: corepack enable
+      
       - name: Install dependencies
         run: |
           cd frontend
-          npm ci
+          yarn install --frozen-lockfile
       
       - name: Run build
         run: |
           cd frontend
-          npm run build
+          yarn build
 
   build-and-push:
     needs: [test-backend, test-frontend]
