@@ -6,6 +6,8 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'
 
 /**
  * Ensures an image URL is properly formatted for display
+ * In production, BACKEND_URL is empty and nginx proxies /uploads to backend
+ * In development, BACKEND_URL is http://localhost:8000
  * @param {string} imageUrl - The image URL from the database or API
  * @returns {string} - Properly formatted image URL
  */
@@ -15,29 +17,32 @@ export const getImageUrl = (imageUrl) => {
   // If the URL already includes the backend URL, return as is
   if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
     // Check if it's pointing to the current backend
-    if (imageUrl.startsWith(BACKEND_URL)) {
+    if (BACKEND_URL && imageUrl.startsWith(BACKEND_URL)) {
       return imageUrl;
     }
     // If it's pointing to a different backend URL, replace it with current
     if (imageUrl.includes('/uploads/')) {
       const fileName = imageUrl.split('/uploads/')[1];
-      return `${BACKEND_URL}/uploads/${fileName}`;
+      // In production (empty BACKEND_URL), use relative path for nginx proxy
+      return BACKEND_URL ? `${BACKEND_URL}/uploads/${fileName}` : `/uploads/${fileName}`;
     }
     return imageUrl;
   }
   
-  // If it's a relative path starting with /uploads/, prepend backend URL
+  // If it's a relative path starting with /uploads/, handle based on environment
   if (imageUrl.startsWith('/uploads/')) {
-    return `${BACKEND_URL}${imageUrl}`;
+    // In production (empty BACKEND_URL), return as-is for nginx proxy
+    // In development, prepend BACKEND_URL
+    return BACKEND_URL ? `${BACKEND_URL}${imageUrl}` : imageUrl;
   }
   
   // If it's just a filename, assume it's in uploads directory
   if (!imageUrl.includes('/')) {
-    return `${BACKEND_URL}/uploads/${imageUrl}`;
+    return BACKEND_URL ? `${BACKEND_URL}/uploads/${imageUrl}` : `/uploads/${imageUrl}`;
   }
   
-  // Default: prepend backend URL
-  return `${BACKEND_URL}${imageUrl}`;
+  // Default: prepend backend URL if exists, otherwise use relative path
+  return BACKEND_URL ? `${BACKEND_URL}${imageUrl}` : imageUrl;
 };
 
 /**

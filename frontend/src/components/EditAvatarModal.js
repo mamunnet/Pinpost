@@ -8,8 +8,8 @@ import { toast } from 'sonner';
 import { Camera, Upload, Trash2, Move } from 'lucide-react';
 import axios from 'axios';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
 
 export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
   const [avatarUrl, setAvatarUrl] = useState(user.avatar || '');

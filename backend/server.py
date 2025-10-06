@@ -564,16 +564,30 @@ async def get_blogs(skip: int = 0, limit: int = 20, current_user_id: Optional[st
 
 @api_router.get("/blogs/{blog_id}", response_model=BlogPost)
 async def get_blog(blog_id: str, current_user_id: Optional[str] = Depends(get_optional_user)):
-    blog = await db.blog_posts.find_one({"id": blog_id})
-    if not blog:
-        raise HTTPException(status_code=404, detail="Blog not found")
-    
-    blog_data = BlogPost(**blog).dict()
-    if current_user_id:
-        liked = await db.likes.find_one({"user_id": current_user_id, "post_id": blog_id, "post_type": "blog"})
-        blog_data["liked_by_user"] = bool(liked)
-    
-    return blog_data
+    try:
+        blog = await db.blog_posts.find_one({"id": blog_id})
+        if not blog:
+            logging.error(f"Blog not found with id: {blog_id}")
+            raise HTTPException(status_code=404, detail="Blog article not found")
+        
+        # Get author info to ensure complete data
+        author = await db.users.find_one({"id": blog["author_id"]})
+        
+        blog_data = BlogPost(**blog).dict()
+        if author:
+            blog_data["author_name"] = author.get("name", "")
+            blog_data["author_avatar"] = author.get("avatar", "")
+        
+        if current_user_id:
+            liked = await db.likes.find_one({"user_id": current_user_id, "post_id": blog_id, "post_type": "blog"})
+            blog_data["liked_by_user"] = bool(liked)
+        
+        return blog_data
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error fetching blog {blog_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to load blog: {str(e)}")
 
 @api_router.put("/blogs/{blog_id}", response_model=BlogPost)
 async def update_blog(blog_id: str, blog_data: BlogPostUpdate, user_id: str = Depends(get_current_user)):

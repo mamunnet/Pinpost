@@ -9,8 +9,8 @@ import { toast } from "sonner";
 import { EditPostModal } from "@/components/EditPostModal";
 import { getPostAuthorAvatarUrl, getImageUrl } from "@/utils/imageUtils";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
 
 export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
   const navigate = useNavigate();

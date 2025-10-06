@@ -14,7 +14,8 @@ import { EditCoverPhotoModal } from "@/components/EditCoverPhotoModal";
 import { EditAvatarModal } from "@/components/EditAvatarModal";
 import { getUserAvatarUrl, getUserCoverPhotoUrl } from "@/utils/imageUtils";
 
-const API = `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api`;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
 
 const ProfilePage = ({ currentUser }) => {
   const { username } = useParams();

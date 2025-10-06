@@ -5,7 +5,8 @@ import { Heart, MessageCircle, TrendingUp, FileText, Flame, Clock, ChevronRight 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 
-const API = `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api`;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
 
 const TrendingPage = ({ user }) => {
   const [trendingPosts, setTrendingPosts] = useState([]);

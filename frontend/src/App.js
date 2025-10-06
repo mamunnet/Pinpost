@@ -35,8 +35,10 @@ import TrendingPage from "@/pages/TrendingPage";
 import ProfilePage from "@/pages/ProfilePage";
 import AuthPage from "@/pages/AuthPage";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+// In production, BACKEND_URL is empty and nginx proxies /api to backend
+// In development, BACKEND_URL is http://localhost:8000
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
 
 const AuthContext = ({ children }) => {
   const [user, setUser] = useState(null);

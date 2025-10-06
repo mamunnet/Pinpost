@@ -8,8 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Save, X, Upload, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
 
 export const EditBlogModal = ({ isOpen, onClose, blog, onBlogUpdated }) => {
   const [title, setTitle] = useState("");

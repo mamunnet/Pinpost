@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Palette, Upload, Bold, Italic, List, Heading, Image as ImageIcon, AtSign, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
 
 const bgColors = [
   { name: 'None', value: 'transparent', gradient: 'bg-white' },

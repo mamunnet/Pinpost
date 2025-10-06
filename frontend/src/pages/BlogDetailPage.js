@@ -8,8 +8,10 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
-const API = `${BACKEND_URL}/api`;
+// In production, BACKEND_URL is empty and nginx proxies /api to backend
+// In development, BACKEND_URL is http://localhost:8000
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
 
 const BlogDetailPage = ({ user }) => {
   const { blogId } = useParams();
@@ -28,7 +30,10 @@ const BlogDetailPage = ({ user }) => {
 
   const fetchBlog = async () => {
     try {
+      console.log('Fetching blog with ID:', blogId);
+      console.log('API endpoint:', `${API}/blogs/${blogId}`);
       const response = await axios.get(`${API}/blogs/${blogId}`);
+      console.log('Blog data received:', response.data);
       setBlog(response.data);
     } catch (error) {
       console.error('Failed to load blog:', error);
@@ -37,8 +42,24 @@ const BlogDetailPage = ({ user }) => {
       if (error.response) {
         console.error('Response status:', error.response.status);
         console.error('Response data:', error.response.data);
+        
+        if (error.response.status === 404) {
+          toast.error('📰 Article not found', {
+            description: 'This blog post may have been deleted or the link is incorrect.',
+            duration: 5000
+          });
+        } else {
+          toast.error('❌ Failed to load blog', {
+            description: error.response.data?.detail || 'Please try again later.',
+            duration: 4000
+          });
+        }
+      } else {
+        toast.error('❌ Network error', {
+          description: 'Please check your internet connection.',
+          duration: 4000
+        });
       }
-      toast.error('Failed to load blog');
     } finally {
       setLoading(false);
     }
