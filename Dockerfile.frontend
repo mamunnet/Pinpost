@@ -6,12 +6,12 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copy package files
-COPY frontend/package.json frontend/yarn.lock* frontend/package-lock.json* ./
+COPY frontend/package.json ./
+COPY frontend/yarn.lock ./
 
-# Install dependencies
-RUN if [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
-    elif [ -f package-lock.json ]; then npm ci; \
-    else npm install; fi
+# Install dependencies with retry logic
+RUN yarn install --frozen-lockfile --network-timeout 100000 || \
+    (sleep 5 && yarn install --frozen-lockfile --network-timeout 100000)
 
 # Copy frontend source
 COPY frontend/ .
@@ -20,8 +20,7 @@ COPY frontend/ .
 ENV REACT_APP_BACKEND_URL=""
 
 # Build the app
-RUN if [ -f yarn.lock ]; then yarn build; \
-    else npm run build; fi
+RUN yarn build
 
 # Stage 2: Production
 FROM nginx:alpine
