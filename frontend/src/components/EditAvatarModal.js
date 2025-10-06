@@ -43,8 +43,12 @@ export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
           },
         });
         
-        const serverUrl = `${BACKEND_URL}${response.data.url}`;
-        setAvatarUrl(serverUrl);
+        // Handle both Cloudinary URLs and local paths
+        let imageUrl = response.data.url;
+        if (!imageUrl.startsWith('http')) {
+          imageUrl = `${BACKEND_URL}${imageUrl}`;
+        }
+        setAvatarUrl(imageUrl);
         
         toast.success('Image uploaded successfully!');
       } catch (error) {

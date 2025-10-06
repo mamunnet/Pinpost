@@ -61,8 +61,12 @@ export const EditBlogModal = ({ isOpen, onClose, blog, onBlogUpdated }) => {
         }
       });
 
-      const serverUrl = `${BACKEND_URL}${response.data.url}`;
-      setCoverImage(serverUrl);
+      // Handle both Cloudinary URLs and local paths
+      let imageUrl = response.data.url;
+      if (!imageUrl.startsWith('http')) {
+        imageUrl = `${BACKEND_URL}${imageUrl}`;
+      }
+      setCoverImage(imageUrl);
       toast.success("Photo added successfully!");
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -185,7 +189,7 @@ export const EditBlogModal = ({ isOpen, onClose, blog, onBlogUpdated }) => {
                   <img
                     src={coverImage}
                     alt="Blog cover"
-                    className="w-full h-32 object-cover rounded-lg border"
+                    className="w-full h-48 object-cover rounded-lg border"
                   />
                   <Button
                     variant="outline"

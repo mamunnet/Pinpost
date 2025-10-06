@@ -10,6 +10,13 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables
+# This ensures credentials are available when module is imported
+ROOT_DIR = Path(__file__).parent
+if os.getenv('ENVIRONMENT') != 'production':
+    load_dotenv(ROOT_DIR / '.env')
 
 # Configure Cloudinary
 cloudinary.config(
@@ -159,6 +166,19 @@ class CloudinaryUploader:
             
             logger.info(f"✅ Image uploaded to Cloudinary: {result['secure_url']}")
             
+            # Extract responsive breakpoints if available
+            responsive_urls = []
+            if 'responsive_breakpoints' in result and result['responsive_breakpoints']:
+                # responsive_breakpoints is a list, get first item if it exists
+                first_breakpoint = result['responsive_breakpoints'][0] if result['responsive_breakpoints'] else {}
+                # Check if it's a dict and has breakpoints
+                if isinstance(first_breakpoint, dict) and 'breakpoints' in first_breakpoint:
+                    responsive_urls = [
+                        bp['secure_url'] 
+                        for bp in first_breakpoint['breakpoints'] 
+                        if isinstance(bp, dict) and 'secure_url' in bp
+                    ]
+            
             return {
                 'url': result['secure_url'],
                 'public_id': result['public_id'],
@@ -168,11 +188,7 @@ class CloudinaryUploader:
                 'bytes': result['bytes'],
                 'resource_type': result['resource_type'],
                 'created_at': result['created_at'],
-                # Responsive image URLs for different breakpoints
-                'responsive_urls': [
-                    bp['secure_url'] 
-                    for bp in result.get('responsive_breakpoints', [[]])[0].get('breakpoints', [])
-                ]
+                'responsive_urls': responsive_urls
             }
             
         except Exception as e:

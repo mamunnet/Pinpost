@@ -42,9 +42,12 @@ export const EditCoverPhotoModal = ({ user, onClose, onUpdate }) => {
           },
         });
         
-        // Replace preview URL with server URL
-        const serverUrl = `${BACKEND_URL}${response.data.url}`;
-        setCoverPhoto(serverUrl);
+        // Handle both Cloudinary URLs and local paths
+        let imageUrl = response.data.url;
+        if (!imageUrl.startsWith('http')) {
+          imageUrl = `${BACKEND_URL}${imageUrl}`;
+        }
+        setCoverPhoto(imageUrl);
         
         toast.success('Image uploaded successfully!');
       } catch (error) {

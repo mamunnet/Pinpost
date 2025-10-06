@@ -58,9 +58,12 @@ export const ProfileSetup = ({ user, onComplete }) => {
           },
         });
         
-        // Replace preview URL with server URL
-        const serverUrl = `${BACKEND_URL}${response.data.url}`;
-        setFormData(prev => ({ ...prev, [field]: serverUrl }));
+        // Handle both Cloudinary URLs and local paths
+        let imageUrl = response.data.url;
+        if (!imageUrl.startsWith('http')) {
+          imageUrl = `${BACKEND_URL}${imageUrl}`;
+        }
+        setFormData(prev => ({ ...prev, [field]: imageUrl }));
         
         toast.success('Image uploaded successfully!');
       } catch (error) {
