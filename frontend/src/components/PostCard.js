@@ -114,12 +114,12 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
   }
 
   return (
-    <div className="bg-white hover:bg-slate-50/50 transition-all duration-300 py-4 sm:py-6" data-testid="post-card">
+    <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-slate-200/60 overflow-hidden" data-testid="post-card">
       <div className="space-y-3 sm:space-y-4">
         {/* Header */}
-        <div className="flex items-start space-x-3 px-4">
+        <div className="flex items-start space-x-3 px-4 sm:px-6 pt-4 sm:pt-5">
           <Link to={`/profile/${post.author_username}`} className="group flex-shrink-0">
-            <Avatar className="w-10 h-10 sm:w-12 sm:h-12 ring-2 ring-slate-200 group-hover:ring-slate-300 transition-all">
+            <Avatar className="w-10 h-10 sm:w-12 sm:h-12 ring-2 ring-slate-100 group-hover:ring-slate-300 transition-all shadow-sm">
               {getPostAuthorAvatarUrl(currentPost) ? (
                 <img src={getPostAuthorAvatarUrl(currentPost)} alt={currentPost.author_name || currentPost.author_username} className="w-full h-full object-cover rounded-full" />
               ) : (
@@ -147,7 +147,7 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
                   variant="ghost"
                   size="sm"
                   onClick={handleEditPost}
-                  className="text-slate-500 hover:text-slate-700 h-8 w-8 p-0"
+                  className="text-slate-500 hover:text-slate-700 hover:bg-slate-100 h-9 w-9 p-0 rounded-xl transition-all duration-300"
                   title="Edit post"
                 >
                   <Edit className="w-4 h-4" />
@@ -158,17 +158,17 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
         </div>
 
         {/* Badge - inline on left */}
-        <div className="px-4">
-          <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-full shadow-sm">
+        <div className="px-4 sm:px-6">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-slate-50 via-slate-100 to-slate-50 border border-slate-200 rounded-full shadow-sm">
             <MessageCircle className="w-3 h-3 text-slate-600" />
-            <span className="text-[10px] font-semibold text-slate-700 uppercase tracking-wide">Quick Post</span>
+            <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">Quick Post</span>
           </div>
         </div>
 
         {/* Content - Clickable to navigate to post detail */}
         <div 
           onClick={() => navigate(`/post/${post.id}`)}
-          className="cursor-pointer hover:bg-slate-50 px-4 py-2 transition-colors"
+          className="cursor-pointer hover:bg-slate-50/60 px-4 sm:px-6 py-2 transition-all duration-200 rounded-lg mx-2"
         >
           {displayContent.trim() && (
             <p className="text-slate-800 whitespace-pre-wrap leading-relaxed text-sm sm:text-[15px]">{displayContent}</p>
@@ -176,35 +176,35 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
 
           {/* Image */}
           {postImage && (
-            <div className="mt-3 -mx-4 sm:mx-0 sm:rounded-lg overflow-hidden">
+            <div className="mt-3 rounded-xl overflow-hidden shadow-md">
               <img src={getImageUrl(postImage)} alt="Post" className="w-full max-h-96 object-cover" />
             </div>
           )}
         </div>
 
         {/* Actions */}
-        <div className="pt-2 sm:pt-3 border-t border-slate-200 mx-4">
+        <div className="pt-3 sm:pt-4 border-t border-slate-100 mx-4 sm:mx-6 pb-4">
           <div className="flex items-center space-x-1">
             <div className="relative">
               <button
                 onClick={onLike}
                 onMouseEnter={() => setShowReactions(true)}
                 onMouseLeave={() => setShowReactions(false)}
-                className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 rounded-lg ${
+                className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 rounded-xl font-medium text-sm ${
                   post.liked_by_user 
-                    ? 'text-red-600 bg-red-50' 
-                    : 'text-slate-600 hover:bg-slate-100'
-                } transition-all group`}
+                    ? 'text-red-600 bg-gradient-to-r from-red-50 to-rose-50 shadow-sm' 
+                    : 'text-slate-600 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 hover:shadow-sm'
+                } transition-all duration-300 group`}
                 data-testid="like-post-btn"
               >
-                <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${post.liked_by_user ? 'fill-current' : ''} group-hover:scale-110 transition-transform`} />
+                <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${post.liked_by_user ? 'fill-current' : ''} group-hover:scale-110 transition-transform duration-300`} />
                 <span className="text-xs sm:text-sm font-semibold">{post.likes_count > 0 && post.likes_count}</span>
               </button>
               
               {/* Reaction Picker */}
               {showReactions && (
                 <div 
-                  className="absolute bottom-full left-0 mb-2 bg-white rounded-xl shadow-xl border border-slate-200 px-2 sm:px-3 py-1 sm:py-2 flex space-x-1 z-10"
+                  className="absolute bottom-full left-0 mb-2 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border-2 border-slate-200/60 px-3 sm:px-4 py-2 sm:py-3 flex space-x-1.5 z-10"
                   onMouseEnter={() => setShowReactions(true)}
                   onMouseLeave={() => setShowReactions(false)}
                 >
@@ -215,7 +215,7 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
                         onLike();
                         setShowReactions(false);
                       }}
-                      className="text-lg sm:text-xl hover:scale-125 transition-transform p-1 sm:p-1.5 hover:bg-slate-50 rounded-full"
+                      className="text-lg sm:text-xl hover:scale-125 transition-all duration-300 p-1.5 sm:p-2 hover:bg-slate-50 rounded-xl"
                     >
                       {emoji}
                     </button>
@@ -226,66 +226,66 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
             
             <button
               onClick={fetchComments}
-              className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all group"
+              className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 rounded-xl text-slate-600 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 hover:shadow-sm transition-all duration-300 group font-medium text-sm"
               data-testid="comment-post-btn"
             >
-              <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+              <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform duration-300" />
               <span className="text-xs sm:text-sm font-semibold">{post.comments_count > 0 && post.comments_count}</span>
             </button>
-            <button className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-all group">
-              <Share2 className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+            <button className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 rounded-xl text-slate-600 hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 hover:shadow-sm transition-all duration-300 group font-medium text-sm">
+              <Share2 className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform duration-300" />
             </button>
           </div>
         </div>
 
         {/* Comments Section */}
         {showComments && (
-          <div className="mt-3 sm:mt-4 space-y-2 sm:space-y-3 border-t border-slate-200 pt-3 sm:pt-4 mx-4">
-            <div className="flex space-x-2">
+          <div className="mt-3 sm:mt-4 space-y-3 sm:space-y-4 border-t border-slate-100 pt-4 sm:pt-5 px-4 sm:px-6 pb-4">
+            <div className="flex space-x-2 sm:space-x-3">
               <Input
                 placeholder="Add a comment..."
                 value={commentContent}
                 onChange={(e) => setCommentContent(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleComment()}
-                className="flex-1 border-slate-200 focus:border-slate-400 focus:ring-slate-300 text-sm"
+                className="flex-1 border-2 border-slate-200 focus:border-slate-400 focus:ring-slate-300 rounded-xl text-sm shadow-sm placeholder:text-slate-400"
                 data-testid="comment-input"
               />
               <Button 
                 onClick={handleComment} 
                 size="sm" 
-                className="hover:scale-105 transition-transform bg-slate-600 hover:bg-slate-700 text-white px-3 py-2 text-xs" 
+                className="hover:scale-105 transition-all duration-300 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white px-4 py-2 text-xs rounded-xl shadow-md hover:shadow-lg font-semibold" 
                 data-testid="submit-comment-btn"
               >
                 Post
               </Button>
             </div>
             {comments.map((comment) => (
-              <div key={comment.id} className="flex items-start space-x-2 p-2 sm:p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                <Avatar className="w-6 h-6 sm:w-8 sm:h-8 ring-1 ring-white">
+              <div key={comment.id} className="flex items-start space-x-2 sm:space-x-3 p-3 sm:p-4 bg-gradient-to-br from-slate-50/80 to-white rounded-xl hover:shadow-md transition-all duration-300 border border-slate-100">
+                <Avatar className="w-7 h-7 sm:w-9 sm:h-9 ring-2 ring-white shadow-sm">
                   <AvatarFallback className="text-xs bg-gradient-to-br from-slate-600 to-slate-700 text-white">
                     {comment.username[0].toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1 bg-white rounded-lg p-2 border border-slate-200">
+                <div className="flex-1 bg-white rounded-xl p-3 border border-slate-200/60 shadow-sm">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <p className="text-xs sm:text-sm font-semibold text-slate-900">{comment.username}</p>
+                        <p className="text-xs sm:text-sm font-bold text-slate-900">{comment.username}</p>
                         {user && (
                           String(user.id) === String(comment.user_id) || 
                           user.username === comment.username
                         ) && (
                           <button 
                             onClick={() => handleDeleteComment(comment.id)}
-                            className="text-xs text-red-500 hover:text-red-700 font-semibold flex items-center gap-1 transition-colors p-1 rounded hover:bg-red-50 ml-2"
+                            className="text-xs text-red-500 hover:text-red-700 font-semibold flex items-center gap-1.5 transition-all duration-300 p-1.5 rounded-lg hover:bg-red-50 hover:shadow-sm ml-2"
                             title="Delete comment"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3.5 h-3.5" />
                             <span className="hidden sm:inline">Delete</span>
                           </button>
                         )}
                       </div>
-                      <p className="text-xs sm:text-sm text-slate-700">{comment.content}</p>
+                      <p className="text-xs sm:text-sm text-slate-700 mt-1 leading-relaxed">{comment.content}</p>
                     </div>
                   </div>
                 </div>

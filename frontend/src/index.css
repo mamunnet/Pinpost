@@ -16,6 +16,44 @@ code {
         monospace;
 }
 
+/* Premium Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #94a3b8, #64748b);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+/* Smooth Scroll */
+.custom-scrollbar {
+    scroll-behavior: smooth;
+}
+
+/* Premium Focus States */
+.premium-input:focus-visible {
+    outline: none;
+    ring: 2px;
+    ring-offset: 2px;
+    transition: all 0.2s ease-in-out;
+}
+
 
 
 @layer base {
