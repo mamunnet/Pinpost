@@ -50,6 +50,7 @@ export const EditBlogModal = ({ isOpen, onClose, blog, onBlogUpdated }) => {
     setUploadingImage(true);
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('media_type', 'blog');
 
     try {
       const token = localStorage.getItem('token');
@@ -62,7 +63,7 @@ export const EditBlogModal = ({ isOpen, onClose, blog, onBlogUpdated }) => {
 
       const serverUrl = `${BACKEND_URL}${response.data.url}`;
       setCoverImage(serverUrl);
-      toast.success("📸 Image uploaded successfully!");
+      toast.success("Photo added successfully!");
     } catch (error) {
       console.error('Error uploading image:', error);
       toast.error("❌ Failed to upload image");

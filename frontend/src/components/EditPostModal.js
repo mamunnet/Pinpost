@@ -58,26 +58,36 @@ export const EditPostModal = ({ isOpen, onClose, post, onPostUpdated }) => {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image size should be less than 5MB');
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image size should be less than 10MB');
       return;
     }
 
     setUploadingImage(true);
     try {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPostImage(reader.result);
-        toast.success('Image uploaded!');
-        setUploadingImage(false);
-      };
-      reader.onerror = () => {
-        toast.error('Failed to read image');
-        setUploadingImage(false);
-      };
-      reader.readAsDataURL(file);
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('media_type', 'post');
+      
+      const response = await axios.post(`${API}/upload/image`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
+        },
+      });
+      
+      // Handle both Cloudinary URLs and local paths
+      let imageUrl = response.data.url;
+      if (!imageUrl.startsWith('http')) {
+        imageUrl = `${BACKEND_URL}${imageUrl}`;
+      }
+      setPostImage(imageUrl);
+      toast.success('Photo added successfully!');
     } catch (error) {
+      console.error('Upload error:', error);
       toast.error('Failed to upload image');
+    } finally {
       setUploadingImage(false);
     }
   };

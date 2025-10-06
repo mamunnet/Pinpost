@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, File, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, File, UploadFile, WebSocket, WebSocketDisconnect, Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
@@ -414,10 +414,19 @@ async def setup_profile(profile_data: ProfileSetup, user_id: str = Depends(get_c
     return User(**updated_user)
 
 @api_router.post("/upload/image")
-async def upload_image(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
+async def upload_image(
+    file: UploadFile = File(...), 
+    media_type: str = Form('post'),
+    user_id: str = Depends(get_current_user)
+):
     """
     Upload image - supports both Cloudinary and local storage
     Set USE_CLOUDINARY=true in .env to use Cloudinary
+    
+    Args:
+        file: The image file to upload
+        media_type: Type of media (post, blog, profile, cover, story) - determines Cloudinary preset
+        user_id: Current authenticated user ID
     """
     # Validate file type
     if not file.content_type.startswith("image/"):
@@ -436,13 +445,13 @@ async def upload_image(file: UploadFile = File(...), user_id: str = Depends(get_
     
     if use_cloudinary and CloudinaryUploader.is_configured():
         try:
-            # Upload to Cloudinary
-            logging.info("📤 Uploading to Cloudinary...")
+            # Upload to Cloudinary with appropriate preset
+            logging.info(f"📤 Uploading to Cloudinary (media_type: {media_type})...")
             
             result = await CloudinaryUploader.upload_image(
                 file_content=content,
                 filename=file.filename or "upload.jpg",
-                media_type='post',  # Default to post type
+                media_type=media_type,
                 user_id=user_id
             )
             
