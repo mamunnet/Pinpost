@@ -10,7 +10,6 @@ import { Heart, MessageCircle, Share2, Bookmark, ArrowLeft, Trash2, Edit, MoreHo
 import { toast } from "sonner";
 import { getUserAvatarUrl, getImageUrl } from "@/utils/imageUtils";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -402,7 +401,6 @@ export const PostDetailPage = ({ user, logout }) => {
           </Card>
         </div>
       </div>
-      <Footer />
     </>
   );
 };

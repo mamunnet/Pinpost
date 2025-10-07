@@ -16,7 +16,6 @@ import { Heart, MessageCircle, Share2, Bookmark, Edit, Trash2, Plus, Home, FileT
 import { getUserAvatarUrl, getImageUrl } from "@/utils/imageUtils";
 import { EnhancedPostModal } from "@/components/EnhancedPostModal";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { Stories } from "@/components/Stories";
 import { ProfileSetup } from "@/components/ProfileSetup";
 import { EditProfileModal } from "@/components/EditProfileModal";
@@ -613,7 +612,6 @@ function App() {
                     <Route path="/menu" element={<MenuPage user={user} logout={logout} />} />
                   </Routes>
                 </div>
-                <Footer />
               </div>
             </BrowserRouter>
           );

@@ -296,9 +296,12 @@ class Notification(BaseModel):
 
 # Messaging Models
 class MessageCreate(BaseModel):
-    content: str
+    content: str = ""
     conversation_id: Optional[str] = None
     recipient_id: Optional[str] = None  # For starting new conversation
+    type: Optional[str] = "text"  # text, image, voice
+    image_url: Optional[str] = None
+    voice_url: Optional[str] = None
 
 class Message(BaseModel):
     id: str
@@ -307,6 +310,9 @@ class Message(BaseModel):
     sender_username: str
     sender_avatar: str
     content: str
+    type: Optional[str] = "text"
+    image_url: Optional[str] = None
+    voice_url: Optional[str] = None
     read_by: List[str] = []
     delivered_to: List[str] = []
     created_at: str
@@ -521,7 +527,7 @@ async def setup_profile(profile_data: ProfileSetup, user_id: str = Depends(get_c
 async def upload_image(
     file: UploadFile = File(...), 
     user_id: str = Depends(get_current_user),
-    upload_type: str = "profile"  # profile, cover, post, blog, story
+    upload_type: str = "profile"  # profile, cover, post, blog, story, message
 ):
     """Upload image to Cloudinary with appropriate preset"""
     # Validate file type
@@ -541,6 +547,40 @@ async def upload_image(
             file_content=content,
             filename=file.filename or "image.jpg",
             upload_type=upload_type
+        )
+        
+        return {
+            "url": result['url'],
+            "public_id": result['public_id'],
+            "cloudinary": True
+        }
+    except Exception as e:
+        print(f"Upload error: {e}")
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+
+@api_router.post("/upload/audio")
+async def upload_audio(
+    file: UploadFile = File(...), 
+    user_id: str = Depends(get_current_user)
+):
+    """Upload audio file to Cloudinary"""
+    # Validate file type
+    if not file.content_type.startswith("audio/"):
+        raise HTTPException(status_code=400, detail="File must be an audio file")
+    
+    # Validate file size (10MB limit)
+    content = await file.read()
+    file_size = len(content)
+    
+    if file_size > 10 * 1024 * 1024:  # 10MB
+        raise HTTPException(status_code=400, detail="File size must be less than 10MB")
+    
+    try:
+        # Upload to Cloudinary as video type (supports audio)
+        result = upload_to_cloudinary(
+            file_content=content,
+            filename=file.filename or "audio.webm",
+            upload_type="message"
         )
         
         return {
@@ -1213,6 +1253,9 @@ async def send_message(
         "sender_username": sender["username"],
         "sender_avatar": sender.get("avatar", ""),
         "content": message_data.content,
+        "type": message_data.type or "text",
+        "image_url": message_data.image_url,
+        "voice_url": message_data.voice_url,
         "read_by": [current_user_id],  # Sender has read it
         "delivered_to": [],
         "created_at": datetime.now(timezone.utc).isoformat()
@@ -1220,12 +1263,19 @@ async def send_message(
     
     await db.messages.insert_one(message)
     
+    # Determine last message preview based on type
+    last_message_preview = message_data.content
+    if message_data.type == "image":
+        last_message_preview = "📷 Photo"
+    elif message_data.type == "voice":
+        last_message_preview = "🎤 Voice message"
+    
     # Update conversation
     await db.conversations.update_one(
         {"id": conversation_id},
         {
             "$set": {
-                "last_message": message_data.content,
+                "last_message": last_message_preview,
                 "last_message_at": message["created_at"],
                 "updated_at": message["created_at"]
             },
