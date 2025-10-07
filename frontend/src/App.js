@@ -33,7 +33,7 @@ import BlogsPage from "@/pages/BlogsPage";
 import BlogDetailPage from "@/pages/BlogDetailPage";
 import TrendingPage from "@/pages/TrendingPage";
 import ProfilePage from "@/pages/ProfilePage";
-import MessagesPage from "@/pages/MessagesPage";
+import EnhancedMessagesPage from "@/pages/EnhancedMessagesPage";
 import AuthPage from "@/pages/AuthPage";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -609,7 +609,7 @@ function App() {
                     <Route path="/blog/:blogId" element={<BlogDetailPage user={user} />} />
                     <Route path="/post/:postId" element={<PostDetailPage user={user} />} />
                     <Route path="/profile/:username" element={<ProfilePage currentUser={user} />} />
-                    <Route path="/messages" element={<MessagesPage user={user} />} />
+                    <Route path="/messages" element={<EnhancedMessagesPage user={user} />} />
                     <Route path="/menu" element={<MenuPage user={user} logout={logout} />} />
                   </Routes>
                 </div>

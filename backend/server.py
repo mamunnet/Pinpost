@@ -96,15 +96,43 @@ api_router = APIRouter(prefix="/api")
 class ConnectionManager:
     def __init__(self):
         self.active_connections: Dict[str, WebSocket] = {}
+        self.user_status: Dict[str, dict] = {}  # Track online status and last seen
+        self.typing_status: Dict[str, dict] = {}  # Track typing indicators {conversation_id: {user_id: typing}}
     
     async def connect(self, user_id: str, websocket: WebSocket):
         await websocket.accept()
         self.active_connections[user_id] = websocket
+        self.user_status[user_id] = {
+            "online": True,
+            "last_seen": datetime.now(timezone.utc).isoformat(),
+            "connected_at": datetime.now(timezone.utc).isoformat()
+        }
         logging.info(f"WebSocket connected for user: {user_id}")
+        
+        # Broadcast online status to all connections
+        await self.broadcast({
+            "type": "user_status",
+            "user_id": user_id,
+            "online": True,
+            "last_seen": self.user_status[user_id]["last_seen"]
+        })
+        
+        # Update user's online status in database
+        await db.users.update_one(
+            {"id": user_id},
+            {"$set": {
+                "online": True,
+                "last_seen": datetime.now(timezone.utc).isoformat()
+            }}
+        )
     
     def disconnect(self, user_id: str):
         if user_id in self.active_connections:
             del self.active_connections[user_id]
+            
+        if user_id in self.user_status:
+            self.user_status[user_id]["online"] = False
+            self.user_status[user_id]["last_seen"] = datetime.now(timezone.utc).isoformat()
             logging.info(f"WebSocket disconnected for user: {user_id}")
     
     async def send_notification(self, user_id: str, message: dict):
@@ -123,6 +151,33 @@ class ConnectionManager:
                     await connection.send_json(message)
                 except:
                     self.disconnect(user_id)
+    
+    def is_online(self, user_id: str) -> bool:
+        """Check if user is currently online"""
+        return user_id in self.user_status and self.user_status[user_id].get("online", False)
+    
+    def get_user_status(self, user_id: str) -> dict:
+        """Get user's online status and last seen"""
+        if user_id in self.user_status:
+            return self.user_status[user_id]
+        return {"online": False, "last_seen": None}
+    
+    async def set_typing(self, user_id: str, conversation_id: str, typing: bool):
+        """Set typing status for a user in a conversation"""
+        if conversation_id not in self.typing_status:
+            self.typing_status[conversation_id] = {}
+        self.typing_status[conversation_id][user_id] = typing
+        
+        # Get conversation to find other participant
+        conversation = await db.conversations.find_one({"id": conversation_id})
+        if conversation:
+            recipient_id = [p for p in conversation["participants"] if p != user_id][0]
+            await self.send_notification(recipient_id, {
+                "type": "typing_status",
+                "conversation_id": conversation_id,
+                "user_id": user_id,
+                "typing": typing
+            })
 
 manager = ConnectionManager()
 
@@ -1183,6 +1238,15 @@ async def send_message(
     
     # Send real-time message to other participant(s)
     recipient_id = [p for p in conversation["participants"] if p != current_user_id][0]
+    
+    # Check if recipient is online and mark as delivered
+    if manager.is_online(recipient_id):
+        await db.messages.update_one(
+            {"id": message_id},
+            {"$addToSet": {"delivered_to": recipient_id}}
+        )
+        message["delivered_to"] = [recipient_id]
+    
     await manager.send_notification(recipient_id, {
         "type": "new_message",
         "message": Message(**message).dict(),
@@ -1236,6 +1300,39 @@ async def mark_conversation_read(
     )
     
     return {"message": "Conversation marked as read"}
+
+@api_router.post("/conversations/{conversation_id}/typing")
+async def set_typing_status(
+    conversation_id: str,
+    typing: bool = Body(..., embed=True),
+    current_user_id: str = Depends(get_current_user)
+):
+    """Set typing status for current user in a conversation"""
+    conversation = await db.conversations.find_one({"id": conversation_id})
+    if not conversation or current_user_id not in conversation["participants"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    await manager.set_typing(current_user_id, conversation_id, typing)
+    return {"message": "Typing status updated"}
+
+@api_router.get("/users/{user_id}/status")
+async def get_user_online_status(user_id: str):
+    """Get user's online status and last seen"""
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get real-time status from ConnectionManager
+    status = manager.get_user_status(user_id)
+    
+    # If not in memory, get from database
+    if not status["online"]:
+        status = {
+            "online": user.get("online", False),
+            "last_seen": user.get("last_seen")
+        }
+    
+    return status
 
 @api_router.get("/conversations/unread-count")
 async def get_unread_message_count(current_user_id: str = Depends(get_current_user)):
@@ -1436,22 +1533,61 @@ async def get_feed(skip: int = 0, limit: int = 20, following_only: bool = False,
     
     return combined[:limit]
 
-# WebSocket endpoint for real-time notifications
+# WebSocket endpoint for real-time notifications and messaging
 @app.websocket("/ws/notifications/{user_id}")
 async def websocket_notifications(websocket: WebSocket, user_id: str):
     await manager.connect(user_id, websocket)
     try:
         while True:
-            # Keep connection alive and receive any ping/pong messages
+            # Keep connection alive and receive any ping/pong messages or commands
             data = await websocket.receive_text()
             if data == "ping":
                 await websocket.send_text("pong")
+            elif data.startswith("{"):
+                # Handle JSON commands (typing indicators, etc.)
+                try:
+                    command = json.loads(data)
+                    if command.get("type") == "typing":
+                        await manager.set_typing(
+                            user_id,
+                            command.get("conversation_id"),
+                            command.get("typing", False)
+                        )
+                except json.JSONDecodeError:
+                    pass
     except WebSocketDisconnect:
         manager.disconnect(user_id)
+        
+        # Update user offline status in database
+        await db.users.update_one(
+            {"id": user_id},
+            {"$set": {
+                "online": False,
+                "last_seen": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        # Broadcast offline status
+        await manager.broadcast({
+            "type": "user_status",
+            "user_id": user_id,
+            "online": False,
+            "last_seen": datetime.now(timezone.utc).isoformat()
+        })
+        
         logging.info(f"WebSocket disconnected for user: {user_id}")
     except Exception as e:
         logging.error(f"WebSocket error for user {user_id}: {e}")
         manager.disconnect(user_id)
+        
+        # Update user offline status in database
+        await db.users.update_one(
+            {"id": user_id},
+            {"$set": {
+                "online": False,
+                "last_seen": datetime.now(timezone.utc).isoformat()
+            }}
+        )
 
 # Health check endpoint
 @api_router.get("/test")
