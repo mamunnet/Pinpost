@@ -5,14 +5,19 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { toast } from 'sonner';
-import { Camera, Upload, Trash2, Move } from 'lucide-react';
+import { Camera, Upload, Trash2, Move, RotateCcw, ImageIcon } from 'lucide-react';
 import axios from 'axios';
+import { getUserAvatarUrl } from '@/utils/imageUtils';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
 const API = `${BACKEND_URL}/api`;
 
 export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
-  const [avatarUrl, setAvatarUrl] = useState(user.avatar || '');
+  const originalAvatar = user.avatar ? getUserAvatarUrl(user) : '';
+  const [avatarUrl, setAvatarUrl] = useState(originalAvatar);
+  const [previewUrl, setPreviewUrl] = useState(originalAvatar);
+  const [uploadedServerUrl, setUploadedServerUrl] = useState('');
+  const [hasChanges, setHasChanges] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -26,10 +31,11 @@ export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
       try {
         setUploading(true);
         
-        // Create preview URL
-        const previewUrl = URL.createObjectURL(file);
-        setAvatarUrl(previewUrl);
+        // Create preview URL immediately
+        const localPreview = URL.createObjectURL(file);
+        setPreviewUrl(localPreview);
         setPosition({ x: 0, y: 0 });
+        setHasChanges(true);
         
         // Upload to server
         const formData = new FormData();
@@ -43,13 +49,23 @@ export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
           },
         });
         
-        const serverUrl = `${BACKEND_URL}${response.data.url}`;
-        setAvatarUrl(serverUrl);
+        // Store the server URL (relative path like /uploads/xxx.jpg)
+        const serverPath = response.data.url; // This should be /uploads/filename.jpg
+        setUploadedServerUrl(serverPath);
+        setAvatarUrl(serverPath); // Store relative path for saving to DB
+        
+        // Update preview with full URL for display
+        const fullUrl = `${BACKEND_URL}${serverPath}`;
+        setPreviewUrl(fullUrl);
         
         toast.success('Image uploaded successfully!');
       } catch (error) {
         console.error('Upload error:', error);
         toast.error('Upload failed');
+        // Revert to original on error
+        setPreviewUrl(originalAvatar);
+        setAvatarUrl(user.avatar || '');
+        setHasChanges(false);
       } finally {
         setUploading(false);
       }
@@ -111,26 +127,45 @@ export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('💾 EditAvatarModal - Saving avatar, URL:', avatarUrl);
+    
+    if (!hasChanges) {
+      toast.info('No changes to save');
+      return;
+    }
+    
+    console.log('� EditAvatarModal - Saving avatar');
+    console.log('Avatar URL to save:', avatarUrl);
     setLoading(true);
 
     try {
-      console.log('📡 EditAvatarModal - Sending PUT request to:', `${API}/users/avatar`);
-      console.log('📦 EditAvatarModal - Payload:', { avatar: avatarUrl });
-      
       const response = await axios.put(`${API}/users/avatar`, {
-        avatar: avatarUrl
+        avatar: avatarUrl // Send relative path (/uploads/xxx.jpg)
       });
       
-      console.log('✅ EditAvatarModal - Save successful, response:', response.data);
+      console.log('✅ EditAvatarModal - Save successful');
       toast.success('Profile picture updated successfully!');
+      
+      // Pass the updated user data back
       onUpdate(response.data);
+      onClose();
     } catch (error) {
       console.error('❌ EditAvatarModal - Save failed:', error);
-      console.error('Error response:', error.response);
       toast.error('Failed to update profile picture');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRestoreOriginal = () => {
+    if (originalAvatar) {
+      setPreviewUrl(originalAvatar);
+      setAvatarUrl(user.avatar || '');
+      setUploadedServerUrl('');
+      setPosition({ x: 0, y: 0 });
+      setHasChanges(false);
+      toast.success('Restored to original photo');
+    } else {
+      toast.error('No original photo to restore');
     }
   };
 
@@ -140,6 +175,7 @@ export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
       const response = await axios.delete(`${API}/users/avatar`);
       toast.success('Profile picture removed successfully!');
       onUpdate(response.data);
+      onClose();
     } catch (error) {
       toast.error('Failed to remove profile picture');
       console.error('Avatar removal error:', error);
@@ -159,36 +195,76 @@ export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
         </DialogHeader>
         
         <div className="space-y-4">
+          {/* Current Photo Badge */}
+          {originalAvatar && (
+            <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-blue-300">
+                  <img src={originalAvatar} alt="Current" className="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-blue-900">Current Photo</p>
+                  <p className="text-xs text-blue-600">Your existing profile picture</p>
+                </div>
+              </div>
+              {hasChanges && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRestoreOriginal}
+                  className="flex items-center space-x-1 border-blue-300 text-blue-700 hover:bg-blue-100"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Restore</span>
+                </Button>
+              )}
+            </div>
+          )}
+
           {/* Preview */}
           <div className="flex justify-center">
             <div 
-              className="w-48 h-48 rounded-2xl overflow-hidden border-4 border-gray-200 bg-gradient-to-br from-rose-500 to-amber-500 relative"
+              className="w-48 h-48 rounded-2xl overflow-hidden border-4 border-gray-200 bg-gradient-to-br from-rose-500 to-amber-500 relative shadow-lg"
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
-              {avatarUrl ? (
+              {previewUrl ? (
                 <>
                   <img 
                     ref={imageRef}
-                    src={avatarUrl} 
+                    src={previewUrl}
                     alt="Avatar preview" 
                     className="w-full h-full object-cover select-none"
                     style={getImageStyle()}
                     onMouseDown={handleMouseDown}
                     onTouchStart={handleTouchStart}
+                    onError={(e) => {
+                      console.error('Image failed to load:', previewUrl);
+                      toast.error('Failed to load image preview');
+                    }}
                     draggable={false}
                   />
                   <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-xs flex items-center space-x-1.5 pointer-events-none">
                     <Move className="w-3.5 h-3.5" />
                     <span>Drag to reposition</span>
                   </div>
+                  {hasChanges && (
+                    <div className="absolute top-3 right-3 bg-green-500 text-white px-2 py-1 rounded-md text-xs font-medium">
+                      New
+                    </div>
+                  )}
                 </>
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-white text-5xl font-bold">
-                  {(user.name || user.username)[0].toUpperCase()}
+                <div className="w-full h-full flex flex-col items-center justify-center text-white">
+                  <ImageIcon className="w-16 h-16 mb-2 opacity-70" />
+                  <p className="text-5xl font-bold">
+                    {(user.name || user.username)[0].toUpperCase()}
+                  </p>
+                  <p className="text-sm mt-2 opacity-70">No photo yet</p>
                 </div>
               )}
             </div>
@@ -228,7 +304,7 @@ export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
           {/* Action Buttons */}
           <div className="flex justify-between pt-2">
             <div>
-              {user.avatar && (
+              {originalAvatar && (
                 <Button
                   type="button"
                   variant="destructive"
@@ -247,8 +323,8 @@ export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
               </Button>
               <Button
                 onClick={handleSubmit}
-                disabled={loading || !avatarUrl}
-                className="bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700"
+                disabled={loading || !hasChanges}
+                className="bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 disabled:opacity-50"
               >
                 {loading ? 'Saving...' : 'Save Changes'}
               </Button>
