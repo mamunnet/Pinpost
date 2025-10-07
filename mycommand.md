@@ -16,22 +16,36 @@
 ### Full Automated Deployment
 ```bash
 cd /docker/pinpost
+
+# If deploy.sh has local changes, reset it first
+git fetch origin
+git checkout origin/main -- deploy.sh
 chmod +x deploy.sh
+
+# Run deployment
 ./deploy.sh
 ```
 
 ### Manual Deployment
 ```bash
 cd /docker/pinpost
+
+# If git pull fails due to local changes, stash them first
+git stash
 git pull origin main
+git stash pop
+
+# OR force overwrite local changes with remote
+git fetch origin
+git reset --hard origin/main
 
 # Verify production env file exists
 cat frontend/.env.production
 # Should show: REACT_APP_BACKEND_URL=https://bartaaddaa.com
 
-# Rebuild and deploy
+# Rebuild and deploy (now rebuilds BOTH backend and frontend)
 docker compose down
-docker compose build --no-cache frontend
+docker compose build --no-cache backend frontend
 docker compose up -d
 
 # Check logs
