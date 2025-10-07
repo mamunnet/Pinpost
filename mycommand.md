@@ -1,41 +1,117 @@
 # Deployment Commands
 
-## ⚠️ IMPORTANT: Before Deploying
-Check `frontend/.env` file:
-- For PRODUCTION: `REACT_APP_BACKEND_URL=https://bartaaddaa.com`
-- For LOCAL DEV: `REACT_APP_BACKEND_URL=http://localhost:8000`
+## ⚠️ CRITICAL: Environment Files
 
-## Remote Server Deployment
+**For LOCAL Development:**
+- File: `frontend/.env`  
+- Content: `REACT_APP_BACKEND_URL=http://localhost:8000`
+
+**For PRODUCTION Deployment:**
+- File: `frontend/.env.production`  
+- Content: `REACT_APP_BACKEND_URL=https://bartaaddaa.com`
+- ✅ This file is used by Docker automatically during builds
+
+## Remote Server Deployment (RECOMMENDED)
+
+### Full Automated Deployment
+```bash
+cd /docker/pinpost
+chmod +x deploy.sh
+./deploy.sh
+```
+
+### Manual Deployment
 ```bash
 cd /docker/pinpost
 git pull origin main
-# Important: Rebuild frontend to apply .env changes
+
+# Verify production env file exists
+cat frontend/.env.production
+# Should show: REACT_APP_BACKEND_URL=https://bartaaddaa.com
+
+# Rebuild and deploy
 docker compose down
-docker compose up -d --build
+docker compose build --no-cache frontend
+docker compose up -d
+
+# Check logs
+docker compose logs -f
 ```
 
-## Quick Frontend-Only Redeploy (after .env change)
+## Local Development
+
+### Backend (Terminal 1)
 ```bash
-cd /docker/pinpost
-git pull origin main
-docker compose up -d --build frontend
+cd backend
+python -m uvicorn server:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-## Local Development - Backend
-cd backend; python -m uvicorn server:app --host 0.0.0.0 --port 8000 --reload
-
-## Local Development - Frontend  
+### Frontend (Terminal 2)
+```bash  
 cd frontend
 yarn install
 yarn start
+```
+
+## Quick Fixes
+
+### If production shows "User Not Found" or "Article not found"
+This means the frontend was built with wrong backend URL.
+
+**Fix:**
+```bash
+cd /docker/pinpost
+# Ensure .env.production has correct URL
+echo "REACT_APP_BACKEND_URL=https://bartaaddaa.com" > frontend/.env.production
+# Rebuild frontend
+docker compose down
+docker compose build --no-cache frontend
+docker compose up -d
+```
+
+### If local dev shows CORS errors
+Your `frontend/.env` is pointing to production instead of localhost.
+
+**Fix:**
+```powershell
+# On Windows
+cd D:\dev_project\Pinpost
+echo "REACT_APP_BACKEND_URL=http://localhost:8000" > frontend\.env
+
+# Restart frontend (Ctrl+C then):
+cd frontend
+yarn start
+```
 
 ## Docker Build Notes
 - Frontend uses yarn.lock (not npm)
-- Dockerfile.frontend updated to use yarn exclusively
+- Dockerfile.frontend uses .env.production for builds
 - Network timeout increased for slow connections
-- Retry logic added for dependency installation
+- Backend uses .env from root directory
 
-## If Docker build fails:
-1. Clear Docker cache: docker builder prune -a
-2. Remove old images: docker system prune -a
-3. Rebuild: docker compose up -d --build frontend
+## Troubleshooting
+
+### Check current backend URL in production
+```bash
+docker compose logs frontend | grep -i backend
+```
+
+### Clear Docker cache
+```bash
+docker builder prune -a
+docker system prune -a
+```
+
+### Rebuild everything
+```bash
+docker compose down
+docker compose build --no-cache
+docker compose up -d
+```
+
+### View real-time logs
+```bash
+docker compose logs -f frontend
+docker compose logs -f backend
+```
+

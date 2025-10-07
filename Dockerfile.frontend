@@ -16,10 +16,10 @@ RUN yarn install --frozen-lockfile --network-timeout 100000 || \
 # Copy frontend source
 COPY frontend/ .
 
-# Set backend URL to empty string - nginx will proxy all API calls
-ENV REACT_APP_BACKEND_URL=""
+# Copy production environment file
+COPY frontend/.env.production frontend/.env
 
-# Build the app
+# Build the app (uses .env.production for REACT_APP_BACKEND_URL)
 RUN yarn build
 
 # Stage 2: Production
