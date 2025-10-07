@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Heart, MessageCircle, TrendingUp, FileText, Flame, Clock, ChevronRight } from 'lucide-react';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { TrendingItemSkeleton, BlogCardSkeleton } from "@/components/SkeletonLoader";
 
 const API = `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api`;
 
@@ -57,17 +58,6 @@ const TrendingPage = ({ user }) => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center pt-24">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-600 mx-auto"></div>
-          <p className="mt-4 text-slate-600">Loading trending content...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-24 pb-12">
       <div className="max-w-6xl mx-auto px-4">
@@ -118,7 +108,16 @@ const TrendingPage = ({ user }) => {
               
               {/* Posts Content */}
               <div className="p-4 space-y-3">
-                {trendingPosts.map((post, index) => (
+                {loading ? (
+                  <>
+                    <TrendingItemSkeleton />
+                    <TrendingItemSkeleton />
+                    <TrendingItemSkeleton />
+                    <TrendingItemSkeleton />
+                  </>
+                ) : (
+                  <>
+                    {trendingPosts.map((post, index) => (
                   <div 
                     key={post.id} 
                     className="group relative p-4 rounded-xl hover:bg-gradient-to-r hover:from-slate-50 hover:to-white transition-all duration-300 border border-transparent hover:border-slate-200 cursor-pointer hover:shadow-md"
@@ -198,12 +197,14 @@ const TrendingPage = ({ user }) => {
                     </div>
                   </div>
                 ))}
-                {trendingPosts.length === 0 && (
+                {!loading && trendingPosts.length === 0 && (
                   <div className="bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-dashed border-slate-300 rounded-xl p-8 sm:p-12 text-center">
                     <MessageCircle className="w-12 h-12 text-slate-400 mx-auto mb-4" />
                     <p className="text-slate-600 font-medium">No trending posts yet</p>
                     <p className="text-slate-500 text-sm mt-1">Be the first to create viral content!</p>
                   </div>
+                )}
+                  </>
                 )}
               </div>
             </div>
@@ -230,7 +231,14 @@ const TrendingPage = ({ user }) => {
               
               {/* Blogs Content */}
               <div className="p-4 space-y-3">
-                {trendingBlogs.map((blog, index) => (
+                {loading ? (
+                  <>
+                    <BlogCardSkeleton />
+                    <BlogCardSkeleton />
+                  </>
+                ) : (
+                  <>
+                    {trendingBlogs.map((blog, index) => (
                   <div key={blog.id} className="group relative">
                     {/* Floating Rank Badge */}
                     <div className="absolute -top-1 -left-1 z-10">
@@ -276,7 +284,7 @@ const TrendingPage = ({ user }) => {
                     </div>
                   </div>
                 ))}
-                {trendingBlogs.length === 0 && (
+                {!loading && trendingBlogs.length === 0 && (
                   <div className="bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-dashed border-slate-300 rounded-xl p-6 text-center">
                     <div className="w-12 h-12 bg-gradient-to-br from-slate-600 to-slate-700 rounded-full flex items-center justify-center mx-auto mb-3">
                       <FileText className="w-6 h-6 text-white" />
@@ -284,6 +292,8 @@ const TrendingPage = ({ user }) => {
                     <p className="text-sm font-medium text-slate-600 mb-1">No trending blogs yet</p>
                     <p className="text-xs text-slate-500">Write something amazing!</p>
                   </div>
+                )}
+                  </>
                 )}
               </div>
             </div>

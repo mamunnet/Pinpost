@@ -10,6 +10,7 @@ import { Heart, MessageCircle, Share2, Bookmark, ArrowLeft, Trash2, Edit, MoreHo
 import { toast } from "sonner";
 import { getUserAvatarUrl, getImageUrl } from "@/utils/imageUtils";
 import { Header } from "@/components/Header";
+import { PostDetailSkeleton } from "@/components/SkeletonLoader";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -108,10 +109,9 @@ export const PostDetailPage = ({ user, logout }) => {
     return (
       <>
         <Header user={user} logout={logout} />
-        <div className="min-h-screen flex items-center justify-center pt-32">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading post...</p>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-24 pb-12">
+          <div className="max-w-4xl mx-auto px-4">
+            <PostDetailSkeleton />
           </div>
         </div>
       </>

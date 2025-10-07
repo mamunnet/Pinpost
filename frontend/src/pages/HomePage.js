@@ -11,6 +11,7 @@ import { Stories } from "@/components/Stories";
 import { PostCard } from "@/components/PostCard";
 import { BlogCard } from "@/components/BlogCard";
 import { getUserAvatarUrl } from "@/utils/imageUtils";
+import { PostCardSkeleton } from "@/components/SkeletonLoader";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -126,17 +127,6 @@ export const HomePage = ({ user }) => {
     fetchFeed(true);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-600 mx-auto"></div>
-          <p className="mt-4 text-slate-600">Loading your feed...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-24 pb-12">
       <div className="max-w-7xl mx-auto px-4">
@@ -236,7 +226,13 @@ export const HomePage = ({ user }) => {
             <div className="border-b border-slate-300"></div>
 
             {/* Feed Content */}
-            {feed.length === 0 && !loading ? (
+            {loading ? (
+              <>
+                <PostCardSkeleton />
+                <PostCardSkeleton />
+                <PostCardSkeleton />
+              </>
+            ) : feed.length === 0 ? (
               <div className="bg-white shadow-sm rounded-lg text-center py-12 px-4 border border-slate-200">
                 <MessageCircle className="w-16 h-16 text-slate-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-slate-700 mb-2">Your feed is empty</h3>

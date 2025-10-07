@@ -10,6 +10,7 @@ import { Heart, MessageCircle, Share2, Plus, Home, Users, TrendingUp, Search, Ch
 import { PostCard } from "@/components/PostCard";
 import { EnhancedPostModal } from "@/components/EnhancedPostModal";
 import { NotificationTester } from "@/components/NotificationTester";
+import { PostCardSkeleton, SidebarSkeleton } from "@/components/SkeletonLoader";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -56,7 +57,7 @@ const WhoToFollow = ({ user }) => {
   };
 
   if (loading) {
-    return <div className="text-center py-4 text-slate-500">Loading suggestions...</div>;
+    return <SidebarSkeleton />;
   }
 
   if (suggestions.length === 0) {
@@ -190,17 +191,6 @@ export const SocialPage = ({ user }) => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center pt-24">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-600 mx-auto mb-4"></div>
-          <p className="text-slate-600 font-medium">Loading social feed...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-24 pb-12">
       <div className="max-w-6xl mx-auto px-4">
@@ -296,7 +286,13 @@ export const SocialPage = ({ user }) => {
             </div>
 
             {/* Enhanced Posts Display */}
-            {filteredPosts.length === 0 ? (
+            {loading ? (
+              <>
+                <PostCardSkeleton />
+                <PostCardSkeleton />
+                <PostCardSkeleton />
+              </>
+            ) : filteredPosts.length === 0 ? (
               <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/50 text-center py-16 px-8">
                 <div className="w-20 h-20 bg-gradient-to-br from-slate-600 to-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <MessageCircle className="w-10 h-10 text-white" />
