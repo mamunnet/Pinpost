@@ -320,6 +320,9 @@ const NotificationsDropdown = ({ user }) => {
   );
 };
 
+// Export NotificationsDropdown for use in other components
+export { NotificationsDropdown };
+
 export const Header = ({ user, logout }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [unreadMessages, setUnreadMessages] = useState(0);
@@ -425,10 +428,30 @@ export const Header = ({ user, logout }) => {
               <span className="font-bold text-xl bg-gradient-to-r from-slate-600 to-slate-700 bg-clip-text text-transparent">PenLink</span>
             </Link>
             
-            {/* Mobile Search Icon */}
-            <button className="lg:hidden p-2 rounded-full hover:bg-white/50 transition-colors">
-              <Search className="w-5 h-5 text-gray-600" />
-            </button>
+            {/* Right Side - Search and Notifications */}
+            <div className="flex items-center gap-2">
+              {/* Desktop Search */}
+              <div className="hidden lg:block">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input 
+                    type="text" 
+                    placeholder="Search PenLink..." 
+                    value={searchQuery} 
+                    onChange={(e) => setSearchQuery(e.target.value)} 
+                    className="pl-10 w-64 bg-white border-slate-300 focus:border-slate-400 focus:ring-slate-300" 
+                  />
+                </div>
+              </div>
+              
+              {/* Mobile Search Icon */}
+              <button className="lg:hidden p-2 rounded-full hover:bg-white/50 transition-colors">
+                <Search className="w-5 h-5 text-gray-600" />
+              </button>
+              
+              {/* Notifications Dropdown in Top Bar */}
+              {user && <NotificationsDropdown user={user} />}
+            </div>
           </div>
         </div>
       </div>
@@ -503,20 +526,6 @@ export const Header = ({ user, logout }) => {
             </Link>
           </nav>
 
-          {/* Center Search - Desktop Only */}
-          <div className="hidden lg:block flex-1 max-w-md">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input 
-                type="text" 
-                placeholder="Search PenLink..." 
-                value={searchQuery} 
-                onChange={(e) => setSearchQuery(e.target.value)} 
-                className="pl-10 bg-slate-100 border-slate-300 focus:border-slate-400 focus:ring-slate-300" 
-              />
-            </div>
-          </div>
-
           {/* Right Menu */}
           {user && (
             <div className="flex items-center gap-2">
@@ -533,8 +542,6 @@ export const Header = ({ user, logout }) => {
                   </span>
                 )}
               </Link>
-              
-              <NotificationsDropdown user={user} />
               
               {/* Hamburger Menu Button */}
               <button 

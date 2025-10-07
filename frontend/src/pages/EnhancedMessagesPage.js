@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getUserAvatarUrl } from '@/utils/imageUtils';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Header } from '@/components/Header';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -38,12 +38,28 @@ const EnhancedMessagesPage = ({ user }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   
   const messagesEndRef = useRef(null);
+  const messageContainerRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = (force = false) => {
+    if (force || shouldAutoScroll) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  // Check if user is near bottom of messages
+  const checkIfNearBottom = () => {
+    if (!messageContainerRef.current) return true;
+    const container = messageContainerRef.current;
+    const threshold = 100; // pixels from bottom
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+    setShouldAutoScroll(isNearBottom);
+    return isNearBottom;
   };
 
   // Fetch notifications
@@ -104,10 +120,18 @@ const EnhancedMessagesPage = ({ user }) => {
     try {
       const response = await axios.get(`${API}/conversations/${conversationId}/messages`);
       setMessages(response.data);
-      scrollToBottom();
+      setShouldAutoScroll(true);
+      setTimeout(() => scrollToBottom(true), 100);
       
       // Mark conversation as read
-      await axios.put(`${API}/conversations/${conversationId}/read`);
+      await axios.put(`${API}/conversations/${conversationId}/read`).catch(err => console.error('Mark read failed:', err));
+      
+      // Mark all messages as read
+      response.data.forEach(msg => {
+        if (msg.sender_id !== user.id && (!msg.read_by || !msg.read_by.includes(user.id))) {
+          axios.put(`${API}/messages/${msg.id}/read`).catch(err => console.error('Mark message read failed:', err));
+        }
+      });
       
       // Update unread count in conversation list
       setConversations(prevConvs => 
@@ -167,7 +191,8 @@ const EnhancedMessagesPage = ({ user }) => {
       
       setMessages([...messages, response.data]);
       setMessageInput('');
-      scrollToBottom();
+      setShouldAutoScroll(true);
+      setTimeout(() => scrollToBottom(true), 100);
       
       // Stop typing indicator
       if (ws && ws.readyState === WebSocket.OPEN) {
@@ -217,8 +242,9 @@ const EnhancedMessagesPage = ({ user }) => {
           
           if (activeConversation && newMessage.conversation_id === activeConversation.id) {
             setMessages(prev => [...prev, newMessage]);
-            scrollToBottom();
-            axios.put(`${API}/messages/${newMessage.id}/read`);
+            setTimeout(() => scrollToBottom(true), 100);
+            // Mark as read immediately
+            axios.put(`${API}/messages/${newMessage.id}/read`).catch(err => console.error('Failed to mark as read:', err));
           } else {
             setConversations(prevConvs => {
               const updated = prevConvs.map(conv => {
@@ -261,23 +287,40 @@ const EnhancedMessagesPage = ({ user }) => {
         
         // Handle typing indicators
         if (data.type === 'typing_status') {
-          setTypingUsers(prev => ({
-            ...prev,
-            [data.conversation_id]: {
-              user_id: data.user_id,
-              typing: data.typing
+          // Only show typing if it's in the active conversation and not from current user
+          if (data.conversation_id === activeConversation?.id && data.user_id !== user.id) {
+            setTypingUsers(prev => ({
+              ...prev,
+              [data.conversation_id]: {
+                user_id: data.user_id,
+                typing: data.typing
+              }
+            }));
+            
+            // Clear typing after 3 seconds
+            if (data.typing) {
+              setTimeout(() => {
+                setTypingUsers(prev => ({
+                  ...prev,
+                  [data.conversation_id]: { ...prev[data.conversation_id], typing: false }
+                }));
+              }, 3000);
             }
-          }));
-          
-          // Clear typing after 3 seconds
-          if (data.typing) {
-            setTimeout(() => {
-              setTypingUsers(prev => ({
-                ...prev,
-                [data.conversation_id]: { ...prev[data.conversation_id], typing: false }
-              }));
-            }, 3000);
           }
+        }
+        
+        // Handle message status updates (delivered/seen)
+        if (data.type === 'message_status') {
+          setMessages(prev => prev.map(msg => {
+            if (msg.id === data.message_id) {
+              return {
+                ...msg,
+                delivered_to: data.delivered_to || msg.delivered_to,
+                read_by: data.read_by || msg.read_by
+              };
+            }
+            return msg;
+          }));
         }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);
@@ -306,10 +349,42 @@ const EnhancedMessagesPage = ({ user }) => {
     }
   }, [user]);
 
-  // Scroll to bottom when messages change
+  // Handle URL parameters to open specific conversation
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (conversations.length > 0) {
+      const conversationId = searchParams.get('conversation');
+      const userId = searchParams.get('user');
+      
+      if (conversationId) {
+        // Open conversation by ID
+        const conv = conversations.find(c => c.id === conversationId);
+        if (conv) {
+          setActiveConversation(conv);
+          fetchMessages(conv.id);
+        }
+      } else if (userId) {
+        // Find or create conversation with user
+        const conv = conversations.find(c => 
+          c.participants.includes(userId) && c.participants.includes(user.id)
+        );
+        if (conv) {
+          setActiveConversation(conv);
+          fetchMessages(conv.id);
+        } else {
+          // Create new conversation
+          toast.info('Starting new conversation...');
+          // You can add logic to create a new conversation here
+        }
+      }
+    }
+  }, [conversations, searchParams, user]);
+
+  // Scroll to bottom when messages change (only if near bottom)
+  useEffect(() => {
+    if (messages.length > 0 && shouldAutoScroll) {
+      setTimeout(() => scrollToBottom(), 100);
+    }
+  }, [messages, shouldAutoScroll]);
 
   // Get other participant details
   const getOtherParticipant = (conversation) => {
@@ -411,12 +486,12 @@ const EnhancedMessagesPage = ({ user }) => {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-white">
       {/* Header */}
       <Header user={user} />
 
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      {/* Main Content - Account for fixed header height (top bar 48px + nav 64px = 112px) */}
+      <div className="flex-1 flex overflow-hidden mt-28" style={{ height: 'calc(100vh - 112px)' }}>
         {/* Conversations List */}
         <div className={`${activeConversation ? 'hidden md:block' : 'block'} w-full md:w-96 border-r border-slate-200 flex flex-col bg-white`}>
           {/* Search Bar */}
@@ -557,7 +632,11 @@ const EnhancedMessagesPage = ({ user }) => {
             </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-4">
+            <ScrollArea 
+              className="flex-1 p-4" 
+              ref={messageContainerRef}
+              onScroll={checkIfNearBottom}
+            >
               <div className="space-y-4">
                 {messages.map((message) => {
                   const isMe = message.sender_id === user.id;
