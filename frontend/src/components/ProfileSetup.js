@@ -46,21 +46,24 @@ export const ProfileSetup = ({ user, onComplete }) => {
         const previewUrl = URL.createObjectURL(file);
         setFormData(prev => ({ ...prev, [field]: previewUrl }));
         
-        // Upload to server
+        // Upload to server (Cloudinary)
         const uploadFormData = new FormData();
         uploadFormData.append('file', file);
         
+        // Determine upload type based on field
+        const uploadType = field === 'avatar' ? 'profile' : 'cover';
+        
         const token = localStorage.getItem('token');
-        const response = await axios.post(`${API}/upload/image`, uploadFormData, {
+        const response = await axios.post(`${API}/upload/image?upload_type=${uploadType}`, uploadFormData, {
           headers: {
             'Content-Type': 'multipart/form-data',
             'Authorization': `Bearer ${token}`
           },
         });
         
-        // Replace preview URL with server URL
-        const serverUrl = `${BACKEND_URL}${response.data.url}`;
-        setFormData(prev => ({ ...prev, [field]: serverUrl }));
+        // Cloudinary returns full HTTPS URL
+        const cloudinaryUrl = response.data.url;
+        setFormData(prev => ({ ...prev, [field]: cloudinaryUrl }));
         
         toast.success('Image uploaded successfully!');
       } catch (error) {

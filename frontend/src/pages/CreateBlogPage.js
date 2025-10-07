@@ -76,20 +76,17 @@ export const CreateBlogPage = () => {
       const token = localStorage.getItem('token');
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('media_type', 'blog');
 
-      const response = await axios.post(`${API}/upload/image`, formData, {
+      const response = await axios.post(`${API}/upload/image?upload_type=blog`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`
         }
       });
 
-      let imageUrl = response.data.url;
-      if (!imageUrl.startsWith('http')) {
-        imageUrl = `${BACKEND_URL}${imageUrl}`;
-      }
-      setCoverImage(imageUrl);
+      // Cloudinary returns full HTTPS URL
+      const cloudinaryUrl = response.data.url;
+      setCoverImage(cloudinaryUrl);
       toast.success('Cover image added successfully!');
     } catch (error) {
       console.error('Upload error:', error);

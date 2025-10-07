@@ -49,8 +49,8 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
     formData.append('file', file);
 
     try {
-      const response = await axios.post(`${API}/upload/image`, formData);
-      // Store relative URL - getImageUrl() will handle conversion to absolute URL
+      const response = await axios.post(`${API}/upload/image?upload_type=story`, formData);
+      // Cloudinary returns full HTTPS URL
       setStoryImage(response.data.url);
       toast.success('✨ Photo uploaded!');
     } catch (error) {

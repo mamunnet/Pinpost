@@ -17,6 +17,7 @@ import bcrypt
 import json
 import asyncio
 from pymongo.errors import DuplicateKeyError, PyMongoError
+from cloudinary_utils import upload_to_cloudinary, delete_from_cloudinary
 
 # Load environment variables (only for local development)
 # In production (Docker), environment variables are set via docker-compose.yml
@@ -462,35 +463,39 @@ async def setup_profile(profile_data: ProfileSetup, user_id: str = Depends(get_c
     return User(**updated_user)
 
 @api_router.post("/upload/image")
-async def upload_image(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
+async def upload_image(
+    file: UploadFile = File(...), 
+    user_id: str = Depends(get_current_user),
+    upload_type: str = "profile"  # profile, cover, post, blog, story
+):
+    """Upload image to Cloudinary with appropriate preset"""
     # Validate file type
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
     
     # Validate file size (10MB limit)
-    file_size = 0
     content = await file.read()
     file_size = len(content)
     
     if file_size > 10 * 1024 * 1024:  # 10MB
         raise HTTPException(status_code=400, detail="File size must be less than 10MB")
     
-    # Create uploads directory if it doesn't exist
-    upload_dir = Path("uploads")
-    upload_dir.mkdir(exist_ok=True)
-    
-    # Generate unique filename
-    file_extension = Path(file.filename).suffix if file.filename else ".jpg"
-    unique_filename = f"{uuid.uuid4()}{file_extension}"
-    file_path = upload_dir / unique_filename
-    
-    # Save file
-    with open(file_path, "wb") as buffer:
-        buffer.write(content)
-    
-    # Return file URL
-    file_url = f"/uploads/{unique_filename}"
-    return {"url": file_url, "filename": unique_filename}
+    try:
+        # Upload to Cloudinary
+        result = upload_to_cloudinary(
+            file_content=content,
+            filename=file.filename or "image.jpg",
+            upload_type=upload_type
+        )
+        
+        return {
+            "url": result['url'],
+            "public_id": result['public_id'],
+            "cloudinary": True
+        }
+    except Exception as e:
+        print(f"Upload error: {e}")
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
 # User routes
 # Trending users (must be before dynamic {username} route)

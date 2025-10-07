@@ -53,15 +53,16 @@ export const EditBlogModal = ({ isOpen, onClose, blog, onBlogUpdated }) => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(`${API}/upload/image`, formData, {
+      const response = await axios.post(`${API}/upload/image?upload_type=blog`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`
         }
       });
 
-      const serverUrl = `${BACKEND_URL}${response.data.url}`;
-      setCoverImage(serverUrl);
+      // Cloudinary returns full HTTPS URL
+      const cloudinaryUrl = response.data.url;
+      setCoverImage(cloudinaryUrl);
       toast.success("📸 Image uploaded successfully!");
     } catch (error) {
       console.error('Error uploading image:', error);

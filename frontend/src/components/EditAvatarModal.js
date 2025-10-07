@@ -37,26 +37,23 @@ export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
         setPosition({ x: 0, y: 0 });
         setHasChanges(true);
         
-        // Upload to server
+        // Upload to server (Cloudinary)
         const formData = new FormData();
         formData.append('file', file);
         
         const token = localStorage.getItem('token');
-        const response = await axios.post(`${API}/upload/image`, formData, {
+        const response = await axios.post(`${API}/upload/image?upload_type=profile`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
             'Authorization': `Bearer ${token}`
           },
         });
         
-        // Store the server URL (relative path like /uploads/xxx.jpg)
-        const serverPath = response.data.url; // This should be /uploads/filename.jpg
-        setUploadedServerUrl(serverPath);
-        setAvatarUrl(serverPath); // Store relative path for saving to DB
-        
-        // Update preview with full URL for display
-        const fullUrl = `${BACKEND_URL}${serverPath}`;
-        setPreviewUrl(fullUrl);
+        // Cloudinary returns full HTTPS URL
+        const cloudinaryUrl = response.data.url;
+        setAvatarUrl(cloudinaryUrl);  // Save full Cloudinary URL
+        setPreviewUrl(cloudinaryUrl);  // Display Cloudinary URL
+        setUploadedServerUrl(cloudinaryUrl);
         
         toast.success('Image uploaded successfully!');
       } catch (error) {

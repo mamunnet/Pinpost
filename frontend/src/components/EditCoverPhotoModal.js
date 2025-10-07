@@ -30,21 +30,21 @@ export const EditCoverPhotoModal = ({ user, onClose, onUpdate }) => {
         setCoverPhoto(previewUrl);
         setPosition({ x: 0, y: 0 }); // Reset position for new image
         
-        // Upload to server
+        // Upload to server (Cloudinary)
         const formData = new FormData();
         formData.append('file', file);
         
         const token = localStorage.getItem('token');
-        const response = await axios.post(`${API}/upload/image`, formData, {
+        const response = await axios.post(`${API}/upload/image?upload_type=cover`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
             'Authorization': `Bearer ${token}`
           },
         });
         
-        // Replace preview URL with server URL
-        const serverUrl = `${BACKEND_URL}${response.data.url}`;
-        setCoverPhoto(serverUrl);
+        // Cloudinary returns full HTTPS URL
+        const cloudinaryUrl = response.data.url;
+        setCoverPhoto(cloudinaryUrl);
         
         toast.success('Image uploaded successfully!');
       } catch (error) {
