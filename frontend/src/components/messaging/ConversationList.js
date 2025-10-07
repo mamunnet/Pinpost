@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -18,20 +18,34 @@ const ConversationList = ({
   user,
   loading
 }) => {
+  const navigate = useNavigate();
+
+  const handleConversationClick = (conv) => {
+    navigate(`/messages?conversation=${conv.id}`);
+    if (onConversationClick) {
+      onConversationClick(conv);
+    }
+  };
+
   const filteredConversations = conversations.filter(conv => {
     const other = getOtherParticipant(conv);
     return other?.username.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   return (
-    <div className={`${activeConversation ? 'hidden md:block' : 'block'} w-full md:w-96 border-r border-slate-200 flex flex-col bg-white`}>
-      {/* Header */}
-      <div className="p-4 border-b border-slate-200">
-        <h1 className="text-2xl font-bold">Chats</h1>
+    <div className={`${activeConversation ? 'hidden md:block' : 'block'} w-full md:w-96 border-r border-slate-200 flex flex-col bg-white shadow-sm`}>
+      {/* Header - Modern Design */}
+      <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-white">
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+          Messages
+        </h1>
+        <p className="text-sm text-slate-600 mt-1">
+          {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
+        </p>
       </div>
 
-      {/* Search */}
-      <div className="px-4 py-3 border-b border-slate-200">
+      {/* Search - Modern Design */}
+      <div className="px-4 py-4 border-b border-slate-200 bg-slate-50">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input
@@ -39,20 +53,29 @@ const ConversationList = ({
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10 border-slate-200"
+            className="pl-10 border-slate-300 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg"
           />
         </div>
       </div>
 
       {/* Conversations List */}
-      <ScrollArea className="flex-1">
+      <div className="flex-1 overflow-y-auto">
         {loading ? (
           <div className="flex items-center justify-center h-full">
-            <p className="text-slate-500">Loading conversations...</p>
+            <div className="text-center">
+              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+              <p className="text-slate-500 text-sm">Loading conversations...</p>
+            </div>
           </div>
         ) : filteredConversations.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-slate-500">No conversations yet</p>
+          <div className="flex items-center justify-center h-full p-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Search className="w-8 h-8 text-slate-400" />
+              </div>
+              <p className="text-slate-600 font-medium">No conversations found</p>
+              <p className="text-slate-500 text-sm mt-1">Start a new conversation</p>
+            </div>
           </div>
         ) : (
           <div>
@@ -60,39 +83,50 @@ const ConversationList = ({
               const other = getOtherParticipant(conv);
               const isOnline = onlineUsers[other?.user_id]?.online;
               const unreadCount = conv.unread_count?.[user.id] || 0;
+              const isActive = activeConversation?.id === conv.id;
 
               return (
                 <div
                   key={conv.id}
-                  onClick={() => onConversationClick(conv)}
-                  className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-slate-50 border-b border-slate-100 transition-colors ${
-                    activeConversation?.id === conv.id ? 'bg-blue-50' : ''
+                  onClick={() => handleConversationClick(conv)}
+                  className={`flex items-center gap-4 px-4 py-4 cursor-pointer border-b border-slate-100 transition-all duration-200 hover:bg-slate-50 ${
+                    isActive ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
                   }`}
                 >
-                  <div className="relative">
-                    <Avatar className="w-14 h-14">
+                  <div className="relative flex-shrink-0">
+                    <Avatar className={`w-14 h-14 border-2 transition-all ${
+                      isActive ? 'border-blue-500 shadow-lg shadow-blue-500/30' : 'border-white shadow-md'
+                    }`}>
                       <AvatarImage src={getUserAvatarUrl(other?.avatar_url)} />
-                      <AvatarFallback>{other?.username?.[0]?.toUpperCase()}</AvatarFallback>
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold text-lg">
+                        {other?.username?.[0]?.toUpperCase()}
+                      </AvatarFallback>
                     </Avatar>
                     {isOnline && (
-                      <Circle className="absolute bottom-0 right-0 w-4 h-4 fill-green-500 text-green-500 border-2 border-white rounded-full" />
+                      <Circle className="absolute bottom-0 right-0 w-4 h-4 fill-green-500 text-green-500 border-2 border-white rounded-full shadow-sm" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-slate-900 truncate">
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className={`font-semibold truncate ${
+                        isActive ? 'text-blue-700' : unreadCount > 0 ? 'text-slate-900' : 'text-slate-800'
+                      }`}>
                         {other?.username}
                       </h3>
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs text-slate-500 flex-shrink-0 ml-2">
                         {formatTime(conv.last_message_at || conv.updated_at)}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-slate-600 truncate">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className={`text-sm truncate ${
+                        unreadCount > 0 ? 'font-semibold text-slate-900' : 'text-slate-600'
+                      }`}>
                         {conv.last_message || 'No messages yet'}
                       </p>
                       {unreadCount > 0 && (
-                        <Badge className="ml-2 bg-blue-500">{unreadCount}</Badge>
+                        <Badge className="ml-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-md flex-shrink-0">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </Badge>
                       )}
                     </div>
                   </div>
@@ -101,7 +135,7 @@ const ConversationList = ({
             })}
           </div>
         )}
-      </ScrollArea>
+      </div>
     </div>
   );
 };

@@ -532,10 +532,14 @@ export const Header = ({ user, logout }) => {
               {/* Messages Icon */}
               <Link 
                 to="/messages" 
-                className="relative p-2.5 rounded-full hover:bg-slate-200 transition-all flex-shrink-0"
+                className={`relative p-2.5 rounded-full transition-all flex-shrink-0 ${
+                  isActive('/messages') 
+                    ? 'bg-blue-100 text-blue-600' 
+                    : 'hover:bg-slate-200 text-slate-700'
+                }`}
                 data-testid="messages-btn"
               >
-                <MessageCircle className="w-5 h-5 text-slate-700" />
+                <MessageCircle className="w-5 h-5" />
                 {unreadMessages > 0 && (
                   <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold shadow-md">
                     {unreadMessages > 99 ? '99+' : unreadMessages}

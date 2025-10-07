@@ -250,11 +250,11 @@ export const useMessaging = (user) => {
     };
 
     websocket.onerror = (error) => {
-      console.error('WebSocket error:', error);
+      console.warn('WebSocket connection error - will retry');
     };
 
     websocket.onclose = () => {
-      console.log('WebSocket disconnected');
+      console.log('WebSocket disconnected - will reconnect on next interaction');
     };
 
     setWs(websocket);
@@ -291,6 +291,10 @@ export const useMessaging = (user) => {
           setActiveConversation(conv);
           fetchMessages(conv.id);
         }
+      } else {
+        // No URL parameters - clear active conversation to show list
+        setActiveConversation(null);
+        setMessages([]);
       }
     }
   }, [conversations, searchParams, user]);
