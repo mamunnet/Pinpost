@@ -55,10 +55,10 @@ docker compose down
 echo "✅ Containers stopped"
 echo ""
 
-# Step 4: Rebuild frontend (most common change)
-echo "🔨 Step 4: Rebuilding frontend with production settings..."
-docker compose build --no-cache frontend
-echo "✅ Frontend rebuilt"
+# Step 4: Rebuild containers
+echo "🔨 Step 4: Rebuilding containers with latest changes..."
+docker compose build --no-cache backend frontend
+echo "✅ Containers rebuilt"
 echo ""
 
 # Step 5: Start all services

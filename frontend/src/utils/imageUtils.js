@@ -12,17 +12,13 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'
 export const getImageUrl = (imageUrl) => {
   if (!imageUrl) return '';
   
-  // If the URL already includes the backend URL, return as is
+  // If it's a Cloudinary URL, return as-is (highest priority)
+  if (imageUrl.includes('cloudinary.com') || imageUrl.includes('res.cloudinary.com')) {
+    return imageUrl;
+  }
+  
+  // If the URL already includes http/https, return as is
   if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-    // Check if it's pointing to the current backend
-    if (imageUrl.startsWith(BACKEND_URL)) {
-      return imageUrl;
-    }
-    // If it's pointing to a different backend URL, replace it with current
-    if (imageUrl.includes('/uploads/')) {
-      const fileName = imageUrl.split('/uploads/')[1];
-      return `${BACKEND_URL}/uploads/${fileName}`;
-    }
     return imageUrl;
   }
   
