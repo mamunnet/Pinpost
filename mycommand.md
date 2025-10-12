@@ -129,3 +129,17 @@ docker compose logs -f frontend
 docker compose logs -f backend
 ```
 
+MONGO_URL=mongodb+srv://pinpostmaria:iubbDYjmSiA5uwyQ@pinpost.4ccvhj6.mongodb.net/?retryWrites=true&w=majority
+DB_NAME=penlink_database
+SECRET_KEY=4f8a2e9c7b6d5a3f1e9c8b7a6d5f4e3c2b1a9f8e7d6c5b4a3f2e1d9c8b7a6f5e
+FRONTEND_URL=http://localhost:3000
+MAX_FILE_SIZE=10485760
+UPLOAD_DIR=./uploads
+ENVIRONMENT=development
+
+
+# Frontend Environment Variables for LOCAL DEVELOPMENT
+# This file is used for local development only
+# For production, see .env.production
+
+REACT_APP_BACKEND_URL=http://localhost:8000
