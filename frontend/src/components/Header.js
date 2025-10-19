@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Home, FileText, Users, Bell, Search, LogOut, User, Settings, TrendingUp, UserPlus, HelpCircle, Shield, Mail, Menu, Wifi, WifiOff, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { SearchBar } from "@/components/SearchBar";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
 const API = `${BACKEND_URL}/api`;
@@ -318,7 +319,6 @@ const NotificationsDropdown = ({ user }) => {
 export { NotificationsDropdown };
 
 export const Header = ({ user, logout }) => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [unreadMessages, setUnreadMessages] = useState(0);
   const navScrollRef = useRef(null);
   const navigate = useNavigate();
@@ -425,17 +425,8 @@ export const Header = ({ user, logout }) => {
             {/* Right Side - Search and Notifications */}
             <div className="flex items-center gap-2">
               {/* Desktop Search */}
-              <div className="hidden lg:block">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input 
-                    type="text" 
-                    placeholder="Search PenLink..." 
-                    value={searchQuery} 
-                    onChange={(e) => setSearchQuery(e.target.value)} 
-                    className="pl-10 w-64 bg-white border-slate-300 focus:border-slate-400 focus:ring-slate-300" 
-                  />
-                </div>
+              <div className="hidden lg:block w-64">
+                <SearchBar />
               </div>
               
               {/* Mobile Search Icon */}

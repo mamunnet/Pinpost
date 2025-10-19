@@ -39,7 +39,7 @@ const WhoToFollow = ({ user }) => {
   const fetchSuggestions = async () => {
     try {
       // Check cache first
-      const cacheKey = 'trending_users';
+      const cacheKey = 'user_suggestions';
       const cached = cache.get(cacheKey);
       if (cached) {
         setSuggestions(cached);
@@ -47,15 +47,21 @@ const WhoToFollow = ({ user }) => {
         return;
       }
       
-      // Use existing /users/trending endpoint
-      const response = await axios.get(`${API}/users/trending?limit=5`);
+      // Use smart suggestions endpoint (People You May Know)
+      const response = await axios.get(`${API}/users/suggestions?limit=5`);
       
       // Cache the suggestions
       cache.set(cacheKey, response.data, CacheTTL.MEDIUM);
       setSuggestions(response.data);
     } catch (error) {
       console.error('Failed to fetch suggestions:', error);
-      setSuggestions([]);
+      // Fallback to trending users
+      try {
+        const fallback = await axios.get(`${API}/users/trending?limit=5`);
+        setSuggestions(fallback.data);
+      } catch (fallbackError) {
+        setSuggestions([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -64,7 +70,10 @@ const WhoToFollow = ({ user }) => {
   const handleFollow = async (userId) => {
     try {
       await axios.post(`${API}/follow/${userId}`);
+      // Remove from suggestions
       setSuggestions(suggestions.filter(s => s.id !== userId));
+      // Invalidate suggestions cache to get fresh recommendations
+      cache.delete('user_suggestions');
       toast.success('Successfully followed!');
     } catch (error) {
       toast.error('Failed to follow user');

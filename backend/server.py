@@ -607,6 +607,107 @@ async def upload_audio(
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
 # User routes
+# People You May Know - Smart recommendation algorithm
+@api_router.get("/users/suggestions")
+async def get_user_suggestions(limit: int = 10, current_user_id: Optional[str] = Depends(get_optional_user)):
+    """
+    Smart algorithm for "People You May Know":
+    1. Friends of friends (mutual connections)
+    2. Users with similar interests (based on engagement)
+    3. Popular users you don't follow
+    4. Recently active users
+    """
+    if not current_user_id:
+        # For non-logged-in users, show trending users
+        users = await db.users.find().sort("followers_count", -1).limit(limit).to_list(limit)
+        return [User(**u).dict() for u in users]
+    
+    # Get users current user is already following
+    following = await db.follows.find({"follower_id": current_user_id}).to_list(1000)
+    following_ids = [f["following_id"] for f in following]
+    
+    suggestions = []
+    suggestion_scores = {}
+    
+    # 1. Friends of friends (mutual connections) - Highest priority
+    for followed_id in following_ids:
+        # Get who your friends follow
+        friends_following = await db.follows.find({"follower_id": followed_id}).to_list(100)
+        for ff in friends_following:
+            suggested_id = ff["following_id"]
+            # Skip only if is self
+            if suggested_id == current_user_id:
+                continue
+            # Increase score for each mutual connection
+            suggestion_scores[suggested_id] = suggestion_scores.get(suggested_id, 0) + 10
+    
+    # 2. Users who engage with similar content
+    # Get posts current user liked
+    user_likes = await db.likes.find({"user_id": current_user_id}).to_list(100)
+    liked_post_ids = [like["post_id"] for like in user_likes]
+    
+    # Find other users who liked the same posts
+    if liked_post_ids:
+        similar_likes = await db.likes.find({
+            "post_id": {"$in": liked_post_ids},
+            "user_id": {"$ne": current_user_id}
+        }).to_list(200)
+        
+        for like in similar_likes:
+            suggested_id = like["user_id"]
+            if suggested_id != current_user_id:
+                suggestion_scores[suggested_id] = suggestion_scores.get(suggested_id, 0) + 5
+    
+    # 3. Popular users (high followers count) - Lower priority
+    popular_users = await db.users.find({
+        "id": {"$ne": current_user_id}
+    }).sort("followers_count", -1).limit(20).to_list(20)
+    
+    for user in popular_users:
+        suggested_id = user["id"]
+        # Add score based on popularity
+        followers_score = min(user.get("followers_count", 0) / 10, 5)
+        suggestion_scores[suggested_id] = suggestion_scores.get(suggested_id, 0) + followers_score
+    
+    # 4. Recently active users
+    recent_posts = await db.short_posts.find({
+        "author_id": {"$ne": current_user_id}
+    }).sort("created_at", -1).limit(20).to_list(20)
+    
+    for post in recent_posts:
+        suggested_id = post["author_id"]
+        suggestion_scores[suggested_id] = suggestion_scores.get(suggested_id, 0) + 2
+    
+    # Sort by score and get top suggestions
+    sorted_suggestions = sorted(suggestion_scores.items(), key=lambda x: x[1], reverse=True)
+    top_suggestion_ids = [user_id for user_id, score in sorted_suggestions[:limit]]
+    
+    # Fetch full user data
+    result = []
+    for user_id in top_suggestion_ids:
+        user = await db.users.find_one({"id": user_id})
+        if user:
+            user_data = User(**user).dict()
+            # Check if current user is following this suggested user
+            user_data["is_following"] = user_id in following_ids
+            user_data["suggestion_score"] = suggestion_scores[user_id]
+            result.append(user_data)
+    
+    # If not enough suggestions, fill with trending users
+    if len(result) < limit:
+        additional_users = await db.users.find({
+            "id": {"$nin": [current_user_id] + top_suggestion_ids}
+        }).sort("followers_count", -1).limit(limit - len(result)).to_list(limit - len(result))
+        
+        for user in additional_users:
+            user_data = User(**user).dict()
+            # Check if current user is following this user
+            user_data["is_following"] = user["id"] in following_ids
+            user_data["suggestion_score"] = 0
+            result.append(user_data)
+    
+    return result
+
 # Trending users (must be before dynamic {username} route)
 @api_router.get("/users/trending")
 async def get_trending_users(limit: int = 5, current_user_id: Optional[str] = Depends(get_optional_user)):
@@ -623,19 +724,43 @@ async def get_trending_users(limit: int = 5, current_user_id: Optional[str] = De
     return result
 
 @api_router.get("/users/search")
-async def search_users(q: str, limit: int = 10):
+async def search_users(q: str, limit: int = 10, current_user_id: Optional[str] = Depends(get_optional_user)):
     if not q or len(q) < 1:
         return []
     
-    # Search by username or name
+    # Enhanced search by username, name, and email
     users = await db.users.find({
         "$or": [
             {"username": {"$regex": q, "$options": "i"}},
-            {"name": {"$regex": q, "$options": "i"}}
+            {"name": {"$regex": q, "$options": "i"}},
+            {"email": {"$regex": q, "$options": "i"}}
         ]
     }).limit(limit).to_list(limit)
     
-    return [{"id": u["id"], "username": u["username"], "name": u.get("name", "")} for u in users]
+    result = []
+    for u in users:
+        user_data = {
+            "id": u["id"],
+            "username": u["username"],
+            "name": u.get("name", ""),
+            "avatar": u.get("avatar", ""),
+            "bio": u.get("bio", ""),
+            "followers_count": u.get("followers_count", 0),
+            "following_count": u.get("following_count", 0),
+            "is_following": False
+        }
+        
+        # Check if current user is following this user
+        if current_user_id:
+            is_following = await db.follows.find_one({
+                "follower_id": current_user_id,
+                "following_id": u["id"]
+            })
+            user_data["is_following"] = bool(is_following)
+        
+        result.append(user_data)
+    
+    return result
 
 @api_router.get("/users/{username}")
 async def get_user_profile(username: str, current_user_id: Optional[str] = Depends(get_optional_user)):

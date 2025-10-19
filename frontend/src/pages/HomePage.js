@@ -10,6 +10,7 @@ import { EnhancedPostModal } from "@/components/EnhancedPostModal";
 import { Stories } from "@/components/Stories";
 import { PostCard } from "@/components/PostCard";
 import { BlogCard } from "@/components/BlogCard";
+import { PeopleYouMayKnow } from "@/components/PeopleYouMayKnow";
 import { getUserAvatarUrl } from "@/utils/imageUtils";
 import { PostCardSkeleton } from "@/components/SkeletonLoader";
 import cache, { CacheKeys, CacheTTL } from "@/utils/cache";
@@ -172,20 +173,11 @@ export const HomePage = ({ user }) => {
                       src={getUserAvatarUrl(user)} 
                       alt={user.username} 
                       className="w-full h-full object-cover"
-                      onLoad={() => console.log('✅ HomePage - Avatar loaded successfully:', getUserAvatarUrl(user))}
-                      onError={(e) => {
-                        console.error('❌ HomePage - Avatar failed to load:', getUserAvatarUrl(user));
-                        console.error('User object:', user);
-                        console.error('Avatar field:', user.avatar);
-                      }}
                     />
                   ) : (
-                    <>
-                      {console.log('⚠️ HomePage - No avatar URL for user:', user)}
-                      <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white font-bold text-sm sm:text-base">
-                        {user.username[0].toUpperCase()}
-                      </AvatarFallback>
-                    </>
+                    <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white font-bold text-sm sm:text-base">
+                      {user.username[0].toUpperCase()}
+                    </AvatarFallback>
                   )}
                 </Avatar>
                 <button
@@ -278,11 +270,18 @@ export const HomePage = ({ user }) => {
                       </div>
                     )}
                     
-                    {/* Enhanced Ad Placement */}
-                    {(index + 1) % 5 === 0 && index < feed.length - 1 && (
+                    {/* People You May Know - After every 3 posts */}
+                    {(index + 1) % 3 === 0 && index < feed.length - 1 && (
+                      <div className="my-6">
+                        <PeopleYouMayKnow user={user} limit={3} />
+                      </div>
+                    )}
+                    
+                    {/* Enhanced Ad Placement - After every 7 posts */}
+                    {(index + 1) % 7 === 0 && index < feed.length - 1 && (
                       <div className="my-6">
                         <div className="bg-gradient-to-r from-slate-100 to-slate-50 rounded-2xl border-2 border-dashed border-slate-300 p-6">
-                          <AdCard key={`ad-${Math.floor(index / 5)}`} adIndex={Math.floor(index / 5)} />
+                          <AdCard key={`ad-${Math.floor(index / 7)}`} adIndex={Math.floor(index / 7)} />
                         </div>
                       </div>
                     )}
@@ -314,7 +313,11 @@ export const HomePage = ({ user }) => {
           </div>
 
           {/* Sidebar */}
-          <div className="hidden lg:block space-y-3">
+          <div className="hidden lg:block space-y-6">
+            {/* People You May Know */}
+            <PeopleYouMayKnow user={user} limit={5} />
+            
+            {/* Trending Sidebar */}
             <TrendingSidebar user={user} />
           </div>
         </div>
