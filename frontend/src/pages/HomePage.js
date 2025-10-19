@@ -12,6 +12,7 @@ import { PostCard } from "@/components/PostCard";
 import { BlogCard } from "@/components/BlogCard";
 import { getUserAvatarUrl } from "@/utils/imageUtils";
 import { PostCardSkeleton } from "@/components/SkeletonLoader";
+import cache, { CacheKeys, CacheTTL } from "@/utils/cache";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -66,18 +67,36 @@ export const HomePage = ({ user }) => {
 
   const fetchFeed = async (reset = false) => {
     try {
+      const currentPage = reset ? 0 : page;
+      const skip = currentPage * 10;
+      const cacheKey = `${CacheKeys.FEED}_page_${currentPage}`;
+      
+      // Check cache first for initial page load
+      if (reset && currentPage === 0) {
+        const cachedFeed = cache.get(cacheKey);
+        if (cachedFeed) {
+          setFeed(cachedFeed);
+          setLoading(false);
+          setHasMore(cachedFeed.length === 10);
+          setPage(1);
+          return;
+        }
+      }
+      
       if (reset) {
         setLoading(true);
         setPage(0);
       } else {
         setLoadingMore(true);
       }
-
-      const currentPage = reset ? 0 : page;
-      const skip = currentPage * 10;
       
       const response = await axios.get(`${API}/feed?skip=${skip}&limit=10`);
       const newFeed = response.data;
+      
+      // Cache the first page
+      if (currentPage === 0) {
+        cache.set(cacheKey, newFeed, CacheTTL.SHORT);
+      }
       
       if (reset) {
         setFeed(newFeed);
@@ -123,7 +142,8 @@ export const HomePage = ({ user }) => {
   };
 
   const handleComment = () => {
-    // Refresh feed to get updated comment counts
+    // Invalidate cache and refresh feed to get updated comment counts
+    cache.invalidatePattern('feed');
     fetchFeed(true);
   };
 

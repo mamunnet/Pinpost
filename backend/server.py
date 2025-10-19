@@ -723,7 +723,21 @@ async def create_blog(blog_data: BlogPostCreate, user_id: str = Depends(get_curr
 
 @api_router.get("/blogs", response_model=List[BlogPost])
 async def get_blogs(skip: int = 0, limit: int = 20, current_user_id: Optional[str] = Depends(get_optional_user)):
-    blogs = await db.blog_posts.find().sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+    # Build filter query based on privacy settings
+    filter_query = {}
+    
+    if current_user_id:
+        # Get list of users the current user is following
+        following = await db.follows.find({"follower_id": current_user_id}).to_list(1000)
+        following_ids = [f["following_id"] for f in following]
+        
+        # Include own blogs + blogs from followed users
+        filter_query = {"author_id": {"$in": following_ids + [current_user_id]}}
+    else:
+        # For non-logged-in users, show no blogs (privacy protection)
+        filter_query = {"author_id": {"$in": []}}
+    
+    blogs = await db.blog_posts.find(filter_query).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     
     result = []
     for blog in blogs:
@@ -828,8 +842,22 @@ async def create_post(post_data: ShortPostCreate, user_id: str = Depends(get_cur
     return ShortPost(**post)
 
 @api_router.get("/posts", response_model=List[ShortPost])
-async def get_posts(skip: int = 0, limit: int = 50, current_user_id: Optional[str] = Depends(get_optional_user)):
-    posts = await db.short_posts.find().sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+async def get_posts(skip: int = 0, limit: int = 50, following_only: bool = False, current_user_id: Optional[str] = Depends(get_optional_user)):
+    # Build filter query based on privacy settings
+    filter_query = {}
+    
+    if current_user_id:
+        # Get list of users the current user is following
+        following = await db.follows.find({"follower_id": current_user_id}).to_list(1000)
+        following_ids = [f["following_id"] for f in following]
+        
+        # Include own posts + posts from followed users
+        filter_query = {"author_id": {"$in": following_ids + [current_user_id]}}
+    else:
+        # For non-logged-in users, show no posts (privacy protection)
+        filter_query = {"author_id": {"$in": []}}
+    
+    posts = await db.short_posts.find(filter_query).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     
     result = []
     for post in posts:
@@ -1546,12 +1574,19 @@ async def delete_story(story_id: str, user_id: str = Depends(get_current_user)):
 # Feed route - Combined blogs and posts
 @api_router.get("/feed")
 async def get_feed(skip: int = 0, limit: int = 20, following_only: bool = False, current_user_id: Optional[str] = Depends(get_optional_user)):
-    # Filter by following if requested
+    # Build filter query based on privacy settings
     filter_query = {}
-    if following_only and current_user_id:
+    
+    if current_user_id:
+        # Get list of users the current user is following
         following = await db.follows.find({"follower_id": current_user_id}).to_list(1000)
         following_ids = [f["following_id"] for f in following]
-        filter_query = {"author_id": {"$in": following_ids}}
+        
+        # Include own content + content from followed users
+        filter_query = {"author_id": {"$in": following_ids + [current_user_id]}}
+    else:
+        # For non-logged-in users, show no content (privacy protection)
+        filter_query = {"author_id": {"$in": []}}
     
     # Get blogs and posts
     blogs = await db.blog_posts.find(filter_query).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)

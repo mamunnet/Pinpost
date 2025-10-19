@@ -5,6 +5,7 @@ import { Heart, MessageCircle, TrendingUp, FileText, Flame, Clock, ChevronRight 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { TrendingItemSkeleton, BlogCardSkeleton } from "@/components/SkeletonLoader";
+import cache, { CacheKeys, CacheTTL } from "@/utils/cache";
 
 const API = `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api`;
 
@@ -40,6 +41,17 @@ const TrendingPage = ({ user }) => {
     try {
       setError(null);
       
+      // Check cache first
+      const cachedPosts = cache.get(CacheKeys.TRENDING_POSTS);
+      const cachedBlogs = cache.get(CacheKeys.TRENDING_BLOGS);
+      
+      if (cachedPosts && cachedBlogs) {
+        setTrendingPosts(cachedPosts);
+        setTrendingBlogs(cachedBlogs);
+        setLoading(false);
+        return;
+      }
+      
       // Fetch all posts and blogs
       const [postsRes, blogsRes] = await Promise.all([
         axios.get(`${API}/posts`),
@@ -65,6 +77,10 @@ const TrendingPage = ({ user }) => {
         .map(blog => ({ ...blog, trendingScore: calculateTrendingScore(blog) }))
         .sort((a, b) => b.trendingScore - a.trendingScore)
         .slice(0, 5);
+      
+      // Cache the trending content
+      cache.set(CacheKeys.TRENDING_POSTS, sortedPosts, CacheTTL.SHORT);
+      cache.set(CacheKeys.TRENDING_BLOGS, sortedBlogs, CacheTTL.SHORT);
       
       setTrendingPosts(sortedPosts);
       setTrendingBlogs(sortedBlogs);

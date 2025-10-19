@@ -325,18 +325,6 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
                 src={getImageUrl(postImage)} 
                 alt="Post" 
                 className="w-full max-h-96 object-cover"
-                onLoad={() => {
-                  console.log('✅ PostCard - Post image loaded successfully');
-                  console.log('   Raw postImage:', postImage);
-                  console.log('   Final URL:', getImageUrl(postImage));
-                }}
-                onError={(e) => {
-                  console.error('❌ PostCard - Post image FAILED to load');
-                  console.error('   Raw postImage value:', postImage);
-                  console.error('   Processed URL:', getImageUrl(postImage));
-                  console.error('   Post content:', currentPost.content);
-                  console.error('   Full post object:', currentPost);
-                }}
               />
             </div>
           )}

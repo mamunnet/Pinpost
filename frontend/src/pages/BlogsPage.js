@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { FileText } from "lucide-react";
 import { BlogCard } from "@/components/BlogCard";
 import { BlogGridSkeleton } from "@/components/SkeletonLoader";
+import cache, { CacheKeys, CacheTTL } from "@/utils/cache";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -29,8 +30,20 @@ export const BlogsPage = ({ user }) => {
 
   const fetchBlogs = async () => {
     try {
+      // Check cache first
+      const cachedBlogs = cache.get(CacheKeys.BLOGS);
+      if (cachedBlogs) {
+        setBlogs(cachedBlogs);
+        setLoading(false);
+        return;
+      }
+      
       const response = await axios.get(`${API}/blogs`);
-      setBlogs(response.data);
+      const blogsData = response.data;
+      
+      // Cache the blogs
+      cache.set(CacheKeys.BLOGS, blogsData, CacheTTL.MEDIUM);
+      setBlogs(blogsData);
     } catch (error) {
       toast.error('Failed to load blogs');
     } finally {
@@ -45,6 +58,8 @@ export const BlogsPage = ({ user }) => {
       } else {
         await axios.post(`${API}/likes/blog/${blog.id}`);
       }
+      // Invalidate cache and refetch
+      cache.delete(CacheKeys.BLOGS);
       fetchBlogs();
     } catch (error) {
       toast.error('Failed to update like');

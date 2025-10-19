@@ -11,6 +11,7 @@ import { PostCard } from "@/components/PostCard";
 import { EnhancedPostModal } from "@/components/EnhancedPostModal";
 import { NotificationTester } from "@/components/NotificationTester";
 import { PostCardSkeleton, SidebarSkeleton } from "@/components/SkeletonLoader";
+import cache, { CacheKeys, CacheTTL } from "@/utils/cache";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -37,10 +38,24 @@ const WhoToFollow = ({ user }) => {
 
   const fetchSuggestions = async () => {
     try {
-      const response = await axios.get(`${API}/users/suggestions?limit=5`);
+      // Check cache first
+      const cacheKey = 'trending_users';
+      const cached = cache.get(cacheKey);
+      if (cached) {
+        setSuggestions(cached);
+        setLoading(false);
+        return;
+      }
+      
+      // Use existing /users/trending endpoint
+      const response = await axios.get(`${API}/users/trending?limit=5`);
+      
+      // Cache the suggestions
+      cache.set(cacheKey, response.data, CacheTTL.MEDIUM);
       setSuggestions(response.data);
     } catch (error) {
-      console.error('Failed to fetch suggestions');
+      console.error('Failed to fetch suggestions:', error);
+      setSuggestions([]);
     } finally {
       setLoading(false);
     }
@@ -122,6 +137,22 @@ export const SocialPage = ({ user }) => {
 
   const fetchPosts = async (reset = false) => {
     try {
+      const currentPage = reset ? 0 : page;
+      const skip = currentPage * 10;
+      const cacheKey = `${CacheKeys.POSTS(filter)}_page_${currentPage}`;
+      
+      // Check cache first for initial page load
+      if (reset && currentPage === 0) {
+        const cachedPosts = cache.get(cacheKey);
+        if (cachedPosts) {
+          setPosts(cachedPosts);
+          setLoading(false);
+          setHasMore(cachedPosts.length === 10);
+          setPage(1);
+          return;
+        }
+      }
+      
       if (reset) {
         setLoading(true);
         setPage(0);
@@ -129,9 +160,6 @@ export const SocialPage = ({ user }) => {
         setLoadingMore(true);
       }
 
-      const currentPage = reset ? 0 : page;
-      const skip = currentPage * 10;
-      
       let endpoint = `${API}/posts?skip=${skip}&limit=10`;
       if (filter === 'following') {
         endpoint = `${API}/feed?skip=${skip}&limit=10&following_only=true`;
@@ -141,6 +169,11 @@ export const SocialPage = ({ user }) => {
 
       const response = await axios.get(endpoint);
       const newPosts = response.data;
+      
+      // Cache the first page
+      if (currentPage === 0) {
+        cache.set(cacheKey, newPosts, CacheTTL.SHORT);
+      }
 
       if (reset) {
         setPosts(newPosts);
