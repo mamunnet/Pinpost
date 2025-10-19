@@ -315,7 +315,7 @@ const MessageInput = ({
                 onClick={handleSendMessage}
                 disabled={sending || uploadingImage || uploadingVoice || !selectedImage && !messageInput.trim()}
                 size="icon"
-                className="bg-blue-500 hover:bg-blue-600 text-white"
+                className="bg-slate-800 hover:bg-slate-900 text-white"
               >
                 {sending ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -328,7 +328,7 @@ const MessageInput = ({
                 onClick={startRecording}
                 disabled={uploadingVoice}
                 size="icon"
-                className="bg-blue-500 hover:bg-blue-600 text-white"
+                className="bg-slate-800 hover:bg-slate-900 text-white"
               >
                 {uploadingVoice ? (
                   <Loader2 className="w-5 h-5 animate-spin" />

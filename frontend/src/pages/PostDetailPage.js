@@ -141,14 +141,20 @@ export const PostDetailPage = ({ user, logout }) => {
   let postLocation = null;
 
   if (post.content) {
-    // Extract image
+    // Extract image first
     if (post.content.includes('[IMAGE]')) {
       const parts = post.content.split('[IMAGE]');
       displayContent = parts[0].trim();
-      postImage = parts[1];
+      // Get image URL and remove any trailing content (like location that might be after)
+      const imageUrlRaw = parts[1] ? parts[1].trim() : null;
+      if (imageUrlRaw) {
+        // Extract just the URL (first line after [IMAGE])
+        const imageLines = imageUrlRaw.split('\n');
+        postImage = imageLines[0].trim();
+      }
     }
     
-    // Extract location
+    // Extract location from the text part
     const locationMatch = displayContent.match(/📍\s*(.+?)(?:\n|$)/);
     if (locationMatch) {
       postLocation = locationMatch[1].trim();
@@ -228,9 +234,13 @@ export const PostDetailPage = ({ user, logout }) => {
                 {postImage && (
                   <div className="rounded-xl overflow-hidden mt-4 bg-gray-100">
                     <img 
-                      src={postImage} 
+                      src={getImageUrl(postImage)} 
                       alt="Post" 
                       className="w-full max-h-[600px] object-contain"
+                      onError={(e) => {
+                        console.error('❌ PostDetailPage - Image failed to load:', postImage);
+                        console.error('Processed URL:', getImageUrl(postImage));
+                      }}
                     />
                   </div>
                 )}

@@ -6,8 +6,16 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { FileText, Users, TrendingUp, Sparkles, User, MessageCircle, ChevronRight } from "lucide-react";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
 const API = `${BACKEND_URL}/api`;
+
+// Create axios instance with timeout
+const axiosInstance = axios.create({
+  timeout: 30000, // 30 seconds timeout
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 export const AuthPage = ({ onLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -21,16 +29,28 @@ export const AuthPage = ({ onLogin }) => {
     setLoading(true);
 
     try {
+      console.log(' AuthPage - BACKEND_URL:', BACKEND_URL);
+      console.log(' AuthPage - API:', API);
+      console.log(' AuthPage - process.env.REACT_APP_BACKEND_URL:', process.env.REACT_APP_BACKEND_URL);
+      
       const endpoint = isLogin ? '/auth/login' : '/auth/register';
       const data = isLogin
         ? { email, password }
         : { email, password, username };
 
-      const response = await axios.post(`${API}${endpoint}`, data);
+      console.log(' AuthPage - Sending request to:', `${API}${endpoint}`);
+      console.log(' AuthPage - Request data:', { ...data, password: '***' });
+      
+      const response = await axiosInstance.post(`${API}${endpoint}`, data);
+      console.log(' AuthPage - Login successful:', response.data);
+      
       onLogin(response.data.token, response.data.user);
       toast.success(isLogin ? 'Welcome back!' : 'Account created!');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Authentication failed');
+      console.error(' AuthPage - Login failed:', error);
+      console.error(' AuthPage - Error response:', error.response);
+      console.error(' AuthPage - Error message:', error.message);
+      toast.error(error.response?.data?.detail || error.message || 'Authentication failed');
     } finally {
       setLoading(false);
     }
@@ -334,31 +354,6 @@ export const AuthPage = ({ onLogin }) => {
           </div>
         </div>
       </div>
-      
-      {/* Add custom animations to the global styles */}
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(5deg); }
-        }
-        @keyframes float-delayed {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-30px) rotate(-5deg); }
-        }
-        @keyframes float-slow {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-15px) rotate(3deg); }
-        }
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-        .animate-float-delayed {
-          animation: float-delayed 8s ease-in-out infinite;
-        }
-        .animate-float-slow {
-          animation: float-slow 10s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   );
 };

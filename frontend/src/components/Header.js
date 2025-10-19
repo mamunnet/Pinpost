@@ -149,13 +149,11 @@ const NotificationsDropdown = ({ user }) => {
     const connectWebSocket = () => {
       try {
         const wsUrl = getWebSocketUrl(user.id);
-        console.log('🔗 Connecting to WebSocket:', wsUrl);
         
         const ws = new WebSocket(wsUrl);
         wsRef.current = ws;
 
         ws.onopen = () => {
-          console.log('✅ WebSocket connected for real-time notifications');
           setWsConnected(true);
           
           // Send periodic ping to keep connection alive
@@ -173,7 +171,6 @@ const NotificationsDropdown = ({ user }) => {
             if (event.data === 'pong') return; // Ignore pong responses
             
             const data = JSON.parse(event.data);
-            console.log('📨 WebSocket message received:', data);
             
             if (data.type === 'new_notification') {
               const notification = data.notification;
@@ -184,32 +181,29 @@ const NotificationsDropdown = ({ user }) => {
               
               // Show instant toast notification
               showInstantNotification(notification);
-              
-              console.log('📬 New notification processed:', notification);
             }
           } catch (error) {
-            console.error('Error parsing WebSocket message:', error);
+            // Silently handle parsing errors
           }
         };
 
         ws.onerror = (error) => {
-          console.error('❌ WebSocket error:', error);
+          // Silently handle WebSocket errors - they're expected when backend is unavailable
           setWsConnected(false);
         };
 
         ws.onclose = (event) => {
-          console.log('🔌 WebSocket disconnected. Code:', event.code, 'Reason:', event.reason);
           setWsConnected(false);
           if (ws.pingInterval) {
             clearInterval(ws.pingInterval);
           }
           
-          // Attempt to reconnect after 3 seconds if connection was lost
-          if (event.code !== 1000) { // 1000 = normal closure
+          // Attempt to reconnect after 5 seconds if connection was lost unexpectedly
+          // Don't spam reconnection attempts
+          if (event.code !== 1000 && event.code !== 1006) { // 1000 = normal closure, 1006 = abnormal closure
             setTimeout(() => {
-              console.log('🔄 Attempting to reconnect WebSocket...');
               connectWebSocket();
-            }, 3000);
+            }, 5000);
           }
         };
       } catch (error) {
@@ -534,14 +528,14 @@ export const Header = ({ user, logout }) => {
                 to="/messages" 
                 className={`relative p-2.5 rounded-full transition-all flex-shrink-0 ${
                   isActive('/messages') 
-                    ? 'bg-blue-100 text-blue-600' 
+                    ? 'bg-slate-800 text-white' 
                     : 'hover:bg-slate-200 text-slate-700'
                 }`}
                 data-testid="messages-btn"
               >
-                <MessageCircle className="w-5 h-5" />
+                <Mail className="w-5 h-5" />
                 {unreadMessages > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold shadow-md">
+                  <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold shadow-md">
                     {unreadMessages > 99 ? '99+' : unreadMessages}
                   </span>
                 )}

@@ -223,7 +223,13 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
   if (currentPost.content && currentPost.content.includes('[IMAGE]')) {
     const parts = currentPost.content.split('[IMAGE]');
     displayContent = parts[0];
-    postImage = parts[1];
+    // Get image URL and remove any trailing content
+    const imageUrlRaw = parts[1] ? parts[1].trim() : null;
+    if (imageUrlRaw) {
+      // Extract just the URL (first line after [IMAGE])
+      const imageLines = imageUrlRaw.split('\n');
+      postImage = imageLines[0].trim();
+    }
   }
 
   return (
@@ -315,7 +321,23 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
           {/* Image */}
           {postImage && (
             <div className="mt-3 rounded-xl overflow-hidden shadow-md">
-              <img src={getImageUrl(postImage)} alt="Post" className="w-full max-h-96 object-cover" />
+              <img 
+                src={getImageUrl(postImage)} 
+                alt="Post" 
+                className="w-full max-h-96 object-cover"
+                onLoad={() => {
+                  console.log('✅ PostCard - Post image loaded successfully');
+                  console.log('   Raw postImage:', postImage);
+                  console.log('   Final URL:', getImageUrl(postImage));
+                }}
+                onError={(e) => {
+                  console.error('❌ PostCard - Post image FAILED to load');
+                  console.error('   Raw postImage value:', postImage);
+                  console.error('   Processed URL:', getImageUrl(postImage));
+                  console.error('   Post content:', currentPost.content);
+                  console.error('   Full post object:', currentPost);
+                }}
+              />
             </div>
           )}
         </div>

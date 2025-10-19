@@ -35,7 +35,7 @@ import ProfilePage from "@/pages/ProfilePage";
 import EnhancedMessagesPage from "@/pages/EnhancedMessagesPage";
 import AuthPage from "@/pages/AuthPage";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
 const API = `${BACKEND_URL}/api`;
 
 const AuthContext = ({ children }) => {
@@ -44,35 +44,40 @@ const AuthContext = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      fetchUser();
-    } else {
-      setLoading(false);
-    }
-  }, [token]);
-
-  const fetchUser = async () => {
-    try {
-      console.log('🔍 App.js - Fetching user from:', `${API}/auth/me`);
-      const response = await axios.get(`${API}/auth/me`);
-      console.log('✅ App.js - User fetched successfully:', response.data);
-      console.log('📝 App.js - Username:', response.data.username);
-      
-      if (!response.data.username) {
-        console.error('❌ App.js - User has no username!', response.data);
-        console.error('User keys:', Object.keys(response.data));
+    const fetchUser = async () => {
+      if (!token) {
+        setLoading(false);
+        return;
       }
-      
-      setUser(response.data);
-    } catch (error) {
-      console.error('❌ App.js - Failed to fetch user:', error);
-      console.error('Error response:', error.response);
-      logout();
-    } finally {
-      setLoading(false);
-    }
-  };
+
+      try {
+        console.log('🔍 App.js - Fetching user from:', `${API}/auth/me`);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        const response = await axios.get(`${API}/auth/me`);
+        console.log('✅ App.js - User fetched successfully:', response.data);
+        console.log('📝 App.js - Username:', response.data.username);
+        
+        if (!response.data.username) {
+          console.error('❌ App.js - User has no username!', response.data);
+          console.error('User keys:', Object.keys(response.data));
+        }
+        
+        setUser(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('❌ App.js - Failed to fetch user:', error);
+        console.error('Error response:', error.response);
+        // Clear invalid token
+        localStorage.removeItem('token');
+        setToken(null);
+        setUser(null);
+        delete axios.defaults.headers.common['Authorization'];
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [token]);
 
   const login = (newToken, userData) => {
     localStorage.setItem('token', newToken);

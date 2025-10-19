@@ -484,14 +484,28 @@ async def register(user_data: UserCreate):
 
 @api_router.post("/auth/login")
 async def login(credentials: UserLogin):
-    user = await db.users.find_one({"email": credentials.email})
-    if not user or not verify_password(credentials.password, user["password_hash"]):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    
-    token = create_access_token({"sub": user["id"]})
-    # Remove sensitive fields before returning
-    user.pop("password_hash", None)
-    return {"token": token, "user": User(**user)}
+    try:
+        logging.info(f"🔐 Login attempt for email: {credentials.email}")
+        
+        user = await db.users.find_one({"email": credentials.email})
+        if not user:
+            logging.warning(f"❌ User not found: {credentials.email}")
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        
+        if not verify_password(credentials.password, user["password_hash"]):
+            logging.warning(f"❌ Invalid password for user: {credentials.email}")
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        
+        logging.info(f"✅ Login successful for user: {credentials.email}")
+        token = create_access_token({"sub": user["id"]})
+        # Remove sensitive fields before returning
+        user.pop("password_hash", None)
+        return {"token": token, "user": User(**user)}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"❌ Login error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
 
 @api_router.get("/auth/me", response_model=User)
 async def get_me(user_id: str = Depends(get_current_user)):
