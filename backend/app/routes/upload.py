@@ -44,7 +44,11 @@ async def upload_image(
             raise HTTPException(status_code=500, detail="Upload failed")
     except Exception as e:
         import traceback
-        traceback.print_exc()
+        with open("debug_log.txt", "w") as f:
+            f.write(f"Error Type: {type(e).__name__}\n")
+            f.write(f"Error Message: {str(e)}\n")
+            traceback.print_exc(file=f)
+        
         print(f"CRITICAL UPLOAD ERROR: {type(e).__name__}: {e}")
         logging.error(f"Upload error: {e}")
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
