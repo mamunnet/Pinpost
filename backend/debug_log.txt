@@ -1,0 +1,7 @@
+Error Type: KeyError
+Error Message: 'secure_url'
+Traceback (most recent call last):
+  File "D:\dev_project\Pinpost\backend\app\routes\upload.py", line 42, in upload_image
+    return {"url": result["secure_url"], "public_id": result.get("public_id")}
+                   ~~~~~~^^^^^^^^^^^^^^
+KeyError: 'secure_url'
