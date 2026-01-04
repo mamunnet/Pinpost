@@ -114,12 +114,23 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
 
   const handleDrag = (e) => {
     if (!draggingId || !previewRef.current) return;
+
+    // Get client coordinates based on event type
+    let clientX, clientY;
+    if (e.type === 'touchmove') {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+
     const rect = previewRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    
+    const x = ((clientX - rect.left) / rect.width) * 100;
+    const y = ((clientY - rect.top) / rect.height) * 100;
+
     if (x >= 0 && x <= 100 && y >= 0 && y <= 100) {
-      setEmojiElements(emojiElements.map(el => 
+      setEmojiElements(emojiElements.map(el =>
         el.id === draggingId ? { ...el, x, y } : el
       ));
     }
@@ -130,7 +141,7 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="flex flex-col h-full w-full bg-white">
       {/* Header - Matching other modals */}
       <div className="sticky top-0 z-10 bg-gradient-to-r from-white via-white to-slate-50/80 backdrop-blur-md border-b border-slate-200/60 shadow-sm">
         <div className="px-3 sm:px-6 py-2 sm:py-3">
@@ -159,11 +170,10 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
         <div className="flex gap-1 px-4 sm:px-6 pt-2">
           <button
             onClick={() => setContentType('text')}
-            className={`flex-1 py-2.5 sm:py-3 px-4 font-semibold rounded-t-xl transition-all duration-300 flex items-center justify-center gap-2 relative ${
-              contentType === 'text' 
-                ? 'bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 text-slate-900 shadow-md border-t border-x border-slate-200' 
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50/50'
-            }`}
+            className={`flex-1 py-2.5 sm:py-3 px-4 font-semibold rounded-t-xl transition-all duration-300 flex items-center justify-center gap-2 relative ${contentType === 'text'
+              ? 'bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 text-slate-900 shadow-md border-t border-x border-slate-200'
+              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50/50'
+              }`}
           >
             {contentType === 'text' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-slate-600 via-slate-700 to-slate-600" />
@@ -173,11 +183,10 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
           </button>
           <button
             onClick={() => setContentType('image')}
-            className={`flex-1 py-2.5 sm:py-3 px-4 font-semibold rounded-t-xl transition-all duration-300 flex items-center justify-center gap-2 relative ${
-              contentType === 'image' 
-                ? 'bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 text-slate-900 shadow-md border-t border-x border-slate-200' 
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50/50'
-            }`}
+            className={`flex-1 py-2.5 sm:py-3 px-4 font-semibold rounded-t-xl transition-all duration-300 flex items-center justify-center gap-2 relative ${contentType === 'image'
+              ? 'bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 text-slate-900 shadow-md border-t border-x border-slate-200'
+              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50/50'
+              }`}
           >
             {contentType === 'image' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-slate-600 via-slate-700 to-slate-600" />
@@ -193,13 +202,16 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
         {contentType === 'text' ? (
           <div className="space-y-4">
             {/* WhatsApp-style Preview with Direct Input */}
-            <div 
+            <div
               ref={previewRef}
-              className="relative w-full aspect-[9/16] max-h-[450px] sm:max-h-[500px] mx-auto rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden border border-slate-200/60 sm:border-2" 
-              style={{ background: backgroundColor }}
+              className="relative w-full aspect-[9/16] max-h-[450px] sm:max-h-[500px] mx-auto rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden border border-slate-200/60 sm:border-2 touch-none"
+              style={{ background: backgroundColor, touchAction: 'none' }}
               onMouseMove={handleDrag}
               onMouseUp={handleDragEnd}
               onMouseLeave={handleDragEnd}
+              onTouchMove={handleDrag}
+              onTouchEnd={handleDragEnd}
+              onTouchCancel={handleDragEnd}
             >
               {/* Editable Text in Preview */}
               <div className="absolute inset-0 flex items-center justify-center p-4 sm:p-8">
@@ -223,13 +235,15 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
                   key={emoji.id}
                   draggable
                   onDragStart={(e) => handleDragStart(e, emoji.id)}
-                  className="absolute cursor-move select-none group"
+                  onTouchStart={(e) => handleDragStart(e, emoji.id)}
+                  className="absolute cursor-move select-none group touch-none"
                   style={{
                     left: `${emoji.x}%`,
                     top: `${emoji.y}%`,
                     transform: 'translate(-50%, -50%)',
                     fontSize: `${emoji.fontSize}px`,
-                    zIndex: 10
+                    zIndex: 10,
+                    touchAction: 'none'
                   }}
                 >
                   {emoji.content}
@@ -262,7 +276,7 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
                   >
                     <Palette className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </button>
-                  
+
                   {/* Color Picker Popup */}
                   {showColorPicker && (
                     <div className="absolute top-0 right-10 sm:right-12 bg-white rounded-xl sm:rounded-2xl shadow-2xl p-2 sm:p-3 w-48 sm:w-64 border border-slate-200">
@@ -272,11 +286,10 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
                           <button
                             key={idx}
                             onClick={() => setBackgroundColor(bg.gradient)}
-                            className={`h-12 rounded-lg border-2 transition-all ${
-                              backgroundColor === bg.gradient 
-                                ? 'border-slate-600 scale-110' 
-                                : 'border-slate-200 hover:scale-105'
-                            }`}
+                            className={`h-12 rounded-lg border-2 transition-all ${backgroundColor === bg.gradient
+                              ? 'border-slate-600 scale-110'
+                              : 'border-slate-200 hover:scale-105'
+                              }`}
                             style={{ background: bg.gradient }}
                           />
                         ))}
@@ -285,21 +298,19 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           onClick={() => setTextColor('#ffffff')}
-                          className={`py-2 rounded-lg font-semibold text-sm ${
-                            textColor === '#ffffff' 
-                              ? 'bg-slate-700 text-white' 
-                              : 'bg-slate-100 text-slate-700'
-                          }`}
+                          className={`py-2 rounded-lg font-semibold text-sm ${textColor === '#ffffff'
+                            ? 'bg-slate-700 text-white'
+                            : 'bg-slate-100 text-slate-700'
+                            }`}
                         >
                           White
                         </button>
                         <button
                           onClick={() => setTextColor('#000000')}
-                          className={`py-2 rounded-lg font-semibold text-sm ${
-                            textColor === '#000000' 
-                              ? 'bg-slate-700 text-white' 
-                              : 'bg-slate-100 text-slate-700'
-                          }`}
+                          className={`py-2 rounded-lg font-semibold text-sm ${textColor === '#000000'
+                            ? 'bg-slate-700 text-white'
+                            : 'bg-slate-100 text-slate-700'
+                            }`}
                         >
                           Black
                         </button>
@@ -319,7 +330,7 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
                   >
                     <Smile className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </button>
-                  
+
                   {/* Emoji Picker Popup */}
                   {showEmojiPicker && (
                     <div className="absolute top-0 right-10 sm:right-12 bg-white rounded-xl sm:rounded-2xl shadow-2xl p-2 sm:p-3 w-48 sm:w-64 border border-slate-200">
@@ -370,7 +381,7 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
             ) : (
               <div className="relative w-full aspect-[9/16] max-h-[500px] mx-auto rounded-2xl overflow-hidden shadow-2xl border-2 border-slate-200">
                 <img src={getImageUrl(storyImage)} alt="Story" className="w-full h-full object-cover" />
-                
+
                 <button
                   onClick={() => setStoryImage('')}
                   className="absolute top-4 right-4 p-2.5 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-all hover:scale-110"
@@ -393,8 +404,8 @@ const CreateStoryModal = ({ onClose, onCreated }) => {
 
       {/* Bottom Submit Button */}
       <div className="sticky bottom-0 border-t border-slate-200/60 bg-gradient-to-t from-slate-50 via-white to-white/95 backdrop-blur-sm px-3 sm:px-6 py-2 sm:py-4">
-        <Button 
-          onClick={handleCreate} 
+        <Button
+          onClick={handleCreate}
           disabled={loading || (contentType === 'text' && !content.trim()) || (contentType === 'image' && !storyImage)}
           className="w-full bg-gradient-to-r from-slate-600 via-slate-700 to-slate-600 hover:from-slate-700 hover:via-slate-800 hover:to-slate-700 text-white px-4 sm:px-8 py-3 sm:py-5 rounded-lg sm:rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-base sm:text-lg"
         >
@@ -423,9 +434,9 @@ const StoryViewer = ({ stories, initialIndex, onClose, onView }) => {
 
   useEffect(() => {
     if (!currentStory) return;
-    
+
     onView(currentStory.id);
-    
+
     const timer = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -507,7 +518,7 @@ const StoryViewer = ({ stories, initialIndex, onClose, onView }) => {
           {currentStory.media_url ? (
             <img src={currentStory.media_url} alt="Story" className="w-full h-full object-contain" />
           ) : null}
-          
+
           {currentStory.content && (
             <div className="absolute inset-0 flex items-center justify-center p-8">
               <p className="text-white text-2xl font-bold text-center leading-relaxed" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.5)' }}>
@@ -590,7 +601,7 @@ const Stories = ({ user }) => {
                 )}
               </div>
             </div>
-            
+
             <div className="absolute bottom-0 right-0 w-6 h-6 bg-gradient-to-br from-slate-600 to-slate-700 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white group-hover:scale-110 transition-transform">
               <Plus className="w-4 h-4 text-white" />
             </div>
@@ -622,9 +633,9 @@ const Stories = ({ user }) => {
                       {latestStory.media_url ? (
                         <img src={getImageUrl(latestStory.media_url)} alt={userStories.username} className="w-full h-full object-cover" />
                       ) : latestStory.content ? (
-                        <div 
+                        <div
                           className="w-full h-full flex items-center justify-center p-2 text-xs font-semibold text-center"
-                          style={{ 
+                          style={{
                             backgroundColor: latestStory.background_color || '#ffffff',
                             color: latestStory.text_color || '#000000'
                           }}
@@ -649,7 +660,7 @@ const Stories = ({ user }) => {
       </div>
 
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent className="max-w-4xl h-[95vh] p-0 overflow-hidden gap-0 border-none shadow-2xl">
+        <DialogContent className="max-w-4xl h-[90vh] w-full sm:h-[95vh] p-0 overflow-hidden gap-0 border-none shadow-2xl">
           <CreateStoryModal
             onClose={() => setShowCreateModal(false)}
             onCreated={fetchStories}

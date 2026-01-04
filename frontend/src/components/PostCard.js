@@ -18,7 +18,7 @@ import { getPostAuthorAvatarUrl, getImageUrl, getUserAvatarUrl } from "@/utils/i
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
+export const PostCard = ({ post, user, onLike, onComment, onPostUpdate, compact = false }) => {
   const navigate = useNavigate();
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState([]);
@@ -36,6 +36,13 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
   const [mentionSearch, setMentionSearch] = useState('');
   const [mentionUsers, setMentionUsers] = useState([]);
   const [cursorPosition, setCursorPosition] = useState(0);
+
+  // Dynamic Styles based on density
+  const cardClasses = `bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-slate-200/60 overflow-hidden relative ${compact ? 'p-0' : ''}`;
+  const headerPadding = compact ? 'px-3 pt-3' : 'px-3 sm:px-6 pt-3 sm:pt-5';
+  const avatarSize = compact ? 'w-9 h-9' : 'w-9 h-9 sm:w-12 sm:h-12';
+  const contentPadding = compact ? 'px-3 py-2 mx-3 rounded-lg' : 'px-3 sm:px-6 py-2 sm:py-3 mx-3 sm:mx-6 rounded-lg';
+  const actionPadding = compact ? 'pt-2 pb-2 mx-3' : 'pt-2 sm:pt-4 mx-3 sm:mx-6 pb-3 sm:pb-4';
 
   const fetchComments = async () => {
     if (comments.length > 0) {
@@ -63,7 +70,7 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
       setComments([response.data, ...comments]);
       setCommentContent('');
       setShowMentions(false);
-      
+
       // Update comment count locally
       setCurrentPost({ ...currentPost, comments_count: (currentPost.comments_count || 0) + 1 });
     } catch (error) {
@@ -75,7 +82,7 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
     try {
       await axios.delete(`${API}/comments/${commentId}`);
       setComments(comments.filter(comment => comment.id !== commentId));
-      
+
       // Update comment count locally
       setCurrentPost({ ...currentPost, comments_count: Math.max((currentPost.comments_count || 1) - 1, 0) });
     } catch (error) {
@@ -95,7 +102,7 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
       const response = await axios.put(`${API}/comments/${commentId}`, {
         content: editCommentContent
       });
-      
+
       setComments(comments.map(c => c.id === commentId ? { ...c, content: editCommentContent } : c));
       setEditingCommentId(null);
       setEditCommentContent('');
@@ -113,14 +120,14 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
     if (!replyContent.trim()) return;
 
     try {
-      const response = await axios.post(`${API}/comments/post/${post.id}`, { 
+      const response = await axios.post(`${API}/comments/post/${post.id}`, {
         content: replyContent,
-        reply_to: replyingToCommentId 
+        reply_to: replyingToCommentId
       });
       setComments([response.data, ...comments]);
       setReplyingToCommentId(null);
       setReplyContent('');
-      
+
       // Update comment count locally
       setCurrentPost({ ...currentPost, comments_count: (currentPost.comments_count || 0) + 1 });
     } catch (error) {
@@ -131,12 +138,12 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
   const handleCommentInputChange = (e) => {
     const value = e.target.value;
     setCommentContent(value);
-    
+
     // Check for @ mention
     const cursorPos = e.target.selectionStart;
     const textBeforeCursor = value.substring(0, cursorPos);
     const lastAtSymbol = textBeforeCursor.lastIndexOf('@');
-    
+
     if (lastAtSymbol !== -1) {
       const searchTerm = textBeforeCursor.substring(lastAtSymbol + 1);
       if (searchTerm.length > 0 && !searchTerm.includes(' ')) {
@@ -227,31 +234,22 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
   }
 
   return (
-    <div className="bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-slate-200/60 overflow-hidden relative" data-testid="post-card">
-      <div className="space-y-2 sm:space-y-4">
+    <div className={cardClasses} data-testid="post-card">
+      <div className={compact ? "space-y-2" : "space-y-2 sm:space-y-4"}>
         {/* Header */}
-        <div className="flex items-start space-x-2 sm:space-x-3 px-3 sm:px-6 pt-3 sm:pt-5">
+        <div className={`flex items-start space-x-2 sm:space-x-3 ${headerPadding}`}>
           <Link to={`/profile/${post.author_username}`} className="group flex-shrink-0">
-            <Avatar className="w-9 h-9 sm:w-12 sm:h-12 ring-2 ring-slate-100 group-hover:ring-slate-300 transition-all shadow-sm">
+            <Avatar className={`${avatarSize} ring-2 ring-slate-100 group-hover:ring-slate-300 transition-all shadow-sm`}>
               {getPostAuthorAvatarUrl(currentPost) ? (
-                <img 
-                  src={getPostAuthorAvatarUrl(currentPost)} 
-                  alt={currentPost.author_name || currentPost.author_username} 
+                <img
+                  src={getPostAuthorAvatarUrl(currentPost)}
+                  alt={currentPost.author_name || currentPost.author_username}
                   className="w-full h-full object-cover rounded-full"
-                  onLoad={() => console.log('✅ PostCard - Author avatar loaded:', getPostAuthorAvatarUrl(currentPost))}
-                  onError={(e) => {
-                    console.error('❌ PostCard - Avatar failed to load:', getPostAuthorAvatarUrl(currentPost));
-                    console.error('Post object:', currentPost);
-                    console.error('author_avatar field:', currentPost.author_avatar);
-                  }}
                 />
               ) : (
-                <>
-                  {console.log('⚠️ PostCard - No avatar for post author:', currentPost)}
-                  <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white text-sm sm:text-base">
-                    {(currentPost.author_name || currentPost.author_username)[0].toUpperCase()}
-                  </AvatarFallback>
-                </>
+                <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white text-sm sm:text-base">
+                  {(currentPost.author_name || currentPost.author_username)[0].toUpperCase()}
+                </AvatarFallback>
               )}
             </Avatar>
           </Link>
@@ -259,14 +257,14 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Link to={`/profile/${post.author_username}`} className="hover:underline">
-                  <p className="font-semibold text-slate-900 text-sm sm:text-base truncate">
+                  <p className={`font-semibold text-slate-900 ${compact ? 'text-sm' : 'text-sm sm:text-base'} truncate`}>
                     {post.author_name || post.author_username}
                   </p>
                 </Link>
                 <span className="text-slate-400 text-xs sm:text-sm">•</span>
                 <p className="text-xs sm:text-sm text-slate-500">{formatDate(post.created_at)}</p>
               </div>
-              
+
               {/* 3-dot Menu - only show for post owner */}
               {user && user.id === post.author_id && (
                 <DropdownMenu>
@@ -296,7 +294,7 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
         </div>
 
         {/* Badge - inline on left */}
-        <div className="px-3 sm:px-6">
+        <div className={compact ? "px-3" : "px-3 sm:px-6"}>
           <div className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 bg-gradient-to-r from-slate-50 via-slate-100 to-slate-50 border border-slate-200 rounded-full shadow-sm">
             <MessageCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-600" />
             <span className="text-[9px] sm:text-[10px] font-bold text-slate-700 uppercase tracking-wider">Quick Post</span>
@@ -304,17 +302,17 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
         </div>
 
         {/* Content - Clickable to navigate to post detail */}
-        <div 
+        <div
           onClick={() => navigate(`/post/${post.id}`)}
-          className="cursor-pointer hover:bg-slate-50/60 px-3 sm:px-6 py-2 sm:py-3 transition-all duration-200 mx-3 sm:mx-6 rounded-lg border border-[#E5EBF2] bg-gradient-to-br from-white to-slate-50/30"
+          className={`cursor-pointer hover:bg-slate-50/60 transition-all duration-200 border border-[#E5EBF2] bg-gradient-to-br from-white to-slate-50/30 ${contentPadding}`}
         >
           {displayContent.trim() && (
-            <p className="text-slate-800 whitespace-pre-wrap leading-relaxed text-sm sm:text-[15px]">{displayContent}</p>
+            <p className={`text-slate-800 whitespace-pre-wrap leading-relaxed ${compact ? 'text-sm' : 'text-sm sm:text-[15px]'}`}>{displayContent}</p>
           )}
 
           {/* Image */}
           {postImage && (
-            <div className="mt-3 rounded-xl overflow-hidden shadow-md">
+            <div className={`mt-3 rounded-xl overflow-hidden shadow-md`}>
               <img src={getImageUrl(postImage)} alt="Post" className="w-full max-h-96 object-cover" />
             </div>
           )}
@@ -337,7 +335,7 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
         ))}
 
         {/* Stats Bar */}
-        <div className="px-3 sm:px-6 py-2 bg-slate-50/50 flex items-center justify-between text-xs sm:text-sm text-slate-600">
+        <div className={`${compact ? 'px-3 py-1.5' : 'px-3 sm:px-6 py-2'} bg-slate-50/50 flex items-center justify-between text-xs sm:text-sm text-slate-600`}>
           <div className="flex items-center space-x-3 sm:space-x-4">
             <span className="font-semibold">{post.likes_count || 0} {post.likes_count === 1 ? 'like' : 'likes'}</span>
             <span className="font-semibold">{post.comments_count || 0} {post.comments_count === 1 ? 'comment' : 'comments'}</span>
@@ -345,7 +343,7 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
         </div>
 
         {/* Actions */}
-        <div className="pt-2 sm:pt-4 border-t border-slate-100 mx-3 sm:mx-6 pb-3 sm:pb-4">
+        <div className={`border-t border-slate-100 ${actionPadding}`}>
           <div className="flex items-center justify-around">
             <div className="relative flex-1">
               <button
@@ -366,20 +364,19 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
                 }}
                 onMouseEnter={() => setShowReactions(true)}
                 onMouseLeave={() => setShowReactions(false)}
-                className={`w-full flex items-center justify-center space-x-1 sm:space-x-2 px-2 py-2 rounded-lg hover:bg-slate-50 font-semibold text-xs sm:text-sm ${
-                  post.liked_by_user 
-                    ? 'text-red-600' 
-                    : 'text-slate-600'
-                } transition-all duration-300 group`}
+                className={`w-full flex items-center justify-center space-x-1 sm:space-x-2 px-2 py-2 rounded-lg hover:bg-slate-50 font-semibold text-xs sm:text-sm ${post.liked_by_user
+                  ? 'text-red-600'
+                  : 'text-slate-600'
+                  } transition-all duration-300 group`}
                 data-testid="like-post-btn"
               >
                 <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${post.liked_by_user ? 'fill-current' : ''} group-hover:scale-110 transition-transform duration-300`} />
                 <span>Like</span>
               </button>
-              
+
               {/* Reaction Picker */}
               {showReactions && (
-                <div 
+                <div
                   className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-white/95 backdrop-blur-md rounded-xl sm:rounded-2xl shadow-2xl border-2 border-slate-200/60 px-2 sm:px-4 py-1.5 sm:py-3 flex space-x-1 sm:space-x-1.5 z-10"
                   onMouseEnter={() => setShowReactions(true)}
                   onMouseLeave={() => setShowReactions(false)}
@@ -412,7 +409,7 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
                 </div>
               )}
             </div>
-            
+
             <button
               onClick={fetchComments}
               className="flex-1 flex items-center justify-center space-x-1 sm:space-x-2 px-2 py-2 rounded-lg text-slate-600 hover:bg-slate-50 transition-all duration-300 group font-semibold text-xs sm:text-sm"
@@ -421,7 +418,7 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
               <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform duration-300" />
               <span>Comment</span>
             </button>
-            
+
             <button className="flex-1 flex items-center justify-center space-x-1 sm:space-x-2 px-2 py-2 rounded-lg text-slate-600 hover:bg-slate-50 transition-all duration-300 group font-semibold text-xs sm:text-sm">
               <Share2 className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform duration-300" />
               <span>Share</span>
@@ -431,7 +428,7 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
 
         {/* Comments Section */}
         {showComments && (
-          <div className="mt-3 sm:mt-4 space-y-3 sm:space-y-4 border-t border-slate-100 pt-4 sm:pt-5 px-4 sm:px-6 pb-4">
+          <div className={`mt-3 sm:mt-4 space-y-3 sm:space-y-4 border-t border-slate-100 pt-4 sm:pt-5 pb-4 ${compact ? 'px-3' : 'px-4 sm:px-6'}`}>
             {/* Add Comment Input */}
             <div className="relative">
               <div className="flex space-x-2 sm:space-x-3">
@@ -443,16 +440,16 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
                   className="flex-1 border-2 border-slate-200 focus:border-slate-400 focus:ring-slate-300 rounded-xl text-sm shadow-sm placeholder:text-slate-400"
                   data-testid="comment-input"
                 />
-                <Button 
-                  onClick={handleComment} 
-                  size="sm" 
-                  className="hover:scale-105 transition-all duration-300 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white px-4 py-2 text-xs rounded-xl shadow-md hover:shadow-lg font-semibold" 
+                <Button
+                  onClick={handleComment}
+                  size="sm"
+                  className="hover:scale-105 transition-all duration-300 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white px-4 py-2 text-xs rounded-xl shadow-md hover:shadow-lg font-semibold"
                   data-testid="submit-comment-btn"
                 >
                   Post
                 </Button>
               </div>
-              
+
               {/* Mention Dropdown */}
               {showMentions && mentionUsers.length > 0 && (
                 <div className="absolute bottom-full left-0 mb-2 w-full bg-white rounded-xl shadow-2xl border-2 border-slate-200 max-h-48 overflow-y-auto z-20">
@@ -480,7 +477,7 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
                 </div>
               )}
             </div>
-            
+
             {/* Comments List */}
             {comments.map((comment) => (
               <React.Fragment key={comment.id}>
@@ -501,19 +498,19 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
                           autoFocus
                         />
                         <div className="flex space-x-2">
-                          <Button 
+                          <Button
                             onClick={() => handleUpdateComment(comment.id)}
-                            size="sm" 
+                            size="sm"
                             className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-xs rounded-lg"
                           >
                             Save
                           </Button>
-                          <Button 
+                          <Button
                             onClick={() => {
                               setEditingCommentId(null);
                               setEditCommentContent('');
                             }}
-                            size="sm" 
+                            size="sm"
                             variant="outline"
                             className="px-3 py-1 text-xs rounded-lg"
                           >
@@ -528,7 +525,7 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
                           <div className="flex-1">
                             <p className="text-xs sm:text-sm font-bold text-slate-900">{comment.username}</p>
                             <p className="text-xs sm:text-sm text-slate-700 mt-1 leading-relaxed">{comment.content}</p>
-                            
+
                             {/* Comment Actions */}
                             <div className="flex items-center space-x-3 mt-2">
                               <button
@@ -538,24 +535,24 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
                                 Reply
                               </button>
                               {user && (
-                                String(user.id) === String(comment.user_id) || 
+                                String(user.id) === String(comment.user_id) ||
                                 user.username === comment.username
                               ) && (
-                                <>
-                                  <button
-                                    onClick={() => handleEditComment(comment)}
-                                    className="text-xs text-slate-500 hover:text-green-600 font-semibold transition-colors"
-                                  >
-                                    Edit
-                                  </button>
-                                  <button 
-                                    onClick={() => handleDeleteComment(comment.id)}
-                                    className="text-xs text-slate-500 hover:text-red-600 font-semibold transition-colors"
-                                  >
-                                    Delete
-                                  </button>
-                                </>
-                              )}
+                                  <>
+                                    <button
+                                      onClick={() => handleEditComment(comment)}
+                                      className="text-xs text-slate-500 hover:text-green-600 font-semibold transition-colors"
+                                    >
+                                      Edit
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteComment(comment.id)}
+                                      className="text-xs text-slate-500 hover:text-red-600 font-semibold transition-colors"
+                                    >
+                                      Delete
+                                    </button>
+                                  </>
+                                )}
                             </div>
                           </div>
                         </div>
@@ -563,7 +560,7 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
                     )}
                   </div>
                 </div>
-                
+
                 {/* Reply Input - Shows below the comment being replied to */}
                 {replyingToCommentId === comment.id && (
                   <div className="ml-9 sm:ml-12 mt-2">
@@ -576,19 +573,19 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
                         className="flex-1 border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-400 rounded-xl text-sm shadow-sm"
                         autoFocus
                       />
-                      <Button 
-                        onClick={handleSubmitReply} 
-                        size="sm" 
+                      <Button
+                        onClick={handleSubmitReply}
+                        size="sm"
                         className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 text-xs rounded-xl shadow-md font-semibold"
                       >
                         Reply
                       </Button>
-                      <Button 
+                      <Button
                         onClick={() => {
                           setReplyingToCommentId(null);
                           setReplyContent('');
-                        }} 
-                        size="sm" 
+                        }}
+                        size="sm"
                         variant="outline"
                         className="px-2 sm:px-3 py-2 text-xs rounded-xl border-blue-300 hover:bg-blue-50"
                       >
@@ -602,7 +599,7 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate }) => {
           </div>
         )}
       </div>
-      
+
       {/* Edit Post Modal */}
       <EditPostModal
         isOpen={showEditModal}

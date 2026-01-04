@@ -43,25 +43,40 @@ export const HomePage = ({ user }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [initialTab, setInitialTab] = useState('post');
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   useEffect(() => {
     fetchFeed(true);
   }, []);
 
-  // Infinite scroll effect
+  // Infinite scroll effect using IntersectionObserver
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight || loadingMore || !hasMore) {
-        return;
-      }
-      
-      // Load more when user is near bottom (within 100px)
-      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+    if (loadingMore || !hasMore) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasMore) {
         fetchFeed(false);
       }
-    };
+    }, { threshold: 0.1 });
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const sentinel = document.getElementById('feed-sentinel');
+    if (sentinel) {
+      observer.observe(sentinel);
+    }
+
+    return () => {
+      if (sentinel) {
+        observer.unobserve(sentinel);
+      }
+    };
   }, [loadingMore, hasMore, page]);
 
   const fetchFeed = async (reset = false) => {
@@ -75,16 +90,16 @@ export const HomePage = ({ user }) => {
 
       const currentPage = reset ? 0 : page;
       const skip = currentPage * 10;
-      
+
       const response = await axios.get(`${API}/feed?skip=${skip}&limit=10`);
       const newFeed = response.data;
-      
+
       if (reset) {
         setFeed(newFeed);
       } else {
         setFeed(prevFeed => [...prevFeed, ...newFeed]);
       }
-      
+
       setHasMore(newFeed.length === 10);
       setPage(currentPage + 1);
     } catch (error) {
@@ -102,18 +117,18 @@ export const HomePage = ({ user }) => {
       } else {
         await axios.post(`${API}/likes/${item.type}/${item.id}`);
       }
-      
+
       // Update the item in feed without refetching entire feed
-      setFeed(prevFeed => 
-        prevFeed.map(feedItem => 
+      setFeed(prevFeed =>
+        prevFeed.map(feedItem =>
           feedItem.id === item.id && feedItem.type === item.type
             ? {
-                ...feedItem, 
-                liked_by_user: !feedItem.liked_by_user,
-                likes_count: feedItem.liked_by_user 
-                  ? (feedItem.likes_count || 1) - 1 
-                  : (feedItem.likes_count || 0) + 1
-              }
+              ...feedItem,
+              liked_by_user: !feedItem.liked_by_user,
+              likes_count: feedItem.liked_by_user
+                ? (feedItem.likes_count || 1) - 1
+                : (feedItem.likes_count || 0) + 1
+            }
             : feedItem
         )
       );
@@ -128,7 +143,7 @@ export const HomePage = ({ user }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-24 pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-16 lg:pt-32 pb-20 lg:pb-12">
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Feed */}
@@ -148,9 +163,9 @@ export const HomePage = ({ user }) => {
               <div className="flex items-center space-x-2 sm:space-x-4">
                 <Avatar className="w-9 h-9 sm:w-12 sm:h-12 ring-2 ring-slate-100 shadow-sm">
                   {getUserAvatarUrl(user) ? (
-                    <img 
-                      src={getUserAvatarUrl(user)} 
-                      alt={user.username} 
+                    <img
+                      src={getUserAvatarUrl(user)}
+                      alt={user.username}
                       className="w-full h-full object-cover"
                       onLoad={() => console.log('✅ HomePage - Avatar loaded successfully:', getUserAvatarUrl(user))}
                       onError={(e) => {
@@ -250,14 +265,14 @@ export const HomePage = ({ user }) => {
                   <div key={`${item.type}-${item.id}-${index}`} className="space-y-3">
                     {item.type === 'blog' ? (
                       <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/50 hover:border-slate-300/50 transition-all duration-300 hover:shadow-lg overflow-hidden">
-                        <BlogCard blog={item} user={user} onLike={() => handleLike(item)} />
+                        <BlogCard blog={item} user={user} onLike={() => handleLike(item)} compact={isMobile} />
                       </div>
                     ) : (
                       <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/50 hover:border-slate-300/50 transition-all duration-300 hover:shadow-lg overflow-hidden">
-                        <PostCard post={item} user={user} onLike={() => handleLike(item)} onComment={handleComment} />
+                        <PostCard post={item} user={user} onLike={() => handleLike(item)} onComment={handleComment} compact={isMobile} />
                       </div>
                     )}
-                    
+
                     {/* Enhanced Ad Placement */}
                     {(index + 1) % 5 === 0 && index < feed.length - 1 && (
                       <div className="my-6">
@@ -268,7 +283,10 @@ export const HomePage = ({ user }) => {
                     )}
                   </div>
                 ))}
-                
+
+                {/* Sentinel for Infinite Scroll */}
+                <div id="feed-sentinel" className="h-4 w-full"></div>
+
                 {/* Infinite Scroll Loading Indicator */}
                 {loadingMore && (
                   <div className="text-center py-8">
@@ -278,7 +296,7 @@ export const HomePage = ({ user }) => {
                     </div>
                   </div>
                 )}
-                
+
                 {/* End of Feed Indicator */}
                 {!hasMore && feed.length > 0 && (
                   <div className="text-center py-12">

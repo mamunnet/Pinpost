@@ -16,6 +16,7 @@ import { Heart, MessageCircle, Share2, Bookmark, Edit, Trash2, Plus, Home, FileT
 import { getUserAvatarUrl, getImageUrl } from "@/utils/imageUtils";
 import { EnhancedPostModal } from "@/components/EnhancedPostModal";
 import { Header } from "@/components/Header";
+import { MobileNavBar } from "@/components/MobileNavBar";
 import { Stories } from "@/components/Stories";
 import { ProfileSetup } from "@/components/ProfileSetup";
 import { EditProfileModal } from "@/components/EditProfileModal";
@@ -58,12 +59,12 @@ const AuthContext = ({ children }) => {
       const response = await axios.get(`${API}/auth/me`);
       console.log('✅ App.js - User fetched successfully:', response.data);
       console.log('📝 App.js - Username:', response.data.username);
-      
+
       if (!response.data.username) {
         console.error('❌ App.js - User has no username!', response.data);
         console.error('User keys:', Object.keys(response.data));
       }
-      
+
       setUser(response.data);
     } catch (error) {
       console.error('❌ App.js - Failed to fetch user:', error);
@@ -122,11 +123,11 @@ const WhoToFollow = ({ user }) => {
   const handleFollow = async (userId) => {
     try {
       await axios.post(`${API}/users/${userId}/follow`);
-      
+
       // Find the user being followed for personalized notification
       const followedUser = suggestedUsers.find(u => u.id === userId);
       const username = followedUser ? followedUser.username : 'User';
-      
+
       toast.success(`👤 Following ${username}!`, {
         description: 'You will now see their posts in your feed and they have been notified.',
         duration: 4000,
@@ -135,7 +136,7 @@ const WhoToFollow = ({ user }) => {
           onClick: () => navigate(`/profile/${username}`)
         }
       });
-      
+
       fetchSuggestions();
     } catch (error) {
       toast.error('❌ Failed to follow user', {
@@ -147,7 +148,7 @@ const WhoToFollow = ({ user }) => {
 
   if (loading) {
     return <div className="animate-pulse space-y-3">
-      {[1,2,3].map(i => <div key={i} className="h-16 bg-gray-100 rounded"></div>)}
+      {[1, 2, 3].map(i => <div key={i} className="h-16 bg-gray-100 rounded"></div>)}
     </div>;
   }
 
@@ -155,7 +156,7 @@ const WhoToFollow = ({ user }) => {
     <>
       {suggestedUsers.slice(0, 3).map((suggestedUser) => (
         <div key={suggestedUser.id} className="flex items-center justify-between py-2">
-          <div 
+          <div
             className="flex items-center gap-2 flex-1 cursor-pointer"
             onClick={() => navigate(`/profile/${suggestedUser.username}`)}
           >
@@ -239,7 +240,7 @@ const TrendingSidebar = ({ user }) => {
     const date = new Date(dateString);
     const now = new Date();
     const seconds = Math.floor((now - date) / 1000);
-    
+
     if (seconds < 60) return 'Just now';
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
@@ -251,7 +252,7 @@ const TrendingSidebar = ({ user }) => {
       {/* Trending Navigation Card */}
       <Card className="sticky top-24 shadow-lg border border-slate-200 bg-gradient-to-br from-white to-slate-50 overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full blur-3xl opacity-50"></div>
-        
+
         <CardHeader className="pb-3 relative">
           <CardTitle className="text-xl font-bold flex items-center gap-2">
             <div className="w-10 h-10 bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl flex items-center justify-center shadow-lg">
@@ -262,39 +263,36 @@ const TrendingSidebar = ({ user }) => {
             </span>
           </CardTitle>
         </CardHeader>
-        
+
         <CardContent className="space-y-4 relative">
           {/* Tab Selector */}
           <div className="flex gap-2 p-1 bg-slate-100 rounded-lg">
             <button
               onClick={() => setActiveTab('posts')}
-              className={`flex-1 py-2 px-3 rounded-md text-xs font-semibold transition-all ${
-                activeTab === 'posts' 
-                  ? 'bg-white shadow-md text-slate-700' 
+              className={`flex-1 py-2 px-3 rounded-md text-xs font-semibold transition-all ${activeTab === 'posts'
+                  ? 'bg-white shadow-md text-slate-700'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               <MessageCircle className="w-3.5 h-3.5 inline mr-1" />
               Posts
             </button>
             <button
               onClick={() => setActiveTab('blogs')}
-              className={`flex-1 py-2 px-3 rounded-md text-xs font-semibold transition-all ${
-                activeTab === 'blogs' 
-                  ? 'bg-white shadow-md text-slate-700' 
+              className={`flex-1 py-2 px-3 rounded-md text-xs font-semibold transition-all ${activeTab === 'blogs'
+                  ? 'bg-white shadow-md text-slate-700'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               <FileText className="w-3.5 h-3.5 inline mr-1" />
               Blogs
             </button>
             <button
               onClick={() => setActiveTab('users')}
-              className={`flex-1 py-2 px-3 rounded-md text-xs font-semibold transition-all ${
-                activeTab === 'users' 
-                  ? 'bg-white shadow-md text-slate-700' 
+              className={`flex-1 py-2 px-3 rounded-md text-xs font-semibold transition-all ${activeTab === 'users'
+                  ? 'bg-white shadow-md text-slate-700'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               <Users className="w-3.5 h-3.5 inline mr-1" />
               People
@@ -333,7 +331,7 @@ const TrendingSidebar = ({ user }) => {
                               <Flame className="w-1.5 h-1.5 text-white" />
                             </div>
                           </div>
-                          
+
                           {/* Enhanced Profile Photo */}
                           <Avatar className="w-7 h-7 ring-2 ring-slate-200 group-hover:ring-slate-300 transition-all flex-shrink-0">
                             {getImageUrl(post.author_avatar) ? (
@@ -344,7 +342,7 @@ const TrendingSidebar = ({ user }) => {
                               </AvatarFallback>
                             )}
                           </Avatar>
-                          
+
                           <div className="flex-1 min-w-0">
                             {/* Enhanced Author Info */}
                             <div className="flex items-center gap-2 mb-1">
@@ -361,12 +359,12 @@ const TrendingSidebar = ({ user }) => {
                                 <TrendingUp className="w-2.5 h-2.5 text-orange-500" />
                               </div>
                             </div>
-                            
+
                             {/* Enhanced Content Preview */}
                             <p className="text-xs font-medium text-slate-900 line-clamp-2 group-hover:text-slate-700 transition-colors leading-relaxed mb-2">
                               {post.content.length > 65 ? post.content.substring(0, 65) + '...' : post.content}
                             </p>
-                            
+
                             {/* Enhanced Stats */}
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
@@ -411,20 +409,20 @@ const TrendingSidebar = ({ user }) => {
                             {index + 1}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h4 
+                            <h4
                               onClick={() => navigate(`/blog/${blog.id}`)}
                               className="text-sm font-bold text-slate-900 line-clamp-2 group-hover:text-slate-700 transition-colors leading-snug mb-1 cursor-pointer"
                             >
                               {blog.title}
                             </h4>
-                            <p 
+                            <p
                               onClick={() => navigate(`/blog/${blog.id}`)}
                               className="text-xs text-slate-600 line-clamp-1 mb-2 cursor-pointer"
                             >
                               {blog.excerpt}
                             </p>
                             <div className="flex items-center gap-2 mb-2">
-                              <span 
+                              <span
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   navigate(`/profile/${blog.author_username}`);
@@ -485,8 +483,8 @@ const TrendingSidebar = ({ user }) => {
                           </div>
                         </Link>
                         {!trendingUser.is_following && trendingUser.id !== user.id && (
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             onClick={() => handleFollow(trendingUser.id)}
                             className="ml-2 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white text-xs h-7 px-3 shadow-md"
                           >
@@ -552,8 +550,8 @@ const AdCard = ({ adIndex }) => {
           <span className="text-xs text-gray-400">by {ad.sponsor}</span>
         </div>
         <div className="flex items-start space-x-4">
-          <img 
-            src={ad.image} 
+          <img
+            src={ad.image}
             alt={ad.title}
             className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover flex-shrink-0"
           />
@@ -599,7 +597,8 @@ function App() {
             <BrowserRouter>
               <div className="flex flex-col min-h-screen">
                 <Header user={user} logout={logout} />
-                <div className="flex-1">
+                {/* Main content with adjusted padding: pt-14 for mobile condensed header, pt-28 for desktop two-row header */}
+                <div className="flex-1 pb-20 lg:pb-0">
                   <Routes>
                     <Route path="/" element={<HomePage user={user} />} />
                     <Route path="/social" element={<SocialPage user={user} />} />
@@ -612,6 +611,8 @@ function App() {
                     <Route path="/menu" element={<MenuPage user={user} logout={logout} />} />
                   </Routes>
                 </div>
+                {/* Mobile Bottom Navigation */}
+                <MobileNavBar user={user} />
               </div>
             </BrowserRouter>
           );

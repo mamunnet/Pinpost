@@ -45,30 +45,30 @@ const NotificationsDropdown = ({ user }) => {
   const showInstantNotification = (notification) => {
     // Determine notification type and customize toast
     const notificationConfig = {
-      follow: { 
-        icon: '👤', 
+      follow: {
+        icon: '👤',
         type: 'success',
         description: 'started following you'
       },
-      like: { 
-        icon: '❤️', 
+      like: {
+        icon: '❤️',
         type: 'default',
         description: 'liked your post'
       },
-      comment: { 
-        icon: '💬', 
+      comment: {
+        icon: '💬',
         type: 'info',
         description: 'commented on your post'
       },
-      reply: { 
-        icon: '↩️', 
+      reply: {
+        icon: '↩️',
         type: 'info',
         description: 'replied to your comment'
       }
     };
 
-    const config = notificationConfig[notification.type] || { 
-      icon: '🔔', 
+    const config = notificationConfig[notification.type] || {
+      icon: '🔔',
       type: 'default',
       description: 'sent you a notification'
     };
@@ -77,24 +77,24 @@ const NotificationsDropdown = ({ user }) => {
     const toastFunction = toast[config.type] || toast;
     toastFunction(
       `${config.icon} ${notification.actor_username} ${config.description}`, {
-        description: notification.message,
-        duration: 5000,
-        action: {
-          label: "View",
-          onClick: () => {
-            // Navigate to relevant content if available
-            if (notification.post_id) {
-              if (notification.post_type === 'blog') {
-                navigate(`/blog/${notification.post_id}`);
-              } else {
-                navigate(`/post/${notification.post_id}`);
-              }
-            } else if (notification.type === 'follow') {
-              navigate(`/profile/${notification.actor_username}`);
+      description: notification.message,
+      duration: 5000,
+      action: {
+        label: "View",
+        onClick: () => {
+          // Navigate to relevant content if available
+          if (notification.post_id) {
+            if (notification.post_type === 'blog') {
+              navigate(`/blog/${notification.post_id}`);
+            } else {
+              navigate(`/post/${notification.post_id}`);
             }
+          } else if (notification.type === 'follow') {
+            navigate(`/profile/${notification.actor_username}`);
           }
         }
       }
+    }
     );
 
     // Show browser notification if permission granted
@@ -131,9 +131,9 @@ const NotificationsDropdown = ({ user }) => {
 
     // Play subtle notification sound
     try {
-      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMcBjiE0fHNeSsFJG++7t6QQAoUVKzn6rRLFws=' );
+      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMcBjiE0fHNeSsFJG++7t6QQAoUVKzn6rRLFws=');
       audio.volume = 0.3;
-      audio.play().catch(() => {}); // Ignore errors if audio doesn't work
+      audio.play().catch(() => { }); // Ignore errors if audio doesn't work
     } catch (error) {
       // Ignore audio errors
     }
@@ -150,41 +150,41 @@ const NotificationsDropdown = ({ user }) => {
       try {
         const wsUrl = getWebSocketUrl(user.id);
         console.log('🔗 Connecting to WebSocket:', wsUrl);
-        
+
         const ws = new WebSocket(wsUrl);
         wsRef.current = ws;
 
         ws.onopen = () => {
           console.log('✅ WebSocket connected for real-time notifications');
           setWsConnected(true);
-          
+
           // Send periodic ping to keep connection alive
           const pingInterval = setInterval(() => {
             if (ws.readyState === WebSocket.OPEN) {
               ws.send('ping');
             }
           }, 30000);
-          
+
           ws.pingInterval = pingInterval;
         };
 
         ws.onmessage = (event) => {
           try {
             if (event.data === 'pong') return; // Ignore pong responses
-            
+
             const data = JSON.parse(event.data);
             console.log('📨 WebSocket message received:', data);
-            
+
             if (data.type === 'new_notification') {
               const notification = data.notification;
-              
+
               // Add new notification to the top of the list
               setNotifications(prev => [notification, ...prev]);
               setUnreadCount(prev => prev + 1);
-              
+
               // Show instant toast notification
               showInstantNotification(notification);
-              
+
               console.log('📬 New notification processed:', notification);
             }
           } catch (error) {
@@ -203,7 +203,7 @@ const NotificationsDropdown = ({ user }) => {
           if (ws.pingInterval) {
             clearInterval(ws.pingInterval);
           }
-          
+
           // Attempt to reconnect after 3 seconds if connection was lost
           if (event.code !== 1000) { // 1000 = normal closure
             setTimeout(() => {
@@ -329,11 +329,11 @@ export const Header = ({ user, logout }) => {
   const navScrollRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Fetch unread messages count
   useEffect(() => {
     if (!user) return;
-    
+
     const fetchUnreadMessages = async () => {
       try {
         const res = await axios.get(`${API}/conversations/unread-count`);
@@ -342,14 +342,14 @@ export const Header = ({ user, logout }) => {
         console.error('Failed to fetch unread messages');
       }
     };
-    
+
     fetchUnreadMessages();
-    
+
     // Setup WebSocket to listen for new messages
     const wsProtocol = BACKEND_URL.startsWith('https') ? 'wss' : 'ws';
     const wsHost = BACKEND_URL.replace(/^https?:\/\//, '');
     const ws = new WebSocket(`${wsProtocol}://${wsHost}/ws/notifications/${user.id}`);
-    
+
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'new_message') {
@@ -357,10 +357,10 @@ export const Header = ({ user, logout }) => {
         setUnreadMessages(prev => prev + 1);
       }
     };
-    
+
     return () => ws.close();
   }, [user]);
-  
+
   // Enable smooth scrolling with mouse drag
   useEffect(() => {
     const navScroll = navScrollRef.current;
@@ -417,146 +417,163 @@ export const Header = ({ user, logout }) => {
 
   return (
     <header className="fixed top-0 w-full bg-white border-b border-gray-200 z-50 shadow-sm">
-      {/* Top Bar with Logo */}
-      <div className="bg-slate-100 border-b border-slate-300">
-        <div className="w-full px-3 sm:px-6">
-          <div className="flex items-center justify-between h-12">
+      {/* Mobile Header - Condensed single row (logo + search + notifications) */}
+      <div className="lg:hidden bg-slate-100 border-b border-slate-300">
+        <div className="w-full px-3">
+          <div className="flex items-center justify-between h-14">
+            {/* Logo */}
             <Link to="/" className="flex items-center space-x-2 text-slate-700 hover:text-slate-900 transition-colors">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-r from-slate-600 to-slate-700 flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-base">P</span>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-slate-600 to-slate-700 flex items-center justify-center shadow-md">
+                <span className="text-white font-bold text-sm">P</span>
               </div>
-              <span className="font-bold text-xl bg-gradient-to-r from-slate-600 to-slate-700 bg-clip-text text-transparent">PenLink</span>
+              <span className="font-bold text-lg bg-gradient-to-r from-slate-600 to-slate-700 bg-clip-text text-transparent">PenLink</span>
             </Link>
-            
+
             {/* Right Side - Search and Notifications */}
-            <div className="flex items-center gap-2">
-              {/* Desktop Search */}
-              <div className="hidden lg:block">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input 
-                    type="text" 
-                    placeholder="Search PenLink..." 
-                    value={searchQuery} 
-                    onChange={(e) => setSearchQuery(e.target.value)} 
-                    className="pl-10 w-64 bg-white border-slate-300 focus:border-slate-400 focus:ring-slate-300" 
-                  />
-                </div>
-              </div>
-              
+            <div className="flex items-center gap-1">
               {/* Mobile Search Icon */}
-              <button className="lg:hidden p-2 rounded-full hover:bg-white/50 transition-colors">
+              <button className="p-2.5 rounded-full hover:bg-white/50 transition-colors">
                 <Search className="w-5 h-5 text-gray-600" />
               </button>
-              
-              {/* Notifications Dropdown in Top Bar */}
+
+              {/* Notifications Dropdown */}
               {user && <NotificationsDropdown user={user} />}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Navigation - Full Width Scrollable */}
-      <div className="w-full">
-        <div className="flex items-center h-14 sm:h-16 px-3 sm:px-6 gap-3 sm:gap-6">
-          {/* Left Navigation - Horizontal Scroll */}
-          <nav 
-            ref={navScrollRef}
-            className="flex items-center gap-2 overflow-x-auto scrollbar-hide cursor-grab select-none flex-1 lg:flex-initial"
-            style={{
-              scrollSnapType: 'x mandatory',
-              WebkitOverflowScrolling: 'touch',
-              scrollBehavior: 'smooth'
-            }}
-          >
-            <Link 
-              to="/" 
-              className={`flex items-center space-x-2 px-4 sm:px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-200 flex-shrink-0 border shadow-sm hover:shadow ${
-                isActive('/') 
-                  ? 'bg-slate-200 text-slate-900 border-slate-300' 
-                  : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
-              }`}
-              style={{ scrollSnapAlign: 'start' }}
-              data-testid="nav-home"
-            >
-              <Home className="w-5 h-5 sm:w-5 sm:h-5" />
-              <span className="hidden sm:inline font-medium text-sm sm:text-base">Home</span>
-            </Link>
-            
-            <Link 
-              to="/social" 
-              className={`flex items-center space-x-2 px-4 sm:px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-200 flex-shrink-0 border shadow-sm hover:shadow ${
-                isActive('/social') 
-                  ? 'bg-slate-200 text-slate-900 border-slate-300' 
-                  : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
-              }`}
-              style={{ scrollSnapAlign: 'start' }}
-              data-testid="nav-social"
-            >
-              <Users className="w-5 h-5 sm:w-5 sm:h-5" />
-              <span className="hidden sm:inline font-medium text-sm sm:text-base">Social</span>
-            </Link>
-            
-            <Link 
-              to="/blogs" 
-              className={`flex items-center space-x-2 px-4 sm:px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-200 flex-shrink-0 border shadow-sm hover:shadow ${
-                isActive('/blogs') || isActive('/blog')
-                  ? 'bg-slate-200 text-slate-900 border-slate-300' 
-                  : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
-              }`}
-              style={{ scrollSnapAlign: 'start' }}
-              data-testid="nav-blogs"
-            >
-              <FileText className="w-5 h-5 sm:w-5 sm:h-5" />
-              <span className="hidden sm:inline font-medium text-sm sm:text-base">Blogs</span>
-            </Link>
-            
-            <Link 
-              to="/trending" 
-              className={`flex items-center space-x-2 px-4 sm:px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-200 flex-shrink-0 border shadow-sm hover:shadow ${
-                isActive('/trending') 
-                  ? 'bg-slate-200 text-slate-900 border-slate-300' 
-                  : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
-              }`}
-              style={{ scrollSnapAlign: 'start' }}
-              data-testid="nav-trending"
-            >
-              <TrendingUp className="w-5 h-5 sm:w-5 sm:h-5" />
-              <span className="hidden sm:inline font-medium text-sm sm:text-base">Trending</span>
-            </Link>
-          </nav>
-
-          {/* Right Menu */}
-          {user && (
-            <div className="flex items-center gap-2">
-              {/* Messages Icon */}
-              <Link 
-                to="/messages" 
-                className={`relative p-2.5 rounded-full transition-all flex-shrink-0 ${
-                  isActive('/messages') 
-                    ? 'bg-blue-100 text-blue-600' 
-                    : 'hover:bg-slate-200 text-slate-700'
-                }`}
-                data-testid="messages-btn"
-              >
-                <MessageCircle className="w-5 h-5" />
-                {unreadMessages > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold shadow-md">
-                    {unreadMessages > 99 ? '99+' : unreadMessages}
-                  </span>
-                )}
+      {/* Desktop Header - Full two-row layout */}
+      <div className="hidden lg:block">
+        {/* Top Bar with Logo */}
+        <div className="bg-slate-100 border-b border-slate-300">
+          <div className="w-full px-3 sm:px-6">
+            <div className="flex items-center justify-between h-12">
+              <Link to="/" className="flex items-center space-x-2 text-slate-700 hover:text-slate-900 transition-colors">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-r from-slate-600 to-slate-700 flex items-center justify-center shadow-md">
+                  <span className="text-white font-bold text-base">P</span>
+                </div>
+                <span className="font-bold text-xl bg-gradient-to-r from-slate-600 to-slate-700 bg-clip-text text-transparent">PenLink</span>
               </Link>
-              
-              {/* Hamburger Menu Button */}
-              <button 
-                onClick={() => navigate('/menu')}
-                className="p-2.5 rounded-full hover:bg-slate-200 transition-all flex-shrink-0" 
-                data-testid="user-menu-btn"
-              >
-                <Menu className="w-5 h-5 text-slate-700" />
-              </button>
+
+              {/* Right Side - Search and Notifications */}
+              <div className="flex items-center gap-2">
+                {/* Desktop Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    type="text"
+                    placeholder="Search PenLink..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 w-64 bg-white border-slate-300 focus:border-slate-400 focus:ring-slate-300"
+                  />
+                </div>
+
+                {/* Notifications Dropdown in Top Bar */}
+                {user && <NotificationsDropdown user={user} />}
+              </div>
             </div>
-          )}
+          </div>
+        </div>
+
+        {/* Main Navigation - Desktop Only */}
+        <div className="w-full">
+          <div className="flex items-center h-14 sm:h-16 px-3 sm:px-6 gap-3 sm:gap-6">
+            {/* Left Navigation - Horizontal Scroll */}
+            <nav
+              ref={navScrollRef}
+              className="flex items-center gap-2 overflow-x-auto scrollbar-hide cursor-grab select-none flex-1 lg:flex-initial"
+              style={{
+                scrollSnapType: 'x mandatory',
+                WebkitOverflowScrolling: 'touch',
+                scrollBehavior: 'smooth'
+              }}
+            >
+              <Link
+                to="/"
+                className={`flex items-center space-x-2 px-4 sm:px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-200 flex-shrink-0 border shadow-sm hover:shadow ${isActive('/')
+                    ? 'bg-slate-200 text-slate-900 border-slate-300'
+                    : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
+                  }`}
+                style={{ scrollSnapAlign: 'start' }}
+                data-testid="nav-home"
+              >
+                <Home className="w-5 h-5 sm:w-5 sm:h-5" />
+                <span className="font-medium text-sm sm:text-base">Home</span>
+              </Link>
+
+              <Link
+                to="/social"
+                className={`flex items-center space-x-2 px-4 sm:px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-200 flex-shrink-0 border shadow-sm hover:shadow ${isActive('/social')
+                    ? 'bg-slate-200 text-slate-900 border-slate-300'
+                    : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
+                  }`}
+                style={{ scrollSnapAlign: 'start' }}
+                data-testid="nav-social"
+              >
+                <Users className="w-5 h-5 sm:w-5 sm:h-5" />
+                <span className="font-medium text-sm sm:text-base">Social</span>
+              </Link>
+
+              <Link
+                to="/blogs"
+                className={`flex items-center space-x-2 px-4 sm:px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-200 flex-shrink-0 border shadow-sm hover:shadow ${isActive('/blogs') || isActive('/blog')
+                    ? 'bg-slate-200 text-slate-900 border-slate-300'
+                    : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
+                  }`}
+                style={{ scrollSnapAlign: 'start' }}
+                data-testid="nav-blogs"
+              >
+                <FileText className="w-5 h-5 sm:w-5 sm:h-5" />
+                <span className="font-medium text-sm sm:text-base">Blogs</span>
+              </Link>
+
+              <Link
+                to="/trending"
+                className={`flex items-center space-x-2 px-4 sm:px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-200 flex-shrink-0 border shadow-sm hover:shadow ${isActive('/trending')
+                    ? 'bg-slate-200 text-slate-900 border-slate-300'
+                    : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
+                  }`}
+                style={{ scrollSnapAlign: 'start' }}
+                data-testid="nav-trending"
+              >
+                <TrendingUp className="w-5 h-5 sm:w-5 sm:h-5" />
+                <span className="font-medium text-sm sm:text-base">Trending</span>
+              </Link>
+            </nav>
+
+            {/* Right Menu */}
+            {user && (
+              <div className="flex items-center gap-2">
+                {/* Messages Icon */}
+                <Link
+                  to="/messages"
+                  className={`relative p-2.5 rounded-full transition-all flex-shrink-0 ${isActive('/messages')
+                      ? 'bg-blue-100 text-blue-600'
+                      : 'hover:bg-slate-200 text-slate-700'
+                    }`}
+                  data-testid="messages-btn"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  {unreadMessages > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold shadow-md">
+                      {unreadMessages > 99 ? '99+' : unreadMessages}
+                    </span>
+                  )}
+                </Link>
+
+                {/* Hamburger Menu Button */}
+                <button
+                  onClick={() => navigate('/menu')}
+                  className="p-2.5 rounded-full hover:bg-slate-200 transition-all flex-shrink-0"
+                  data-testid="user-menu-btn"
+                >
+                  <Menu className="w-5 h-5 text-slate-700" />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

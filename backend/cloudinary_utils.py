@@ -4,11 +4,11 @@ import cloudinary.api
 import os
 from typing import Optional
 
-# Configure Cloudinary
+# Configure Cloudinary from environment variables
 cloudinary.config(
-    cloud_name="djfz2dzes",
-    api_key="149856726514542",
-    api_secret="ED2ML-7gjYXguM4xTYCxf0hvGoY",
+    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    api_key=os.environ.get('CLOUDINARY_API_KEY', ''),
+    api_secret=os.environ.get('CLOUDINARY_API_SECRET', ''),
     secure=True
 )
 
