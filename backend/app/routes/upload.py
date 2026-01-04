@@ -36,7 +36,7 @@ async def upload_image(
     
     try:
         file_content = await file.read()
-        result = upload_to_cloudinary(file_content, file.filename, upload_type)
+        result = upload_to_cloudinary(file_content, file.filename, upload_type, folder)
         
         if result:
             return {"url": result["secure_url"], "public_id": result.get("public_id")}
