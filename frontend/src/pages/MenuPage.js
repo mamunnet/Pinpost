@@ -6,11 +6,11 @@ import { getUserAvatarUrl } from "@/utils/imageUtils";
 
 export const MenuPage = ({ user, logout }) => {
   const navigate = useNavigate();
-  
+
   // Add safety check and debugging
   console.log('🔍 MenuPage - User object:', user);
   console.log('📝 MenuPage - Username:', user?.username);
-  
+
   // If no user or no username, show loading or redirect
   if (!user) {
     console.error('❌ MenuPage - No user object provided');
@@ -20,14 +20,14 @@ export const MenuPage = ({ user, logout }) => {
       </div>
     );
   }
-  
+
   if (!user.username) {
     console.error('❌ MenuPage - User has no username field:', user);
     console.error('User keys:', Object.keys(user));
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 relative overflow-hidden pt-16 lg:pt-32 pb-20 lg:pb-12">
       {/* Background Pattern */}
       <div className="absolute inset-0">
         <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-slate-300/30 to-transparent rounded-full blur-3xl"></div>
@@ -35,29 +35,22 @@ export const MenuPage = ({ user, logout }) => {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-slate-200/30 to-slate-300/30 rounded-full blur-3xl"></div>
       </div>
 
-      {/* Header */}
-      <div className="sticky top-0 bg-white/80 backdrop-blur-lg border-b border-slate-200/50 px-4 sm:px-6 py-4 flex items-center justify-between shadow-lg z-10">
-        <div className="flex items-center space-x-4">
-          <button 
-            onClick={() => navigate(-1)}
-            className="p-3 rounded-2xl hover:bg-slate-100/70 transition-all duration-300 hover:scale-105 group"
-          >
-            <ArrowLeft className="w-6 h-6 text-slate-600 group-hover:text-slate-700" />
-          </button>
-          <div className="flex items-center">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">Menu</h1>
-            <div className="ml-2 w-2 h-2 bg-gradient-to-r from-slate-500 to-slate-600 rounded-full animate-pulse"></div>
-          </div>
-        </div>
-        <div className="w-8 h-8 bg-gradient-to-br from-slate-200 to-slate-300 rounded-xl flex items-center justify-center">
-          <Moon className="w-4 h-4 text-slate-600" />
-        </div>
-      </div>
+
 
       {/* Content */}
       <div className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6 py-6">
+        {/* Menu Title */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-800">Menu</h1>
+            <p className="text-slate-500">Manage your account</p>
+          </div>
+          <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md">
+            <Settings className="w-5 h-5 text-slate-600" />
+          </div>
+        </div>
         {/* User Profile Card */}
-        <Link 
+        <Link
           to={`/profile/${user.username}`}
           className="block bg-white/70 backdrop-blur-lg rounded-3xl p-6 mb-6 hover:shadow-2xl transition-all duration-500 border border-slate-200/50 hover:border-slate-300/70 hover:scale-[1.02] group relative overflow-hidden"
         >
@@ -101,10 +94,10 @@ export const MenuPage = ({ user, logout }) => {
         <div className="mb-8">
           <div className="relative group">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-slate-600 transition-colors" />
-            <Input 
-              type="text" 
-              placeholder="Search PenLink..." 
-              className="pl-12 py-6 text-base bg-white/70 backdrop-blur-sm border-slate-200/50 rounded-2xl focus:border-slate-400 focus:ring-slate-200/50 shadow-lg hover:shadow-xl transition-all duration-300 placeholder:text-slate-400" 
+            <Input
+              type="text"
+              placeholder="Search PenLink..."
+              className="pl-12 py-6 text-base bg-white/70 backdrop-blur-sm border-slate-200/50 rounded-2xl focus:border-slate-400 focus:ring-slate-200/50 shadow-lg hover:shadow-xl transition-all duration-300 placeholder:text-slate-400"
             />
             <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
               <Zap className="w-4 h-4 text-slate-400" />
@@ -119,8 +112,8 @@ export const MenuPage = ({ user, logout }) => {
             <div className="bg-gradient-to-r from-slate-100/50 to-transparent p-4">
               <h3 className="text-sm font-semibold text-slate-600 uppercase tracking-wider">Personal</h3>
             </div>
-            
-            <Link 
+
+            <Link
               to={`/profile/${user.username}`}
               className="flex items-center space-x-4 px-6 py-5 hover:bg-slate-50/70 transition-all duration-300 border-b border-slate-100/50 group"
             >
@@ -140,7 +133,7 @@ export const MenuPage = ({ user, logout }) => {
               </div>
             </Link>
 
-            <button 
+            <button
               className="w-full flex items-center space-x-4 px-6 py-5 hover:bg-slate-50/70 transition-all duration-300 border-b border-slate-100/50 group"
             >
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-600/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
@@ -159,7 +152,7 @@ export const MenuPage = ({ user, logout }) => {
               </div>
             </button>
 
-            <Link 
+            <Link
               to="/settings"
               className="flex items-center space-x-4 px-6 py-5 hover:bg-slate-50/70 transition-all duration-300 group"
             >
@@ -185,8 +178,8 @@ export const MenuPage = ({ user, logout }) => {
             <div className="bg-gradient-to-r from-slate-100/50 to-transparent p-4">
               <h3 className="text-sm font-semibold text-slate-600 uppercase tracking-wider">Support & Legal</h3>
             </div>
-            
-            <Link 
+
+            <Link
               to="/help"
               className="flex items-center space-x-4 px-6 py-5 hover:bg-slate-50/70 transition-all duration-300 border-b border-slate-100/50 group"
             >
@@ -206,7 +199,7 @@ export const MenuPage = ({ user, logout }) => {
               </div>
             </Link>
 
-            <Link 
+            <Link
               to="/privacy"
               className="flex items-center space-x-4 px-6 py-5 hover:bg-slate-50/70 transition-all duration-300 border-b border-slate-100/50 group"
             >
@@ -226,7 +219,7 @@ export const MenuPage = ({ user, logout }) => {
               </div>
             </Link>
 
-            <Link 
+            <Link
               to="/feedback"
               className="flex items-center space-x-4 px-6 py-5 hover:bg-slate-50/70 transition-all duration-300 group"
             >
@@ -252,10 +245,10 @@ export const MenuPage = ({ user, logout }) => {
             <div className="bg-gradient-to-r from-red-50/50 to-transparent p-4">
               <h3 className="text-sm font-semibold text-red-600 uppercase tracking-wider">Account</h3>
             </div>
-            
-            <button 
+
+            <button
               onClick={logout}
-              className="w-full flex items-center space-x-4 px-6 py-5 hover:bg-red-50/70 transition-all duration-300 group" 
+              className="w-full flex items-center space-x-4 px-6 py-5 hover:bg-red-50/70 transition-all duration-300 group"
             >
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500/20 to-red-600/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <LogOut className="w-6 h-6 text-red-600" />

@@ -14,7 +14,7 @@ const MessageBubble = ({ message, isMe, formatTime, getUserAvatarUrl }) => {
     if (!isMe) return null;
     
     if (isRead) {
-      return <CheckCheck className="w-3.5 h-3.5 text-blue-500" />;
+      return <CheckCheck className="w-3.5 h-3.5 text-slate-600" />;
     } else if (isDelivered) {
       return <CheckCheck className="w-3.5 h-3.5 text-slate-400" />;
     } else {
@@ -60,7 +60,7 @@ const MessageBubble = ({ message, isMe, formatTime, getUserAvatarUrl }) => {
           <Button
             size="icon"
             variant="ghost"
-            className={`rounded-full flex-shrink-0 ${isMe ? 'hover:bg-blue-600/20' : 'hover:bg-slate-200'}`}
+            className={`rounded-full flex-shrink-0 ${isMe ? 'hover:bg-slate-700/20' : 'hover:bg-slate-200'}`}
             onClick={() => {
               const audio = new Audio(message.voice_url);
               audio.play();
@@ -69,7 +69,7 @@ const MessageBubble = ({ message, isMe, formatTime, getUserAvatarUrl }) => {
             <Play className="w-4 h-4" fill="currentColor" />
           </Button>
           <div className="flex-1">
-            <div className={`h-8 flex items-center gap-0.5 ${isMe ? 'text-blue-100' : 'text-slate-400'}`}>
+            <div className={`h-8 flex items-center gap-0.5 ${isMe ? 'text-slate-100' : 'text-slate-400'}`}>
               {[...Array(25)].map((_, i) => (
                 <div 
                   key={i} 
@@ -82,7 +82,7 @@ const MessageBubble = ({ message, isMe, formatTime, getUserAvatarUrl }) => {
           <a
             href={message.voice_url}
             download
-            className={`p-1.5 rounded-full flex-shrink-0 ${isMe ? 'hover:bg-blue-600/20' : 'hover:bg-slate-200'}`}
+            className={`p-1.5 rounded-full flex-shrink-0 ${isMe ? 'hover:bg-slate-700/20' : 'hover:bg-slate-200'}`}
           >
             <Download className="w-3.5 h-3.5" />
           </a>
@@ -107,14 +107,14 @@ const MessageBubble = ({ message, isMe, formatTime, getUserAvatarUrl }) => {
         )}
         <div className={`max-w-[75%] md:max-w-[60%] ${
           isMe 
-            ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30' 
+            ? 'bg-slate-800 text-white shadow-lg' 
             : 'bg-white text-slate-900 shadow-md border border-slate-100'
         } rounded-2xl px-4 py-2.5 transition-all hover:shadow-xl ${
-          isMe ? 'hover:from-blue-600 hover:to-blue-700' : 'hover:border-slate-200'
+          isMe ? 'hover:bg-slate-900' : 'hover:border-slate-200'
         }`}>
           {renderContent()}
           <div className={`flex items-center gap-1.5 mt-1.5 ${isMe ? 'justify-end' : 'justify-start'}`}>
-            <span className={`text-xs font-medium ${isMe ? 'text-blue-100' : 'text-slate-500'}`}>
+            <span className={`text-xs font-medium ${isMe ? 'text-slate-300' : 'text-slate-500'}`}>
               {formatTime(message.created_at)}
             </span>
             {getMessageStatusIcon()}

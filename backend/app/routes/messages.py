@@ -181,6 +181,7 @@ async def set_typing_status(
     return {"message": "Typing status updated"}
 
 
+@router.get("/conversations/unread-count")
 @router.get("/messages/unread-count")
 async def get_unread_message_count(current_user_id: str = Depends(get_current_user)):
     """Get total unread message count."""

@@ -80,12 +80,9 @@ const EnhancedMessagesPage = ({ user }) => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
-      {/* Header */}
-      <Header user={user} />
-
-      {/* Main Content - Account for fixed header height (top bar 48px + nav 64px = 112px) */}
-      <div className="flex-1 flex overflow-hidden mt-28" style={{ height: 'calc(100vh - 112px)' }}>
+    <div className="flex flex-col h-[calc(100vh-9rem)] lg:h-[calc(100vh-8rem)] bg-white mt-16 lg:mt-32">
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden h-full">
         {/* Conversations List */}
         <ConversationList
           conversations={conversations}

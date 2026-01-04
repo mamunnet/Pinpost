@@ -10,8 +10,10 @@ import { EnhancedPostModal } from "@/components/EnhancedPostModal";
 import { Stories } from "@/components/Stories";
 import { PostCard } from "@/components/PostCard";
 import { BlogCard } from "@/components/BlogCard";
+import { PeopleYouMayKnow } from "@/components/PeopleYouMayKnow";
 import { getUserAvatarUrl } from "@/utils/imageUtils";
 import { PostCardSkeleton } from "@/components/SkeletonLoader";
+import cache, { CacheKeys, CacheTTL } from "@/utils/cache";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -81,6 +83,22 @@ export const HomePage = ({ user }) => {
 
   const fetchFeed = async (reset = false) => {
     try {
+      const currentPage = reset ? 0 : page;
+      const skip = currentPage * 10;
+      const cacheKey = `${CacheKeys.FEED}_page_${currentPage}`;
+
+      // Check cache first for initial page load
+      if (reset && currentPage === 0) {
+        const cachedFeed = cache.get(cacheKey);
+        if (cachedFeed) {
+          setFeed(cachedFeed);
+          setLoading(false);
+          setHasMore(cachedFeed.length === 10);
+          setPage(1);
+          return;
+        }
+      }
+
       if (reset) {
         setLoading(true);
         setPage(0);
@@ -88,12 +106,13 @@ export const HomePage = ({ user }) => {
         setLoadingMore(true);
       }
 
-      const currentPage = reset ? 0 : page;
-      const skip = currentPage * 10;
-
       const response = await axios.get(`${API}/feed?skip=${skip}&limit=10`);
       const newFeed = response.data;
 
+      // Cache the first page
+      if (currentPage === 0) {
+        cache.set(cacheKey, newFeed, CacheTTL.SHORT);
+      }
       if (reset) {
         setFeed(newFeed);
       } else {
@@ -138,7 +157,8 @@ export const HomePage = ({ user }) => {
   };
 
   const handleComment = () => {
-    // Refresh feed to get updated comment counts
+    // Invalidate cache and refresh feed to get updated comment counts
+    cache.invalidatePattern('feed');
     fetchFeed(true);
   };
 
@@ -167,20 +187,11 @@ export const HomePage = ({ user }) => {
                       src={getUserAvatarUrl(user)}
                       alt={user.username}
                       className="w-full h-full object-cover"
-                      onLoad={() => console.log('✅ HomePage - Avatar loaded successfully:', getUserAvatarUrl(user))}
-                      onError={(e) => {
-                        console.error('❌ HomePage - Avatar failed to load:', getUserAvatarUrl(user));
-                        console.error('User object:', user);
-                        console.error('Avatar field:', user.avatar);
-                      }}
                     />
                   ) : (
-                    <>
-                      {console.log('⚠️ HomePage - No avatar URL for user:', user)}
-                      <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white font-bold text-sm sm:text-base">
-                        {user.username[0].toUpperCase()}
-                      </AvatarFallback>
-                    </>
+                    <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white font-bold text-sm sm:text-base">
+                      {user.username[0].toUpperCase()}
+                    </AvatarFallback>
                   )}
                 </Avatar>
                 <button
@@ -272,8 +283,14 @@ export const HomePage = ({ user }) => {
                         <PostCard post={item} user={user} onLike={() => handleLike(item)} onComment={handleComment} compact={isMobile} />
                       </div>
                     )}
+                    {/* People You May Know - After every 3 posts */}
+                    {(index + 1) % 3 === 0 && index < feed.length - 1 && (
+                      <div className="my-6">
+                        <PeopleYouMayKnow user={user} limit={3} />
+                      </div>
+                    )}
 
-                    {/* Enhanced Ad Placement */}
+                    {/* Enhanced Ad Placement - After every 5 posts */}
                     {(index + 1) % 5 === 0 && index < feed.length - 1 && (
                       <div className="my-6">
                         <div className="bg-gradient-to-r from-slate-100 to-slate-50 rounded-2xl border-2 border-dashed border-slate-300 p-6">
@@ -288,31 +305,39 @@ export const HomePage = ({ user }) => {
                 <div id="feed-sentinel" className="h-4 w-full"></div>
 
                 {/* Infinite Scroll Loading Indicator */}
-                {loadingMore && (
-                  <div className="text-center py-8">
-                    <div className="inline-flex items-center px-6 py-3 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-full shadow-lg">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-600 mr-3"></div>
-                      <span className="text-slate-600 font-medium">Loading more posts...</span>
+                {
+                  loadingMore && (
+                    <div className="text-center py-8">
+                      <div className="inline-flex items-center px-6 py-3 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-full shadow-lg">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-600 mr-3"></div>
+                        <span className="text-slate-600 font-medium">Loading more posts...</span>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )
+                }
 
                 {/* End of Feed Indicator */}
-                {!hasMore && feed.length > 0 && (
-                  <div className="text-center py-12">
-                    <div className="inline-flex items-center px-6 py-3 bg-slate-100 rounded-full">
-                      <Heart className="w-5 h-5 text-slate-500 mr-2" />
-                      <span className="text-slate-600 font-medium">You're all caught up!</span>
+                {
+                  !hasMore && feed.length > 0 && (
+                    <div className="text-center py-12">
+                      <div className="inline-flex items-center px-6 py-3 bg-slate-100 rounded-full">
+                        <Heart className="w-5 h-5 text-slate-500 mr-2" />
+                        <span className="text-slate-600 font-medium">You're all caught up!</span>
+                      </div>
+                      <p className="text-slate-500 text-sm mt-2">You've seen all the latest posts from your network</p>
                     </div>
-                    <p className="text-slate-500 text-sm mt-2">You've seen all the latest posts from your network</p>
-                  </div>
-                )}
+                  )
+                }
               </>
             )}
           </div>
 
           {/* Sidebar */}
-          <div className="hidden lg:block space-y-3">
+          <div className="hidden lg:block space-y-6">
+            {/* People You May Know */}
+            <PeopleYouMayKnow user={user} limit={5} />
+
+            {/* Trending Sidebar */}
             <TrendingSidebar user={user} />
           </div>
         </div>

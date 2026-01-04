@@ -230,7 +230,13 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate, compact 
   if (currentPost.content && currentPost.content.includes('[IMAGE]')) {
     const parts = currentPost.content.split('[IMAGE]');
     displayContent = parts[0];
-    postImage = parts[1];
+    // Get image URL and remove any trailing content
+    const imageUrlRaw = parts[1] ? parts[1].trim() : null;
+    if (imageUrlRaw) {
+      // Extract just the URL (first line after [IMAGE])
+      const imageLines = imageUrlRaw.split('\n');
+      postImage = imageLines[0].trim();
+    }
   }
 
   return (
@@ -312,8 +318,12 @@ export const PostCard = ({ post, user, onLike, onComment, onPostUpdate, compact 
 
           {/* Image */}
           {postImage && (
-            <div className={`mt-3 rounded-xl overflow-hidden shadow-md`}>
-              <img src={getImageUrl(postImage)} alt="Post" className="w-full max-h-96 object-cover" />
+            <div className="mt-3 rounded-xl overflow-hidden shadow-md">
+              <img
+                src={getImageUrl(postImage)}
+                alt="Post"
+                className="w-full max-h-96 object-cover"
+              />
             </div>
           )}
         </div>

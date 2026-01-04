@@ -1,8 +1,8 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, Circle, Bell } from 'lucide-react';
+import { ArrowLeft, MoreVertical, Circle, Bell, ArrowDown } from 'lucide-react';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
 import { getUserAvatarUrl } from '@/utils/imageUtils';
@@ -25,6 +25,10 @@ const ChatWindow = ({
   const navigate = useNavigate();
   const messagesEndRef = useRef(null);
   const messageContainerRef = useRef(null);
+  const isNearBottomRef = useRef(true);
+  const prevMessagesLength = useRef(messages.length);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const [unreadBelowCount, setUnreadBelowCount] = useState(0);
 
   const handleBack = () => {
     navigate('/messages');
@@ -33,15 +37,56 @@ const ChatWindow = ({
     }
   };
 
-  useEffect(() => {
+  // Check if user is near bottom of messages
+  const handleScroll = () => {
+    if (!messageContainerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = messageContainerRef.current;
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    const nearBottom = distanceFromBottom < 100;
+    isNearBottomRef.current = nearBottom;
+    setShowScrollButton(!nearBottom); // Show button when not near bottom
+  };
+
+  // Scroll to bottom function
+  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    setShowScrollButton(false);
+  };
+
+  // Only auto-scroll if user is near bottom or if it's a new message from current user
+  useEffect(() => {
+    const isNewMessage = messages.length > prevMessagesLength.current;
+    
+    if (isNewMessage && messages.length > 0) {
+      // Only scroll if near bottom OR if the new message is from current user
+      const lastMessage = messages[messages.length - 1];
+      if (isNearBottomRef.current || lastMessage?.sender_id === user.id) {
+        // Small delay to ensure DOM is updated
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 10);
+      }
+    }
+    
+    prevMessagesLength.current = messages.length;
+  }, [messages.length, user.id]);
+
+  // Scroll to bottom when conversation changes
+  useEffect(() => {
+    if (activeConversation) {
+      isNearBottomRef.current = true;
+      prevMessagesLength.current = 0; // Reset message count
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+      }, 50);
+    }
+  }, [activeConversation?.id]);
 
   if (!activeConversation) {
     return (
-      <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="hidden md:flex flex-1 items-center justify-center bg-slate-50">
         <div className="text-center">
-          <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <div className="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
             <Bell className="w-12 h-12 text-white" />
           </div>
           <h2 className="text-2xl font-bold text-slate-900 mb-2">Your Messages</h2>
@@ -57,7 +102,7 @@ const ChatWindow = ({
                    typingUsers[activeConversation.id]?.user_id !== user.id;
 
   return (
-    <div className="flex-1 flex flex-col bg-white">
+    <div className="flex-1 flex flex-col bg-white relative">
       {/* Chat Header - Modern Design */}
       <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between flex-shrink-0 shadow-sm">
         <div className="flex items-center gap-4">
@@ -72,7 +117,7 @@ const ChatWindow = ({
           <div className="relative">
             <Avatar className="w-12 h-12 border-2 border-slate-100">
               <AvatarImage src={getUserAvatarUrl(otherUser?.avatar_url)} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold">
+              <AvatarFallback className="bg-slate-700 text-white font-semibold">
                 {otherUser?.username?.[0]?.toUpperCase()}
               </AvatarFallback>
             </Avatar>
@@ -86,8 +131,8 @@ const ChatWindow = ({
             </h2>
             <p className="text-xs text-slate-600">
               {isTyping ? (
-                <span className="text-blue-600 font-medium flex items-center gap-1">
-                  <span className="inline-block w-1 h-1 bg-blue-600 rounded-full animate-bounce"></span>
+                <span className="text-slate-700 font-medium flex items-center gap-1">
+                  <span className="inline-block w-1 h-1 bg-slate-700 rounded-full animate-bounce"></span>
                   typing...
                 </span>
               ) : isOnline ? (
@@ -105,11 +150,10 @@ const ChatWindow = ({
 
       {/* Messages Area - Improved Scroll */}
       <div 
-        className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-slate-50 to-white" 
+        className="flex-1 overflow-y-auto p-6 bg-slate-50 pb-4" 
         ref={messageContainerRef}
-        onScroll={checkIfNearBottom}
+        onScroll={handleScroll}
         style={{
-          scrollBehavior: 'smooth',
           overscrollBehavior: 'contain'
         }}
       >
@@ -129,9 +173,9 @@ const ChatWindow = ({
             <div className="flex justify-start animate-fade-in">
               <div className="bg-white rounded-2xl px-5 py-3 shadow-md border border-slate-100">
                 <div className="flex gap-1.5">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                  <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                  <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                  <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                  <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                  <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                 </div>
               </div>
             </div>
@@ -141,13 +185,28 @@ const ChatWindow = ({
         </div>
       </div>
 
-      {/* Message Input */}
-      <MessageInput
-        activeConversation={activeConversation}
-        onSendMessage={onSendMessage}
-        onTyping={onTyping}
-        sending={sending}
-      />
+      {/* Scroll to Bottom Button */}
+      {showScrollButton && (
+        <div className="absolute bottom-24 right-6 z-10 animate-fade-in">
+          <Button
+            onClick={scrollToBottom}
+            size="icon"
+            className="h-10 w-10 rounded-full bg-slate-800 hover:bg-slate-900 text-white shadow-lg hover:shadow-xl transition-all"
+          >
+            <ArrowDown className="w-5 h-5" />
+          </Button>
+        </div>
+      )}
+
+      {/* Message Input - Sticky at bottom */}
+      <div className="sticky bottom-0 left-0 right-0 z-20">
+        <MessageInput
+          activeConversation={activeConversation}
+          onSendMessage={onSendMessage}
+          onTyping={onTyping}
+          sending={sending}
+        />
+      </div>
     </div>
   );
 };

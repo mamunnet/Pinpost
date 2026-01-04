@@ -12,7 +12,12 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'
 export const getImageUrl = (imageUrl) => {
   if (!imageUrl) return '';
   
-  // If it's a Cloudinary URL, return as-is (highest priority)
+  // If it's a base64 data URI, return as-is (highest priority)
+  if (imageUrl.startsWith('data:image/')) {
+    return imageUrl;
+  }
+  
+  // If it's a Cloudinary URL, return as-is
   if (imageUrl.includes('cloudinary.com') || imageUrl.includes('res.cloudinary.com')) {
     return imageUrl;
   }

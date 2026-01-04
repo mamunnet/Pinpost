@@ -36,7 +36,7 @@ import ProfilePage from "@/pages/ProfilePage";
 import EnhancedMessagesPage from "@/pages/EnhancedMessagesPage";
 import AuthPage from "@/pages/AuthPage";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
 const API = `${BACKEND_URL}/api`;
 
 const AuthContext = ({ children }) => {
@@ -74,6 +74,7 @@ const AuthContext = ({ children }) => {
       setLoading(false);
     }
   };
+
 
   const login = (newToken, userData) => {
     localStorage.setItem('token', newToken);
@@ -270,8 +271,8 @@ const TrendingSidebar = ({ user }) => {
             <button
               onClick={() => setActiveTab('posts')}
               className={`flex-1 py-2 px-3 rounded-md text-xs font-semibold transition-all ${activeTab === 'posts'
-                  ? 'bg-white shadow-md text-slate-700'
-                  : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white shadow-md text-slate-700'
+                : 'text-slate-600 hover:text-slate-900'
                 }`}
             >
               <MessageCircle className="w-3.5 h-3.5 inline mr-1" />
@@ -280,8 +281,8 @@ const TrendingSidebar = ({ user }) => {
             <button
               onClick={() => setActiveTab('blogs')}
               className={`flex-1 py-2 px-3 rounded-md text-xs font-semibold transition-all ${activeTab === 'blogs'
-                  ? 'bg-white shadow-md text-slate-700'
-                  : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white shadow-md text-slate-700'
+                : 'text-slate-600 hover:text-slate-900'
                 }`}
             >
               <FileText className="w-3.5 h-3.5 inline mr-1" />
@@ -290,8 +291,8 @@ const TrendingSidebar = ({ user }) => {
             <button
               onClick={() => setActiveTab('users')}
               className={`flex-1 py-2 px-3 rounded-md text-xs font-semibold transition-all ${activeTab === 'users'
-                  ? 'bg-white shadow-md text-slate-700'
-                  : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white shadow-md text-slate-700'
+                : 'text-slate-600 hover:text-slate-900'
                 }`}
             >
               <Users className="w-3.5 h-3.5 inline mr-1" />

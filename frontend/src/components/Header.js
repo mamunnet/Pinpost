@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Home, FileText, Users, Bell, Search, LogOut, User, Settings, TrendingUp, UserPlus, HelpCircle, Shield, Mail, Menu, Wifi, WifiOff, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { SearchBar } from "@/components/SearchBar";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
 const API = `${BACKEND_URL}/api`;
@@ -155,7 +156,6 @@ const NotificationsDropdown = ({ user }) => {
         wsRef.current = ws;
 
         ws.onopen = () => {
-          console.log('✅ WebSocket connected for real-time notifications');
           setWsConnected(true);
 
           // Send periodic ping to keep connection alive
@@ -184,32 +184,29 @@ const NotificationsDropdown = ({ user }) => {
 
               // Show instant toast notification
               showInstantNotification(notification);
-
               console.log('📬 New notification processed:', notification);
             }
           } catch (error) {
-            console.error('Error parsing WebSocket message:', error);
+            // Silently handle parsing errors
           }
         };
 
         ws.onerror = (error) => {
-          console.error('❌ WebSocket error:', error);
+          // Silently handle WebSocket errors - they're expected when backend is unavailable
           setWsConnected(false);
         };
 
         ws.onclose = (event) => {
-          console.log('🔌 WebSocket disconnected. Code:', event.code, 'Reason:', event.reason);
           setWsConnected(false);
           if (ws.pingInterval) {
             clearInterval(ws.pingInterval);
           }
 
-          // Attempt to reconnect after 3 seconds if connection was lost
-          if (event.code !== 1000) { // 1000 = normal closure
+          // Attempt to reconnect after 5 seconds if connection was lost unexpectedly
+          if (event.code !== 1000 && event.code !== 1006) {
             setTimeout(() => {
-              console.log('🔄 Attempting to reconnect WebSocket...');
               connectWebSocket();
-            }, 3000);
+            }, 5000);
           }
         };
       } catch (error) {
@@ -320,12 +317,11 @@ const NotificationsDropdown = ({ user }) => {
   );
 };
 
-// Export NotificationsDropdown for use in other components
 export { NotificationsDropdown };
 
 export const Header = ({ user, logout }) => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
   const navScrollRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -430,7 +426,7 @@ export const Header = ({ user, logout }) => {
             </Link>
 
             {/* Right Side - Search and Notifications */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               {/* Mobile Search Icon */}
               <button className="p-2.5 rounded-full hover:bg-white/50 transition-colors">
                 <Search className="w-5 h-5 text-gray-600" />
@@ -470,8 +466,37 @@ export const Header = ({ user, logout }) => {
                   />
                 </div>
 
-                {/* Notifications Dropdown in Top Bar */}
+                {/* Notifications Dropdown */}
                 {user && <NotificationsDropdown user={user} />}
+
+                {/* Messages Icon */}
+                <Link
+                  to="/messages"
+                  className={`relative p-2 rounded-full transition-all flex-shrink-0 ${isActive('/messages')
+                      ? 'bg-slate-800 text-white'
+                      : 'hover:bg-slate-200 text-slate-700'
+                    }`}
+                  data-testid="messages-btn"
+                >
+                  <Mail className="w-5 h-5" />
+                  {unreadMessages > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-semibold shadow-md">
+                      {unreadMessages > 99 ? '99+' : unreadMessages}
+                    </span>
+                  )}
+                </Link>
+
+                {/* Menu Icon */}
+                <Link
+                  to="/menu"
+                  className={`relative p-2 rounded-full transition-all flex-shrink-0 ${isActive('/menu')
+                      ? 'bg-slate-800 text-white'
+                      : 'hover:bg-slate-200 text-slate-700'
+                    }`}
+                  data-testid="menu-btn"
+                >
+                  <Menu className="w-5 h-5" />
+                </Link>
               </div>
             </div>
           </div>
@@ -479,7 +504,7 @@ export const Header = ({ user, logout }) => {
 
         {/* Main Navigation - Desktop Only */}
         <div className="w-full">
-          <div className="flex items-center h-14 sm:h-16 px-3 sm:px-6 gap-3 sm:gap-6">
+          <div className="flex items-center h-16 px-3 sm:px-6 gap-3 sm:gap-6 bg-white border-b border-slate-200/60 shadow-sm">
             {/* Left Navigation - Horizontal Scroll */}
             <nav
               ref={navScrollRef}
@@ -500,7 +525,7 @@ export const Header = ({ user, logout }) => {
                 data-testid="nav-home"
               >
                 <Home className="w-5 h-5 sm:w-5 sm:h-5" />
-                <span className="font-medium text-sm sm:text-base">Home</span>
+                <span className="hidden sm:inline font-medium text-sm sm:text-base">Home</span>
               </Link>
 
               <Link
@@ -513,7 +538,7 @@ export const Header = ({ user, logout }) => {
                 data-testid="nav-social"
               >
                 <Users className="w-5 h-5 sm:w-5 sm:h-5" />
-                <span className="font-medium text-sm sm:text-base">Social</span>
+                <span className="hidden sm:inline font-medium text-sm sm:text-base">Social</span>
               </Link>
 
               <Link
@@ -526,7 +551,7 @@ export const Header = ({ user, logout }) => {
                 data-testid="nav-blogs"
               >
                 <FileText className="w-5 h-5 sm:w-5 sm:h-5" />
-                <span className="font-medium text-sm sm:text-base">Blogs</span>
+                <span className="hidden sm:inline font-medium text-sm sm:text-base">Blogs</span>
               </Link>
 
               <Link
@@ -539,40 +564,9 @@ export const Header = ({ user, logout }) => {
                 data-testid="nav-trending"
               >
                 <TrendingUp className="w-5 h-5 sm:w-5 sm:h-5" />
-                <span className="font-medium text-sm sm:text-base">Trending</span>
+                <span className="hidden sm:inline font-medium text-sm sm:text-base">Trending</span>
               </Link>
             </nav>
-
-            {/* Right Menu */}
-            {user && (
-              <div className="flex items-center gap-2">
-                {/* Messages Icon */}
-                <Link
-                  to="/messages"
-                  className={`relative p-2.5 rounded-full transition-all flex-shrink-0 ${isActive('/messages')
-                      ? 'bg-blue-100 text-blue-600'
-                      : 'hover:bg-slate-200 text-slate-700'
-                    }`}
-                  data-testid="messages-btn"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  {unreadMessages > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold shadow-md">
-                      {unreadMessages > 99 ? '99+' : unreadMessages}
-                    </span>
-                  )}
-                </Link>
-
-                {/* Hamburger Menu Button */}
-                <button
-                  onClick={() => navigate('/menu')}
-                  className="p-2.5 rounded-full hover:bg-slate-200 transition-all flex-shrink-0"
-                  data-testid="user-menu-btn"
-                >
-                  <Menu className="w-5 h-5 text-slate-700" />
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>

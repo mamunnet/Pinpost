@@ -35,8 +35,8 @@ const ConversationList = ({
   return (
     <div className={`${activeConversation ? 'hidden md:block' : 'block'} w-full md:w-96 border-r border-slate-200 flex flex-col bg-white shadow-sm`}>
       {/* Header - Modern Design */}
-      <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-white">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+      <div className="p-6 border-b border-slate-200 bg-white">
+        <h1 className="text-2xl font-bold text-slate-900">
           Messages
         </h1>
         <p className="text-sm text-slate-600 mt-1">
@@ -53,7 +53,7 @@ const ConversationList = ({
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10 border-slate-300 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg"
+            className="pl-10 border-slate-300 bg-white focus:ring-2 focus:ring-slate-400 focus:border-slate-400 rounded-lg"
           />
         </div>
       </div>
@@ -63,7 +63,7 @@ const ConversationList = ({
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+              <div className="w-12 h-12 border-4 border-slate-300 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
               <p className="text-slate-500 text-sm">Loading conversations...</p>
             </div>
           </div>
@@ -90,15 +90,15 @@ const ConversationList = ({
                   key={conv.id}
                   onClick={() => handleConversationClick(conv)}
                   className={`flex items-center gap-4 px-4 py-4 cursor-pointer border-b border-slate-100 transition-all duration-200 hover:bg-slate-50 ${
-                    isActive ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                    isActive ? 'bg-slate-100 border-l-4 border-l-slate-800' : ''
                   }`}
                 >
                   <div className="relative flex-shrink-0">
                     <Avatar className={`w-14 h-14 border-2 transition-all ${
-                      isActive ? 'border-blue-500 shadow-lg shadow-blue-500/30' : 'border-white shadow-md'
+                      isActive ? 'border-slate-800 shadow-lg' : 'border-white shadow-md'
                     }`}>
-                      <AvatarImage src={getUserAvatarUrl(other?.avatar_url)} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold text-lg">
+                      <AvatarImage src={getUserAvatarUrl(other?.avatar)} />
+                      <AvatarFallback className="bg-slate-700 text-white font-semibold text-lg">
                         {other?.username?.[0]?.toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
@@ -109,7 +109,7 @@ const ConversationList = ({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <h3 className={`font-semibold truncate ${
-                        isActive ? 'text-blue-700' : unreadCount > 0 ? 'text-slate-900' : 'text-slate-800'
+                        isActive ? 'text-slate-900' : unreadCount > 0 ? 'text-slate-900' : 'text-slate-800'
                       }`}>
                         {other?.username}
                       </h3>
@@ -124,7 +124,7 @@ const ConversationList = ({
                         {conv.last_message || 'No messages yet'}
                       </p>
                       {unreadCount > 0 && (
-                        <Badge className="ml-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-md flex-shrink-0">
+                        <Badge className="ml-2 bg-slate-800 hover:bg-slate-900 shadow-md flex-shrink-0">
                           {unreadCount > 99 ? '99+' : unreadCount}
                         </Badge>
                       )}
