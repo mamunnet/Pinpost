@@ -5,12 +5,31 @@ import os
 from typing import Optional
 
 # Configure Cloudinary from environment variables
-cloudinary.config(
-    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
-    api_key=os.environ.get('CLOUDINARY_API_KEY', ''),
-    api_secret=os.environ.get('CLOUDINARY_API_SECRET', ''),
-    secure=True
-)
+def configure_cloudinary():
+    cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME', '')
+    api_key = os.environ.get('CLOUDINARY_API_KEY', '')
+    api_secret = os.environ.get('CLOUDINARY_API_SECRET', '')
+
+    if not all([cloud_name, api_key, api_secret]):
+        print("WARNING: Cloudinary credentials missing in environment variables!")
+        # Fallback to try loading explicitly if checks fail (though config.py should have handled it)
+        # from dotenv import load_dotenv
+        # load_dotenv()
+        # Retry
+        cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME', '')
+        api_key = os.environ.get('CLOUDINARY_API_KEY', '')
+        api_secret = os.environ.get('CLOUDINARY_API_SECRET', '')
+        
+    print(f"Cloudinary configured with cloud_name: {cloud_name}")
+
+    cloudinary.config(
+        cloud_name=cloud_name,
+        api_key=api_key,
+        api_secret=api_secret,
+        secure=True
+    )
+
+_configured = False
 
 # Upload preset names
 PRESETS = {
@@ -34,6 +53,11 @@ def upload_to_cloudinary(file_content: bytes, filename: str, upload_type: str = 
         dict with url, public_id, secure_url
     """
     try:
+        global _configured
+        if not _configured:
+            configure_cloudinary()
+            _configured = True
+            
         preset = PRESETS.get(upload_type, 'pinpost_profile')
         
         result = cloudinary.uploader.upload(
