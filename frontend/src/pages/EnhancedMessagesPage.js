@@ -80,7 +80,7 @@ const EnhancedMessagesPage = ({ user }) => {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-9rem)] lg:h-[calc(100vh-8rem)] bg-white mt-16 lg:mt-32">
+    <div className="flex flex-col h-[calc(100vh-7rem)] lg:h-[calc(100vh-8rem)] bg-white">
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden h-full">
         {/* Conversations List */}

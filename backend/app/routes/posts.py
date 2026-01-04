@@ -115,13 +115,13 @@ async def delete_post(post_id: str, user_id: str = Depends(get_current_user)):
 
 
 @router.get("/users/{username}/posts", response_model=List[ShortPost])
-async def get_user_posts(username: str, current_user_id: Optional[str] = Depends(get_optional_user)):
+async def get_user_posts(username: str, skip: int = 0, limit: int = 20, current_user_id: Optional[str] = Depends(get_optional_user)):
     """Get posts by a specific user."""
     user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    posts = await db.short_posts.find({"author_id": user["id"]}).sort("created_at", -1).to_list(100)
+    posts = await db.short_posts.find({"author_id": user["id"]}).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     
     result = []
     for post in posts:

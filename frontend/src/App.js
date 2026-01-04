@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+
 import { toast } from "sonner";
 import { Heart, MessageCircle, Share2, Bookmark, Edit, Trash2, Plus, Home, FileText, User, LogOut, Search, Users, TrendingUp, Camera, MapPin, Calendar, Flame, Sparkles, Clock, ArrowLeft, ChevronRight } from "lucide-react";
 import { getUserAvatarUrl, getImageUrl } from "@/utils/imageUtils";
@@ -101,92 +101,7 @@ const AuthContext = ({ children }) => {
 // Navigation component removed - using Header from separate file
 // SocialPage component moved to frontend/src/pages/SocialPage.js
 
-const WhoToFollow = ({ user }) => {
-  const navigate = useNavigate();
-  const [suggestedUsers, setSuggestedUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchSuggestions();
-  }, []);
-
-  const fetchSuggestions = async () => {
-    try {
-      const response = await axios.get(`${API}/users/trending?limit=3`);
-      setSuggestedUsers(response.data.filter(u => u.id !== user?.id));
-    } catch (error) {
-      console.error('Failed to load suggestions');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleFollow = async (userId) => {
-    try {
-      await axios.post(`${API}/users/${userId}/follow`);
-
-      // Find the user being followed for personalized notification
-      const followedUser = suggestedUsers.find(u => u.id === userId);
-      const username = followedUser ? followedUser.username : 'User';
-
-      toast.success(`👤 Following ${username}!`, {
-        description: 'You will now see their posts in your feed and they have been notified.',
-        duration: 4000,
-        action: {
-          label: "View Profile",
-          onClick: () => navigate(`/profile/${username}`)
-        }
-      });
-
-      fetchSuggestions();
-    } catch (error) {
-      toast.error('❌ Failed to follow user', {
-        description: 'Please try again or check your connection.',
-        duration: 4000
-      });
-    }
-  };
-
-  if (loading) {
-    return <div className="animate-pulse space-y-3">
-      {[1, 2, 3].map(i => <div key={i} className="h-16 bg-gray-100 rounded"></div>)}
-    </div>;
-  }
-
-  return (
-    <>
-      {suggestedUsers.slice(0, 3).map((suggestedUser) => (
-        <div key={suggestedUser.id} className="flex items-center justify-between py-2">
-          <div
-            className="flex items-center gap-2 flex-1 cursor-pointer"
-            onClick={() => navigate(`/profile/${suggestedUser.username}`)}
-          >
-            <Avatar className="w-10 h-10">
-              {getUserAvatarUrl(suggestedUser) ? (
-                <img src={getUserAvatarUrl(suggestedUser)} alt={suggestedUser.username} className="w-full h-full object-cover" />
-              ) : (
-                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm">
-                  {suggestedUser.username[0].toUpperCase()}
-                </AvatarFallback>
-              )}
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate">{suggestedUser.name || suggestedUser.username}</p>
-              <p className="text-xs text-gray-500 truncate">@{suggestedUser.username}</p>
-            </div>
-          </div>
-          <Button
-            size="sm"
-            onClick={() => handleFollow(suggestedUser.id)}
-            className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-xs px-3"
-          >
-            Follow
-          </Button>
-        </div>
-      ))}
-    </>
-  );
-};
+// WhoToFollow component removed - dead code
 
 // CreateContentModal removed - now using EnhancedPostModal
 
@@ -599,7 +514,7 @@ function App() {
               <div className="flex flex-col min-h-screen">
                 <Header user={user} logout={logout} />
                 {/* Main content with adjusted padding: pt-14 for mobile condensed header, pt-28 for desktop two-row header */}
-                <div className="flex-1 pb-20 lg:pb-0">
+                <div className="flex-1 pt-28 lg:pt-32 lg:pb-0">
                   <Routes>
                     <Route path="/" element={<HomePage user={user} />} />
                     <Route path="/social" element={<SocialPage user={user} />} />
@@ -612,8 +527,7 @@ function App() {
                     <Route path="/menu" element={<MenuPage user={user} logout={logout} />} />
                   </Routes>
                 </div>
-                {/* Mobile Bottom Navigation */}
-                <MobileNavBar user={user} />
+                {/* Mobile Bottom Navigation Removed - Moved to Header */}
               </div>
             </BrowserRouter>
           );

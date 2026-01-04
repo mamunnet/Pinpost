@@ -125,7 +125,7 @@ const TrendingPage = ({ user }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-16 lg:pt-32 pb-20 lg:pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pb-20 lg:pb-12">
       <div className="max-w-6xl mx-auto px-3 sm:px-4">
         {/* Futuristic Header */}
         <div className="relative mb-4 sm:mb-8 overflow-hidden">
@@ -248,8 +248,8 @@ const TrendingPage = ({ user }) => {
                                     handleLike(post, 'post');
                                   }}
                                   className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full transition-all ${post.liked_by_user
-                                      ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                                      : 'text-slate-500 hover:text-red-500 hover:bg-red-50'
+                                    ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                                    : 'text-slate-500 hover:text-red-500 hover:bg-red-50'
                                     }`}
                                 >
                                   <Heart className={`w-3.5 h-3.5 ${post.liked_by_user ? 'fill-current' : ''}`} />
@@ -365,8 +365,8 @@ const TrendingPage = ({ user }) => {
                                   handleLike(blog, 'blog');
                                 }}
                                 className={`flex items-center gap-1 px-2 py-1 rounded-full transition-all ${blog.liked_by_user
-                                    ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                                    : 'bg-red-50 text-red-600 hover:bg-red-100'
+                                  ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                                  : 'bg-red-50 text-red-600 hover:bg-red-100'
                                   }`}
                               >
                                 <Heart className={`w-3 h-3 ${blog.liked_by_user ? 'fill-current' : ''}`} />

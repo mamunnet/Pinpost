@@ -57,11 +57,11 @@ export const PeopleYouMayKnow = ({ user, limit = 5 }) => {
     try {
       if (isFollowing) {
         // Unfollow
-        await axios.delete(`${API}/follow/${userId}`);
+        await axios.delete(`${API}/users/${userId}/follow`);
         toast.success('Unfollowed successfully');
       } else {
         // Follow
-        await axios.post(`${API}/follow/${userId}`);
+        await axios.post(`${API}/users/${userId}/follow`);
         toast.success('Successfully followed!');
       }
 
@@ -193,8 +193,8 @@ export const PeopleYouMayKnow = ({ user, limit = 5 }) => {
                   onClick={() => handleFollow(suggestion.id, suggestion.is_following)}
                   size="sm"
                   className={`flex-shrink-0 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 ${suggestion.is_following
-                      ? 'bg-slate-200 hover:bg-slate-300 text-slate-700 border border-slate-300'
-                      : 'bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white'
+                    ? 'bg-slate-200 hover:bg-slate-300 text-slate-700 border border-slate-300'
+                    : 'bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white'
                     }`}
                 >
                   <UserPlus className="w-4 h-4 mr-1" />

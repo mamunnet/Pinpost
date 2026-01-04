@@ -48,7 +48,7 @@ const BlogDetailPage = ({ user }) => {
 
   const fetchComments = async () => {
     try {
-      const response = await axios.get(`${API}/comments/blog/${blogId}`);
+      const response = await axios.get(`${API}/blog/${blogId}/comments`);
       setComments(response.data);
     } catch (error) {
       console.error('Failed to load comments');
@@ -72,7 +72,7 @@ const BlogDetailPage = ({ user }) => {
     if (!commentContent.trim()) return;
 
     try {
-      await axios.post(`${API}/comments/blog/${blogId}`, { content: commentContent });
+      await axios.post(`${API}/blog/${blogId}/comments`, { content: commentContent });
       setCommentContent('');
       fetchComments();
       fetchBlog();
@@ -145,9 +145,9 @@ const BlogDetailPage = ({ user }) => {
               <Link to={`/profile/${blog.author_username}`}>
                 <Avatar className="w-10 h-10 sm:w-14 sm:h-14 ring-2 sm:ring-4 ring-slate-200 hover:ring-slate-300 transition-all">
                   {blog.author_avatar ? (
-                    <img 
-                      src={blog.author_avatar} 
-                      alt={blog.author_name || blog.author_username} 
+                    <img
+                      src={blog.author_avatar}
+                      alt={blog.author_name || blog.author_username}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -168,10 +168,10 @@ const BlogDetailPage = ({ user }) => {
               </div>
             </div>
 
-            <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-6 leading-tight text-slate-900" style={{fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"}}>
+            <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-6 leading-tight text-slate-900" style={{ fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif" }}>
               {blog.title}
             </h1>
-            
+
             <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-4 sm:mb-8">
               {blog.tags.map((tag) => (
                 <Badge key={tag} className="bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors border-0 px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm">
@@ -182,10 +182,10 @@ const BlogDetailPage = ({ user }) => {
 
             {blog.cover_image && (
               <div className="relative mb-4 sm:mb-8 rounded-xl sm:rounded-2xl overflow-hidden group">
-                <img 
-                  src={blog.cover_image} 
-                  alt={blog.title} 
-                  className="w-full h-48 sm:h-64 md:h-80 lg:h-96 object-cover group-hover:scale-105 transition-transform duration-700" 
+                <img
+                  src={blog.cover_image}
+                  alt={blog.title}
+                  className="w-full h-48 sm:h-64 md:h-80 lg:h-96 object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
@@ -194,8 +194,8 @@ const BlogDetailPage = ({ user }) => {
 
           {/* Enhanced Article Content */}
           <div className="px-4 sm:px-8 lg:px-12 pb-4 sm:pb-8">
-            <div 
-              className="text-slate-800 text-sm sm:text-base lg:text-lg leading-relaxed sm:leading-loose whitespace-pre-wrap break-words" 
+            <div
+              className="text-slate-800 text-sm sm:text-base lg:text-lg leading-relaxed sm:leading-loose whitespace-pre-wrap break-words"
               style={{
                 fontFamily: "'Georgia', 'Charter', 'Iowan Old Style', 'Times New Roman', serif",
                 fontSize: 'clamp(0.875rem, 2.5vw, 1.125rem)',
@@ -213,22 +213,21 @@ const BlogDetailPage = ({ user }) => {
             <div className="flex items-center justify-center sm:justify-start gap-4 sm:gap-8">
               <button
                 onClick={handleLike}
-                className={`flex items-center space-x-1.5 sm:space-x-3 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-105 ${
-                  blog.liked_by_user 
-                    ? 'text-red-600 bg-red-50 hover:bg-red-100' 
+                className={`flex items-center space-x-1.5 sm:space-x-3 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-105 ${blog.liked_by_user
+                    ? 'text-red-600 bg-red-50 hover:bg-red-100'
                     : 'text-slate-600 hover:text-red-600 hover:bg-red-50'
-                }`}
+                  }`}
                 data-testid="like-blog-detail-btn"
               >
                 <Heart className={`w-4 h-4 sm:w-6 sm:h-6 ${blog.liked_by_user ? 'fill-current' : ''}`} />
                 <span className="font-semibold text-sm sm:text-base">{blog.likes_count}</span>
               </button>
-              
+
               <div className="flex items-center space-x-1.5 sm:space-x-3 px-2 sm:px-4 py-1.5 sm:py-2 text-slate-600">
                 <MessageCircle className="w-4 h-4 sm:w-6 sm:h-6" />
                 <span className="font-semibold text-sm sm:text-base">{blog.comments_count}</span>
               </div>
-              
+
               <button className="flex items-center space-x-1.5 sm:space-x-3 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300 hover:scale-105">
                 <Share2 className="w-4 h-4 sm:w-6 sm:h-6" />
                 <span className="font-semibold text-sm sm:text-base hidden sm:inline">Share</span>
@@ -244,7 +243,7 @@ const BlogDetailPage = ({ user }) => {
               <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-slate-600" />
               Comments
             </h2>
-            
+
             {user && (
               <div className="mb-4 sm:mb-8 p-3 sm:p-6 bg-slate-50 rounded-lg sm:rounded-xl border border-slate-200">
                 <div className="flex space-x-2 sm:space-x-4">
@@ -266,9 +265,9 @@ const BlogDetailPage = ({ user }) => {
                       className="border-slate-300 focus:border-slate-500 focus:ring-slate-500/20 bg-white text-sm sm:text-base"
                       data-testid="blog-comment-input"
                     />
-                    <Button 
-                      onClick={handleComment} 
-                      className="mt-2 sm:mt-4 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 transition-all duration-300 text-sm sm:text-base h-8 sm:h-10" 
+                    <Button
+                      onClick={handleComment}
+                      className="mt-2 sm:mt-4 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 transition-all duration-300 text-sm sm:text-base h-8 sm:h-10"
                       data-testid="blog-comment-submit-btn"
                     >
                       <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
@@ -311,7 +310,7 @@ const BlogDetailPage = ({ user }) => {
                           </p>
                         </div>
                         {user && user.id === comment.user_id && (
-                          <button 
+                          <button
                             onClick={() => handleDeleteComment(comment.id)}
                             className="text-xs sm:text-sm text-red-500 hover:text-red-700 font-semibold flex items-center gap-0.5 sm:gap-1 transition-colors flex-shrink-0"
                             title="Delete comment"

@@ -97,11 +97,11 @@ export const PostDetailPage = ({ user, logout }) => {
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
-    
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined 
+
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
     });
   };
 
@@ -153,7 +153,7 @@ export const PostDetailPage = ({ user, logout }) => {
         postImage = imageLines[0].trim();
       }
     }
-    
+
     // Extract location from the text part
     const locationMatch = displayContent.match(/📍\s*(.+?)(?:\n|$)/);
     if (locationMatch) {
@@ -165,7 +165,7 @@ export const PostDetailPage = ({ user, logout }) => {
   return (
     <>
       <Header user={user} logout={logout} />
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 pt-28 sm:pt-32 pb-6 sm:pb-12">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 pb-6 sm:pb-12">
         <div className="max-w-4xl mx-auto px-3 sm:px-4">
           {/* Back Button */}
           <Button
@@ -187,9 +187,9 @@ export const PostDetailPage = ({ user, logout }) => {
                     <Link to={`/profile/${post.author_username}`}>
                       <Avatar className="w-10 h-10 sm:w-14 sm:h-14 ring-2 ring-white shadow-lg hover:ring-rose-200 transition-all">
                         {post.author_avatar ? (
-                          <img 
-                            src={post.author_avatar} 
-                            alt={post.author_name || post.author_username} 
+                          <img
+                            src={post.author_avatar}
+                            alt={post.author_name || post.author_username}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -200,8 +200,8 @@ export const PostDetailPage = ({ user, logout }) => {
                       </Avatar>
                     </Link>
                     <div className="flex-1 min-w-0">
-                      <Link 
-                        to={`/profile/${post.author_username}`} 
+                      <Link
+                        to={`/profile/${post.author_username}`}
                         className="block hover:underline"
                       >
                         <p className="font-bold text-gray-900 text-sm sm:text-lg truncate">
@@ -233,9 +233,9 @@ export const PostDetailPage = ({ user, logout }) => {
                 {/* Post Image */}
                 {postImage && (
                   <div className="rounded-lg sm:rounded-xl overflow-hidden mt-3 sm:mt-4 bg-gray-100">
-                    <img 
-                      src={getImageUrl(postImage)} 
-                      alt="Post" 
+                    <img
+                      src={getImageUrl(postImage)}
+                      alt="Post"
                       className="w-full max-h-[400px] sm:max-h-[600px] object-contain"
                       onError={(e) => {
                         console.error('❌ PostDetailPage - Image failed to load:', postImage);
@@ -284,7 +284,7 @@ export const PostDetailPage = ({ user, logout }) => {
 
                   {/* Reaction Picker */}
                   {showReactions && (
-                    <div 
+                    <div
                       className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-white rounded-full shadow-xl border border-gray-200 px-3 py-2 flex space-x-1 z-10"
                       onMouseEnter={() => setShowReactions(true)}
                       onMouseLeave={() => setShowReactions(false)}
@@ -336,7 +336,7 @@ export const PostDetailPage = ({ user, logout }) => {
                           onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleComment()}
                           className="flex-1 bg-gray-100 border-0 focus:ring-1 focus:ring-rose-200 rounded-full px-3 sm:px-4 h-8 sm:h-9 text-xs sm:text-sm"
                         />
-                        <Button 
+                        <Button
                           onClick={handleComment}
                           disabled={!commentContent.trim()}
                           size="sm"
@@ -370,7 +370,7 @@ export const PostDetailPage = ({ user, logout }) => {
                           </Link>
                           <div className="flex-1 min-w-0">
                             <div className="bg-gray-100 rounded-xl sm:rounded-2xl px-2 sm:px-3 py-1.5 sm:py-2">
-                              <Link 
+                              <Link
                                 to={`/profile/${comment.username}`}
                                 className="font-semibold text-xs sm:text-sm hover:underline text-gray-900"
                               >
@@ -391,7 +391,7 @@ export const PostDetailPage = ({ user, logout }) => {
                                 {formatDate(comment.created_at)}
                               </span>
                               {user && user.id === comment.user_id && (
-                                <button 
+                                <button
                                   onClick={() => handleDeleteComment(comment.id)}
                                   className="text-[10px] sm:text-xs text-red-500 hover:text-red-700 font-semibold ml-auto flex items-center gap-0.5 sm:gap-1"
                                 >

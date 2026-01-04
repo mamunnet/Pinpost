@@ -94,7 +94,7 @@ const WhoToFollow = ({ user }) => {
         <div key={suggestion.id} className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
-              {suggestion.username[0].toUpperCase()}
+              {suggestion.username?.[0]?.toUpperCase()}
             </div>
             <div>
               <p className="font-semibold text-sm">{suggestion.name || suggestion.username}</p>
@@ -243,7 +243,7 @@ export const SocialPage = ({ user }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-16 lg:pt-32 pb-20 lg:pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pb-20 lg:pb-12">
       <div className="max-w-7xl mx-auto px-3 sm:px-4">
         {/* Enhanced Hero Section */}
         <div className="relative mb-4 sm:mb-8 overflow-hidden">

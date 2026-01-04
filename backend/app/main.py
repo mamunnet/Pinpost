@@ -114,7 +114,7 @@ async def root():
 
 
 # WebSocket endpoint for real-time notifications
-@app.websocket("/ws/{user_id}")
+@app.websocket("/ws/notifications/{user_id}")
 async def websocket_notifications(websocket: WebSocket, user_id: str):
     """WebSocket endpoint for real-time notifications and messaging."""
     await manager.connect(user_id, websocket)

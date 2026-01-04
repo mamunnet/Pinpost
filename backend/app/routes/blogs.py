@@ -107,13 +107,13 @@ async def delete_blog(blog_id: str, user_id: str = Depends(get_current_user)):
 
 
 @router.get("/users/{username}/blogs", response_model=List[BlogPost])
-async def get_user_blogs(username: str, current_user_id: Optional[str] = Depends(get_optional_user)):
+async def get_user_blogs(username: str, skip: int = 0, limit: int = 20, current_user_id: Optional[str] = Depends(get_optional_user)):
     """Get blogs by a specific user."""
     user = await db.users.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    blogs = await db.blog_posts.find({"author_id": user["id"]}).sort("created_at", -1).to_list(100)
+    blogs = await db.blog_posts.find({"author_id": user["id"]}).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     
     result = []
     for blog in blogs:

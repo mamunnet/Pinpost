@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Image as ImageIcon, 
+import {
+  Image as ImageIcon,
   Bold,
   Italic,
   List,
@@ -106,7 +106,7 @@ export const CreateBlogPage = () => {
     let newText = '';
     let cursorOffset = 0;
 
-    switch(format) {
+    switch (format) {
       case 'heading1':
         newText = `# ${selectedText || 'Heading 1'}`;
         cursorOffset = selectedText ? 0 : -9;
@@ -201,7 +201,7 @@ export const CreateBlogPage = () => {
       });
 
       toast.success('Draft saved successfully!');
-      
+
       // Also save to localStorage as backup
       const draft = {
         title,
@@ -212,7 +212,7 @@ export const CreateBlogPage = () => {
         timestamp: new Date().toISOString()
       };
       localStorage.setItem('blog_draft', JSON.stringify(draft));
-      
+
       // Navigate to blogs page
       navigate('/blogs');
     } catch (error) {
@@ -275,7 +275,7 @@ export const CreateBlogPage = () => {
             </Button>
             <h1 className="text-xl font-semibold">Write Blog Article</h1>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -285,7 +285,7 @@ export const CreateBlogPage = () => {
               <Eye className="w-4 h-4 mr-2" />
               {preview ? 'Edit' : 'Preview'}
             </Button>
-            
+
             <Button
               variant="outline"
               onClick={handleSaveDraft}
@@ -294,7 +294,7 @@ export const CreateBlogPage = () => {
               {savingDraft ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               <span className="hidden sm:inline ml-2">Draft</span>
             </Button>
-            
+
             <Button
               onClick={handlePublish}
               disabled={publishing || !title.trim() || !content.trim()}
@@ -307,7 +307,7 @@ export const CreateBlogPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto p-4 pb-20" style={{ paddingTop: '180px' }}>
+      <div className="max-w-4xl mx-auto p-4 pb-20 pt-24">
         {!preview ? (
           <Card className="shadow-md">
             <CardContent className="p-6 space-y-6">
@@ -494,9 +494,9 @@ export const CreateBlogPage = () => {
               {coverImage && (
                 <img src={coverImage} alt="Cover" className="w-full h-80 object-cover rounded-lg mb-8" />
               )}
-              
+
               <h1 className="text-4xl font-bold mb-4">{title || 'Untitled'}</h1>
-              
+
               {excerpt && (
                 <p className="text-lg text-gray-600 mb-6">{excerpt}</p>
               )}

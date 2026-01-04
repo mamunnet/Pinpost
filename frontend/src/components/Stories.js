@@ -590,7 +590,7 @@ const Stories = ({ user }) => {
           className="flex-shrink-0 group"
         >
           <div className="relative">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-slate-200 to-slate-100 p-0.5 shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-slate-200 to-slate-100 p-0.5 shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105">
               <div className="w-full h-full rounded-full overflow-hidden bg-white flex items-center justify-center">
                 {getUserAvatarUrl(user) ? (
                   <img src={getUserAvatarUrl(user)} alt={user?.username} className="w-full h-full object-cover" />
@@ -613,7 +613,7 @@ const Stories = ({ user }) => {
           <div className="flex items-center gap-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex-shrink-0">
-                <div className="w-20 h-20 rounded-full bg-slate-200 animate-pulse" />
+                <div className="w-16 h-16 rounded-full bg-slate-200 animate-pulse" />
                 <div className="h-3 w-16 bg-slate-200 rounded mt-2 animate-pulse" />
               </div>
             ))}
@@ -628,7 +628,7 @@ const Stories = ({ user }) => {
                 className="flex-shrink-0 group"
               >
                 <div className="relative">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 p-0.5 shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 p-0.5 shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105">
                     <div className="w-full h-full rounded-full border-[3px] border-white overflow-hidden bg-slate-200">
                       {latestStory.media_url ? (
                         <img src={getImageUrl(latestStory.media_url)} alt={userStories.username} className="w-full h-full object-cover" />

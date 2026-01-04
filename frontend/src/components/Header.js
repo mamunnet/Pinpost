@@ -141,13 +141,26 @@ const NotificationsDropdown = ({ user }) => {
   };
 
   // WebSocket connection for real-time notifications
+  // WebSocket connection for real-time notifications
   useEffect(() => {
-    if (!user) return;
+    // Only proceed if we have a valid user ID. 
+    // Using user?.id in dependency array prevents re-running on other user object changes.
+    if (!user?.id) return;
 
     fetchNotifications();
 
+    let isMounted = true;
+    let connectTimeout;
+
     // Create WebSocket connection with proper error handling
     const connectWebSocket = () => {
+      if (!isMounted) return;
+
+      // Prevent multiple connections
+      if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) {
+        return;
+      }
+
       try {
         const wsUrl = getWebSocketUrl(user.id);
         console.log('🔗 Connecting to WebSocket:', wsUrl);
@@ -156,6 +169,10 @@ const NotificationsDropdown = ({ user }) => {
         wsRef.current = ws;
 
         ws.onopen = () => {
+          if (!isMounted) {
+            ws.close();
+            return;
+          }
           setWsConnected(true);
 
           // Send periodic ping to keep connection alive
@@ -169,22 +186,17 @@ const NotificationsDropdown = ({ user }) => {
         };
 
         ws.onmessage = (event) => {
+          if (!isMounted) return;
           try {
             if (event.data === 'pong') return; // Ignore pong responses
 
             const data = JSON.parse(event.data);
-            console.log('📨 WebSocket message received:', data);
 
             if (data.type === 'new_notification') {
               const notification = data.notification;
-
-              // Add new notification to the top of the list
               setNotifications(prev => [notification, ...prev]);
               setUnreadCount(prev => prev + 1);
-
-              // Show instant toast notification
               showInstantNotification(notification);
-              console.log('📬 New notification processed:', notification);
             }
           } catch (error) {
             // Silently handle parsing errors
@@ -192,21 +204,25 @@ const NotificationsDropdown = ({ user }) => {
         };
 
         ws.onerror = (error) => {
-          // Silently handle WebSocket errors - they're expected when backend is unavailable
+          if (!isMounted) return;
           setWsConnected(false);
         };
 
         ws.onclose = (event) => {
+          if (!isMounted) return;
           setWsConnected(false);
           if (ws.pingInterval) {
             clearInterval(ws.pingInterval);
           }
+          wsRef.current = null;
 
-          // Attempt to reconnect after 5 seconds if connection was lost unexpectedly
-          if (event.code !== 1000 && event.code !== 1006) {
+          // Only reconnect if the component is still mounted and it wasn't a clean close
+          if (event.code !== 1000 && event.code !== 1001 && document.visibilityState === 'visible') {
+            // Add a small jitter to prevent thundering herd
+            const delay = 3000 + Math.random() * 2000;
             setTimeout(() => {
-              connectWebSocket();
-            }, 5000);
+              if (isMounted && user?.id) connectWebSocket();
+            }, delay);
           }
         };
       } catch (error) {
@@ -215,8 +231,8 @@ const NotificationsDropdown = ({ user }) => {
       }
     };
 
-    // Initial connection
-    connectWebSocket();
+    // Debounce initial connection to handle React Strict Mode double-invocation
+    connectTimeout = setTimeout(connectWebSocket, 100);
 
     // Request notification permission
     if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
@@ -225,14 +241,19 @@ const NotificationsDropdown = ({ user }) => {
 
     // Cleanup on unmount
     return () => {
+      isMounted = false;
+      clearTimeout(connectTimeout);
       if (wsRef.current) {
         if (wsRef.current.pingInterval) {
           clearInterval(wsRef.current.pingInterval);
         }
-        wsRef.current.close(1000, 'Component unmounting');
+        // Force close immediately
+        wsRef.current.close();
+        wsRef.current = null;
       }
     };
-  }, [user]);
+  }, [user?.id]);
+
 
   const handleMarkAllRead = async () => {
     try {
@@ -340,21 +361,6 @@ export const Header = ({ user, logout }) => {
     };
 
     fetchUnreadMessages();
-
-    // Setup WebSocket to listen for new messages
-    const wsProtocol = BACKEND_URL.startsWith('https') ? 'wss' : 'ws';
-    const wsHost = BACKEND_URL.replace(/^https?:\/\//, '');
-    const ws = new WebSocket(`${wsProtocol}://${wsHost}/ws/notifications/${user.id}`);
-
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'new_message') {
-        // Increment unread count when new message arrives
-        setUnreadMessages(prev => prev + 1);
-      }
-    };
-
-    return () => ws.close();
   }, [user]);
 
   // Enable smooth scrolling with mouse drag
@@ -414,28 +420,55 @@ export const Header = ({ user, logout }) => {
   return (
     <header className="fixed top-0 w-full bg-white border-b border-gray-200 z-50 shadow-sm">
       {/* Mobile Header - Condensed single row (logo + search + notifications) */}
-      <div className="lg:hidden bg-slate-100 border-b border-slate-300">
-        <div className="w-full px-3">
-          <div className="flex items-center justify-between h-14">
-            {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2 text-slate-700 hover:text-slate-900 transition-colors">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-slate-600 to-slate-700 flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-sm">P</span>
-              </div>
-              <span className="font-bold text-lg bg-gradient-to-r from-slate-600 to-slate-700 bg-clip-text text-transparent">PenLink</span>
+      {/* Mobile Header - Facebook Style */}
+      <div className="lg:hidden bg-white shadow-sm z-50">
+        {/* Top Row: Logo & Actions */}
+        <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
+          <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
+            Pinpost
+          </Link>
+
+          <div className="flex items-center gap-2">
+            <div className="bg-gray-100 p-2 rounded-full">
+              <Search className="w-5 h-5 text-gray-700" />
+            </div>
+
+            {/* Messages Icon */}
+            <Link to="/messages" className="relative bg-gray-100 p-2 rounded-full text-gray-700">
+              <MessageCircle className="w-5 h-5" />
+              {unreadMessages > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[1.2rem] text-center border-2 border-white">
+                  {unreadMessages > 99 ? '99+' : unreadMessages}
+                </span>
+              )}
             </Link>
 
-            {/* Right Side - Search and Notifications */}
-            <div className="flex items-center gap-2">
-              {/* Mobile Search Icon */}
-              <button className="p-2.5 rounded-full hover:bg-white/50 transition-colors">
-                <Search className="w-5 h-5 text-gray-600" />
-              </button>
-
-              {/* Notifications Dropdown */}
-              {user && <NotificationsDropdown user={user} />}
-            </div>
+            {/* Notifications */}
+            {user && <NotificationsDropdown user={user} />}
           </div>
+        </div>
+
+        {/* Bottom Row: Navigation Tabs */}
+        <div className="flex items-center justify-between px-2 pt-1">
+          <Link to="/" className={`flex-1 flex justify-center py-3 border-b-2 transition-colors ${isActive('/') ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}>
+            <Home className={`w-6 h-6 ${isActive('/') ? 'fill-current' : ''}`} />
+          </Link>
+
+          <Link to="/social" className={`flex-1 flex justify-center py-3 border-b-2 transition-colors ${isActive('/social') ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}>
+            <Users className={`w-6 h-6 ${isActive('/social') ? 'fill-current' : ''}`} />
+          </Link>
+
+          <Link to="/blogs" className={`flex-1 flex justify-center py-3 border-b-2 transition-colors ${isActive('/blogs') ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}>
+            <FileText className={`w-6 h-6 ${isActive('/blogs') ? 'fill-current' : ''}`} />
+          </Link>
+
+          <Link to="/trending" className={`flex-1 flex justify-center py-3 border-b-2 transition-colors ${isActive('/trending') ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}>
+            <TrendingUp className={`w-6 h-6 ${isActive('/trending') ? 'fill-current' : ''}`} />
+          </Link>
+
+          <Link to="/menu" className={`flex-1 flex justify-center py-3 border-b-2 transition-colors ${isActive('/menu') ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:bg-gray-50'}`}>
+            <Menu className="w-6 h-6" />
+          </Link>
         </div>
       </div>
 
@@ -473,8 +506,8 @@ export const Header = ({ user, logout }) => {
                 <Link
                   to="/messages"
                   className={`relative p-2 rounded-full transition-all flex-shrink-0 ${isActive('/messages')
-                      ? 'bg-slate-800 text-white'
-                      : 'hover:bg-slate-200 text-slate-700'
+                    ? 'bg-slate-800 text-white'
+                    : 'hover:bg-slate-200 text-slate-700'
                     }`}
                   data-testid="messages-btn"
                 >
@@ -490,8 +523,8 @@ export const Header = ({ user, logout }) => {
                 <Link
                   to="/menu"
                   className={`relative p-2 rounded-full transition-all flex-shrink-0 ${isActive('/menu')
-                      ? 'bg-slate-800 text-white'
-                      : 'hover:bg-slate-200 text-slate-700'
+                    ? 'bg-slate-800 text-white'
+                    : 'hover:bg-slate-200 text-slate-700'
                     }`}
                   data-testid="menu-btn"
                 >
@@ -518,8 +551,8 @@ export const Header = ({ user, logout }) => {
               <Link
                 to="/"
                 className={`flex items-center space-x-2 px-4 sm:px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-200 flex-shrink-0 border shadow-sm hover:shadow ${isActive('/')
-                    ? 'bg-slate-200 text-slate-900 border-slate-300'
-                    : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
+                  ? 'bg-slate-200 text-slate-900 border-slate-300'
+                  : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
                   }`}
                 style={{ scrollSnapAlign: 'start' }}
                 data-testid="nav-home"
@@ -531,8 +564,8 @@ export const Header = ({ user, logout }) => {
               <Link
                 to="/social"
                 className={`flex items-center space-x-2 px-4 sm:px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-200 flex-shrink-0 border shadow-sm hover:shadow ${isActive('/social')
-                    ? 'bg-slate-200 text-slate-900 border-slate-300'
-                    : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
+                  ? 'bg-slate-200 text-slate-900 border-slate-300'
+                  : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
                   }`}
                 style={{ scrollSnapAlign: 'start' }}
                 data-testid="nav-social"
@@ -544,8 +577,8 @@ export const Header = ({ user, logout }) => {
               <Link
                 to="/blogs"
                 className={`flex items-center space-x-2 px-4 sm:px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-200 flex-shrink-0 border shadow-sm hover:shadow ${isActive('/blogs') || isActive('/blog')
-                    ? 'bg-slate-200 text-slate-900 border-slate-300'
-                    : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
+                  ? 'bg-slate-200 text-slate-900 border-slate-300'
+                  : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
                   }`}
                 style={{ scrollSnapAlign: 'start' }}
                 data-testid="nav-blogs"
@@ -557,8 +590,8 @@ export const Header = ({ user, logout }) => {
               <Link
                 to="/trending"
                 className={`flex items-center space-x-2 px-4 sm:px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-200 flex-shrink-0 border shadow-sm hover:shadow ${isActive('/trending')
-                    ? 'bg-slate-200 text-slate-900 border-slate-300'
-                    : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
+                  ? 'bg-slate-200 text-slate-900 border-slate-300'
+                  : 'hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-transparent hover:border-slate-300'
                   }`}
                 style={{ scrollSnapAlign: 'start' }}
                 data-testid="nav-trending"

@@ -37,20 +37,20 @@ const ProfilePage = ({ currentUser }) => {
 
   const fetchProfile = async () => {
     console.log('🔍 ProfilePage - Fetching profile for username:', username);
-    
+
     if (!username) {
       console.error('❌ ProfilePage - Username is undefined!');
       toast.error('Username not found');
       setLoading(false);
       return;
     }
-    
+
     try {
       console.log('📡 ProfilePage - Making API calls for:', username);
       const [userRes, blogsRes, postsRes] = await Promise.all([
         axios.get(`${API}/users/${username}`),
-        axios.get(`${API}/users/${username}/blogs`),
-        axios.get(`${API}/users/${username}/posts`)
+        axios.get(`${API}/users/${username}/blogs?limit=20`),
+        axios.get(`${API}/users/${username}/posts?limit=20`)
       ]);
       console.log('✅ ProfilePage - Profile loaded successfully:', userRes.data);
       setUser(userRes.data);
@@ -60,7 +60,7 @@ const ProfilePage = ({ currentUser }) => {
       console.error('❌ ProfilePage - Error loading profile:', error);
       console.error('Username attempted:', username);
       console.error('Error response:', error.response);
-      
+
       if (error.response?.status === 404) {
         toast.error(`Profile not found for username: ${username}`);
       } else {
@@ -76,9 +76,9 @@ const ProfilePage = ({ currentUser }) => {
     try {
       const userRes = await axios.get(`${API}/users/${username}`);
       const userId = userRes.data.id;
-      
+
       // Check if can message this user
-      const eligibilityRes = await axios.get(`${API}/conversations/check-eligibility/${userId}`);
+      const eligibilityRes = await axios.get(`${API}/messages/eligibility/${userId}`);
       setCanMessage(eligibilityRes.data.can_message);
     } catch (error) {
       console.error('Failed to check messaging eligibility');
@@ -91,7 +91,7 @@ const ProfilePage = ({ currentUser }) => {
       const res = await axios.post(`${API}/conversations`, {
         recipient_id: user.id
       });
-      
+
       // Navigate to messages page
       navigate('/messages');
     } catch (error) {
@@ -147,7 +147,7 @@ const ProfilePage = ({ currentUser }) => {
   const isOwnProfile = currentUser && currentUser.username === username;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-20 sm:pt-24 pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pb-8">
       <div className="max-w-5xl mx-auto px-3 sm:px-4 lg:px-6">
         {/* Compact Hero Section with Cover & Profile */}
         <div className="relative mb-4 sm:mb-6">
@@ -155,9 +155,9 @@ const ProfilePage = ({ currentUser }) => {
           <div className="relative h-32 sm:h-40 lg:h-48 rounded-2xl overflow-hidden shadow-xl border border-slate-200/50">
             {getUserCoverPhotoUrl(user) ? (
               <>
-                <img 
-                  src={getUserCoverPhotoUrl(user)} 
-                  alt="Cover" 
+                <img
+                  src={getUserCoverPhotoUrl(user)}
+                  alt="Cover"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent"></div>
@@ -168,7 +168,7 @@ const ProfilePage = ({ currentUser }) => {
                   <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                     <defs>
                       <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                        <circle cx="5" cy="5" r="1" fill="white" opacity="0.4"/>
+                        <circle cx="5" cy="5" r="1" fill="white" opacity="0.4" />
                       </pattern>
                     </defs>
                     <rect width="100" height="100" fill="url(#grid)" />
@@ -179,7 +179,7 @@ const ProfilePage = ({ currentUser }) => {
                 </div>
               </div>
             )}
-            
+
             {isOwnProfile && (
               <button
                 onClick={() => setShowEditCover(true)}
@@ -200,9 +200,9 @@ const ProfilePage = ({ currentUser }) => {
                   <div className="relative group">
                     <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-xl sm:rounded-2xl overflow-hidden ring-2 sm:ring-4 ring-white shadow-lg bg-gradient-to-br from-rose-500 to-amber-500">
                       {getUserAvatarUrl(user) ? (
-                        <img 
-                          src={getUserAvatarUrl(user)} 
-                          alt={user.name || user.username} 
+                        <img
+                          src={getUserAvatarUrl(user)}
+                          alt={user.name || user.username}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -211,7 +211,7 @@ const ProfilePage = ({ currentUser }) => {
                         </div>
                       )}
                     </div>
-                    
+
                     {isOwnProfile && (
                       <button
                         onClick={() => setShowEditAvatar(true)}
@@ -249,15 +249,15 @@ const ProfilePage = ({ currentUser }) => {
                             <div className="flex gap-2">
                               <Button
                                 onClick={handleFollow}
-                                className={user.is_following 
-                                  ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 shadow-md hover:shadow-lg transition-all duration-300 rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm" 
+                                className={user.is_following
+                                  ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 shadow-md hover:shadow-lg transition-all duration-300 rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm"
                                   : "bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm"
                                 }
                                 data-testid="follow-btn"
                               >
                                 {user.is_following ? 'Following' : 'Follow'}
                               </Button>
-                              
+
                               {canMessage && (
                                 <Button
                                   onClick={handleMessage}
@@ -280,7 +280,7 @@ const ProfilePage = ({ currentUser }) => {
                         <p className="text-slate-700 text-sm sm:text-base leading-relaxed">{user.bio}</p>
                       </div>
                     )}
-                    
+
                     {/* Compact Meta Info */}
                     <div className="flex flex-wrap items-center gap-2 mt-3 text-xs sm:text-sm">
                       {user.location && (
@@ -323,8 +323,8 @@ const ProfilePage = ({ currentUser }) => {
             {/* Compact Tab Navigation */}
             <div className="border-b border-slate-200/50 bg-slate-50/30 px-3 sm:px-4 lg:px-6">
               <TabsList className="bg-transparent border-0 h-auto p-0 space-x-2 sm:space-x-4">
-                <TabsTrigger 
-                  value="posts" 
+                <TabsTrigger
+                  value="posts"
                   data-testid="profile-posts-tab"
                   className="data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:border-b-2 data-[state=active]:border-slate-600 rounded-t-lg sm:rounded-t-xl px-3 sm:px-4 lg:px-6 py-2.5 sm:py-3 lg:py-4 font-semibold transition-all duration-300 hover:bg-white/50 text-xs sm:text-sm"
                 >
@@ -332,8 +332,8 @@ const ProfilePage = ({ currentUser }) => {
                   <span className="hidden sm:inline">Posts</span>
                   <Badge variant="secondary" className="ml-1 sm:ml-2 bg-slate-100 text-slate-700 rounded-lg text-xs px-1.5 py-0.5">{posts.length}</Badge>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="blogs" 
+                <TabsTrigger
+                  value="blogs"
                   data-testid="profile-blogs-tab"
                   className="data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:border-b-2 data-[state=active]:border-slate-600 rounded-t-lg sm:rounded-t-xl px-3 sm:px-4 lg:px-6 py-2.5 sm:py-3 lg:py-4 font-semibold transition-all duration-300 hover:bg-white/50 text-xs sm:text-sm"
                 >
@@ -341,7 +341,7 @@ const ProfilePage = ({ currentUser }) => {
                   <span className="hidden sm:inline">Blogs</span>
                   <Badge variant="secondary" className="ml-1 sm:ml-2 bg-blue-100 text-blue-700 rounded-lg text-xs px-1.5 py-0.5">{blogs.length}</Badge>
                 </TabsTrigger>
-                <TabsTrigger 
+                <TabsTrigger
                   value="about"
                   className="data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:border-b-2 data-[state=active]:border-slate-600 rounded-t-lg sm:rounded-t-xl px-3 sm:px-4 lg:px-6 py-2.5 sm:py-3 lg:py-4 font-semibold transition-all duration-300 hover:bg-white/50 text-xs sm:text-sm"
                 >
@@ -357,7 +357,7 @@ const ProfilePage = ({ currentUser }) => {
                 <div className="space-y-4 sm:space-y-6">
                   {posts.map((post) => (
                     <div key={post.id} className="transition-all duration-300 hover:scale-[1.01]">
-                      <PostCard post={post} onLike={() => {}} onComment={() => {}} />
+                      <PostCard post={post} onLike={() => { }} onComment={() => { }} />
                     </div>
                   ))}
                   {posts.length === 0 && (
@@ -378,7 +378,7 @@ const ProfilePage = ({ currentUser }) => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
                   {blogs.map((blog) => (
                     <div key={blog.id} className="transition-all duration-300 hover:scale-[1.01] hover:shadow-lg">
-                      <BlogCard blog={blog} onLike={() => {}} compact />
+                      <BlogCard blog={blog} onLike={() => { }} compact />
                     </div>
                   ))}
                   {blogs.length === 0 && (
@@ -412,7 +412,7 @@ const ProfilePage = ({ currentUser }) => {
                         </CardContent>
                       </Card>
                     )}
-                    
+
                     {/* Compact Location Card */}
                     {user.location && (
                       <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow-md hover:shadow-lg hover:scale-[1.01] transition-all duration-300">
@@ -427,7 +427,7 @@ const ProfilePage = ({ currentUser }) => {
                         </CardContent>
                       </Card>
                     )}
-                    
+
                     {/* Compact Birthday Card */}
                     {user.date_of_birth && (
                       <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 shadow-md hover:shadow-lg hover:scale-[1.01] transition-all duration-300">
@@ -439,16 +439,16 @@ const ProfilePage = ({ currentUser }) => {
                             Birthday
                           </h4>
                           <p className="text-slate-700 font-medium text-sm sm:text-base">
-                            {new Date(user.date_of_birth).toLocaleDateString('en-US', { 
-                              year: 'numeric', 
-                              month: 'long', 
-                              day: 'numeric' 
+                            {new Date(user.date_of_birth).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
                             })}
                           </p>
                         </CardContent>
                       </Card>
                     )}
-                    
+
                     {/* Compact Joined Card */}
                     <Card className={`bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 shadow-md hover:shadow-lg hover:scale-[1.01] transition-all duration-300 ${user.date_of_birth ? '' : 'sm:col-span-2'}`}>
                       <CardContent className="p-4 sm:p-6">
@@ -459,10 +459,10 @@ const ProfilePage = ({ currentUser }) => {
                           Joined PenLink
                         </h4>
                         <p className="text-slate-700 font-medium text-sm sm:text-base">
-                          {new Date(user.created_at).toLocaleDateString('en-US', { 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
+                          {new Date(user.created_at).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
                           })}
                         </p>
                       </CardContent>
@@ -477,8 +477,8 @@ const ProfilePage = ({ currentUser }) => {
 
       {/* Edit Profile Modal */}
       {showEditProfile && (
-        <EditProfileModal 
-          user={user} 
+        <EditProfileModal
+          user={user}
           onClose={() => setShowEditProfile(false)}
           onUpdate={(updatedUser) => {
             setUser(updatedUser);
@@ -489,8 +489,8 @@ const ProfilePage = ({ currentUser }) => {
 
       {/* Edit Cover Photo Modal */}
       {showEditCover && (
-        <EditCoverPhotoModal 
-          user={user} 
+        <EditCoverPhotoModal
+          user={user}
           onClose={() => setShowEditCover(false)}
           onUpdate={(updatedUser) => {
             setUser(updatedUser);
@@ -501,8 +501,8 @@ const ProfilePage = ({ currentUser }) => {
 
       {/* Edit Avatar Modal */}
       {showEditAvatar && (
-        <EditAvatarModal 
-          user={user} 
+        <EditAvatarModal
+          user={user}
           onClose={() => setShowEditAvatar(false)}
           onUpdate={(updatedUser) => {
             setUser(updatedUser);

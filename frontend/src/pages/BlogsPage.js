@@ -76,7 +76,7 @@ export const BlogsPage = ({ user }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-16 lg:pt-32 pb-20 lg:pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pb-20 lg:pb-12">
       <div className="max-w-7xl mx-auto px-3 sm:px-4">
         {/* Futuristic Header */}
         <div className="relative mb-4 sm:mb-8 overflow-hidden">

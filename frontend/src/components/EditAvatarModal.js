@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import { Camera, Upload, Trash2, Move, RotateCcw, ImageIcon } from 'lucide-react';
@@ -30,17 +30,17 @@ export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
     if (file && file.type.startsWith('image/')) {
       try {
         setUploading(true);
-        
+
         // Create preview URL immediately
         const localPreview = URL.createObjectURL(file);
         setPreviewUrl(localPreview);
         setPosition({ x: 0, y: 0 });
         setHasChanges(true);
-        
+
         // Upload to server (Cloudinary)
         const formData = new FormData();
         formData.append('file', file);
-        
+
         const token = localStorage.getItem('token');
         const response = await axios.post(`${API}/upload/image?upload_type=profile`, formData, {
           headers: {
@@ -48,13 +48,13 @@ export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
             'Authorization': `Bearer ${token}`
           },
         });
-        
+
         // Cloudinary returns full HTTPS URL
         const cloudinaryUrl = response.data.url;
         setAvatarUrl(cloudinaryUrl);  // Save full Cloudinary URL
         setPreviewUrl(cloudinaryUrl);  // Display Cloudinary URL
         setUploadedServerUrl(cloudinaryUrl);
-        
+
         toast.success('Image uploaded successfully!');
       } catch (error) {
         console.error('Upload error:', error);
@@ -124,12 +124,12 @@ export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!hasChanges) {
       toast.info('No changes to save');
       return;
     }
-    
+
     console.log('� EditAvatarModal - Saving avatar');
     console.log('Avatar URL to save:', avatarUrl);
     setLoading(true);
@@ -138,10 +138,10 @@ export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
       const response = await axios.put(`${API}/users/avatar`, {
         avatar: avatarUrl // Send relative path (/uploads/xxx.jpg)
       });
-      
+
       console.log('✅ EditAvatarModal - Save successful');
       toast.success('Profile picture updated successfully!');
-      
+
       // Pass the updated user data back
       onUpdate(response.data);
       onClose();
@@ -189,8 +189,9 @@ export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
             <Camera className="w-5 h-5" />
             <span>Edit Profile Picture</span>
           </DialogTitle>
+          <DialogDescription className="sr-only">Upload or remove your profile picture</DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           {/* Current Photo Badge */}
           {originalAvatar && (
@@ -221,7 +222,7 @@ export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
 
           {/* Preview */}
           <div className="flex justify-center">
-            <div 
+            <div
               className="w-48 h-48 rounded-2xl overflow-hidden border-4 border-gray-200 bg-gradient-to-br from-rose-500 to-amber-500 relative shadow-lg"
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
@@ -231,10 +232,10 @@ export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
             >
               {previewUrl ? (
                 <>
-                  <img 
+                  <img
                     ref={imageRef}
                     src={previewUrl}
-                    alt="Avatar preview" 
+                    alt="Avatar preview"
                     className="w-full h-full object-cover select-none"
                     style={getImageStyle()}
                     onMouseDown={handleMouseDown}
@@ -270,11 +271,10 @@ export const EditAvatarModal = ({ user, onClose, onUpdate }) => {
           {/* Upload */}
           <div>
             <Label className="text-sm font-medium mb-2 block">Upload Photo</Label>
-            <div 
+            <div
               onClick={() => !uploading && fileInputRef.current?.click()}
-              className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center transition-all cursor-pointer hover:border-rose-400 hover:bg-rose-50 ${
-                uploading ? 'opacity-50 cursor-wait' : ''
-              }`}
+              className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center transition-all cursor-pointer hover:border-rose-400 hover:bg-rose-50 ${uploading ? 'opacity-50 cursor-wait' : ''
+                }`}
             >
               {uploading ? (
                 <>

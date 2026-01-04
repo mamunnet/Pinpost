@@ -27,7 +27,7 @@ export const MenuPage = ({ user, logout }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 relative overflow-hidden pt-16 lg:pt-32 pb-20 lg:pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 relative overflow-hidden pb-20 lg:pb-12">
       {/* Background Pattern */}
       <div className="absolute inset-0">
         <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-slate-300/30 to-transparent rounded-full blur-3xl"></div>
@@ -39,16 +39,7 @@ export const MenuPage = ({ user, logout }) => {
 
       {/* Content */}
       <div className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6 py-6">
-        {/* Menu Title */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-800">Menu</h1>
-            <p className="text-slate-500">Manage your account</p>
-          </div>
-          <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md">
-            <Settings className="w-5 h-5 text-slate-600" />
-          </div>
-        </div>
+
         {/* User Profile Card */}
         <Link
           to={`/profile/${user.username}`}
@@ -57,6 +48,17 @@ export const MenuPage = ({ user, logout }) => {
           {/* Card Background Pattern */}
           <div className="absolute inset-0 bg-gradient-to-br from-slate-100/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <div className="relative flex items-center space-x-4">
+            {/* Absolute Settings Icon */}
+            <div className="absolute top-5 right-5 z-20">
+              <Link
+                to="/settings"
+                onClick={(e) => e.stopPropagation()}
+                className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center hover:bg-slate-200 transition-colors shadow-sm hover:shadow"
+              >
+                <Settings className="w-5 h-5 text-slate-600" />
+              </Link>
+            </div>
+
             <div className="relative">
               <Avatar className="w-20 h-20 ring-4 ring-white/80 shadow-xl">
                 {getUserAvatarUrl(user) ? (

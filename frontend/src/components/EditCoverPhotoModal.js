@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Camera, Upload, Trash2, Move } from "lucide-react";
@@ -24,16 +24,16 @@ export const EditCoverPhotoModal = ({ user, onClose, onUpdate }) => {
     if (file && file.type.startsWith('image/')) {
       try {
         setUploading(true);
-        
+
         // Create preview URL for immediate display
         const previewUrl = URL.createObjectURL(file);
         setCoverPhoto(previewUrl);
         setPosition({ x: 0, y: 0 }); // Reset position for new image
-        
+
         // Upload to server (Cloudinary)
         const formData = new FormData();
         formData.append('file', file);
-        
+
         const token = localStorage.getItem('token');
         const response = await axios.post(`${API}/upload/image?upload_type=cover`, formData, {
           headers: {
@@ -41,11 +41,11 @@ export const EditCoverPhotoModal = ({ user, onClose, onUpdate }) => {
             'Authorization': `Bearer ${token}`
           },
         });
-        
+
         // Cloudinary returns full HTTPS URL
         const cloudinaryUrl = response.data.url;
         setCoverPhoto(cloudinaryUrl);
-        
+
         toast.success('Image uploaded successfully!');
       } catch (error) {
         console.error('Upload error:', error);
@@ -69,10 +69,10 @@ export const EditCoverPhotoModal = ({ user, onClose, onUpdate }) => {
 
   const handleMouseMove = (e) => {
     if (!isDragging) return;
-    
+
     const newX = e.clientX - dragStart.x;
     const newY = e.clientY - dragStart.y;
-    
+
     setPosition({
       x: newX,
       y: newY
@@ -95,11 +95,11 @@ export const EditCoverPhotoModal = ({ user, onClose, onUpdate }) => {
 
   const handleTouchMove = (e) => {
     if (!isDragging) return;
-    
+
     const touch = e.touches[0];
     const newX = touch.clientX - dragStart.x;
     const newY = touch.clientY - dragStart.y;
-    
+
     setPosition({
       x: newX,
       y: newY
@@ -121,11 +121,11 @@ export const EditCoverPhotoModal = ({ user, onClose, onUpdate }) => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(`${API}/users/cover-photo`, 
+      const response = await axios.put(`${API}/users/cover-photo`,
         { cover_photo: coverPhoto },
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
-      
+
       toast.success('Cover photo updated successfully!');
       onUpdate(response.data);
     } catch (error) {
@@ -143,7 +143,7 @@ export const EditCoverPhotoModal = ({ user, onClose, onUpdate }) => {
       const response = await axios.delete(`${API}/users/cover-photo`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
+
       toast.success('Cover photo removed successfully!');
       onUpdate(response.data);
     } catch (error) {
@@ -162,12 +162,13 @@ export const EditCoverPhotoModal = ({ user, onClose, onUpdate }) => {
             <Camera className="w-5 h-5" />
             <span>Edit Cover Photo</span>
           </DialogTitle>
+          <DialogDescription className="sr-only">Upload or remove your cover photo</DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           {/* Cover Photo Preview */}
           <div className="relative">
-            <div 
+            <div
               className="h-56 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-xl overflow-hidden relative"
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
@@ -177,10 +178,10 @@ export const EditCoverPhotoModal = ({ user, onClose, onUpdate }) => {
             >
               {coverPhoto ? (
                 <>
-                  <img 
+                  <img
                     ref={imageRef}
-                    src={coverPhoto} 
-                    alt="Cover preview" 
+                    src={coverPhoto}
+                    alt="Cover preview"
                     className="w-full h-full object-cover select-none"
                     style={getImageStyle()}
                     onMouseDown={handleMouseDown}
@@ -207,11 +208,10 @@ export const EditCoverPhotoModal = ({ user, onClose, onUpdate }) => {
           <div className="space-y-3">
             <div>
               <Label className="text-sm font-medium mb-2 block">Upload Photo</Label>
-              <div 
+              <div
                 onClick={() => !uploading && fileInputRef.current?.click()}
-                className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center transition-all cursor-pointer hover:border-rose-400 hover:bg-rose-50 ${
-                  uploading ? 'opacity-50 cursor-wait' : ''
-                }`}
+                className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center transition-all cursor-pointer hover:border-rose-400 hover:bg-rose-50 ${uploading ? 'opacity-50 cursor-wait' : ''
+                  }`}
               >
                 {uploading ? (
                   <>

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { MessageCircle, FileText, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { EnhancedPostModal } from "@/components/EnhancedPostModal";
@@ -163,17 +163,16 @@ export const HomePage = ({ user }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pt-16 lg:pt-32 pb-20 lg:pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 pb-20 lg:pb-12">
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Feed */}
           <div className="lg:col-span-2 space-y-3">
             {/* Stories Section */}
-            <Card className="overflow-hidden shadow-sm hover:shadow-md transition-shadow border-slate-200 bg-white">
-              <CardContent className="p-6">
-                <Stories user={user} />
-              </CardContent>
-            </Card>
+            {/* Stories Section - Compact */}
+            <div className="mb-2">
+              <Stories user={user} />
+            </div>
 
             {/* Separator */}
             <div className="border-b border-slate-300"></div>
@@ -244,6 +243,8 @@ export const HomePage = ({ user }) => {
             {/* Create Modal */}
             <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
               <DialogContent className="max-w-3xl max-h-[95vh] p-0 overflow-hidden gap-0 border-none shadow-2xl">
+                <DialogTitle className="sr-only">Create New Post</DialogTitle>
+                <DialogDescription className="sr-only">Create a new post or blog entry</DialogDescription>
                 <EnhancedPostModal onClose={() => setShowCreateModal(false)} currentUser={user} initialTab={initialTab} />
               </DialogContent>
             </Dialog>
